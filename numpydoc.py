@@ -36,7 +36,7 @@ class MoinPage():
         filename = moinfile.write_file(dumpfile)
         fid = open(dumpfile,'r')
         lines = fid.readlines()
-        return lines[5:-1] #Needs better parsing of course !!
+        return string.join(lines[5:-1],"").strip() #Needs better parsing of course !!
         
         
 
@@ -77,17 +77,33 @@ class DocModificator():
             mf.write_file('temp') # write to page
 
     def write_doc_from_wiki(self):
-        fl = filelist(base_dir)
+        fl = filelist(self.base_dir)
+        fl = [file for file in fl if file[-3:]=='.py']
+        for n,fn in self.module_names:
+            print fn
+            n_url = os.path.join(self.wiki_url, n)
+            mf = MoinPage(n_url)
+            str = mf.retrieve_docstring()
+            self.write_fndoc_from_string(fn, str, fl)
 
 
-    def write_fndoc_from_string(self,fn,string,fl):
-        fn_doc = inspect.getdoc(fn)
-        print fn_doc
-        for file in fl:
-            fid = open(file,'r')
-            st = fid.read()
-            if fn_doc in st:
+    def write_fndoc_from_string(self,fn,str,fl):
+        fndoc = fn.__doc__
+        indent_lv = indent_level(fndoc)
+        str = string.join(str.split('\n'),'\n'+string.ljust('',indent_lv))
+        sourcefile = inspect.getsourcefile(fn)
+        file_list = [fi for fi in fl if os.path.basename(sourcefile)==os.path.basename(fi)]
+        for file in file_list:
+            fid = open(file)
+            str_file = fid.read()
+            fid.close()
+            if fndoc in str_file:
                 print "trouve", file
+                fid = open(file, 'w')
+                new_st = string.replace(str_file,fn.__doc__,str)
+                fid.write(new_st)
+                fid.close()
+        
 
 
 def function_doc(n,fn):
@@ -104,7 +120,14 @@ def filelist(base_dir):
         fl += [os.path.join(root,file) for file in files]
     return fl
 
-
-
+def indent_level(docstr):
+    if not("\n" in docstr):
+        return 0
+    else:
+        st = docstr.split('\n')[-1]
+        if string.find(st, st.lstrip()):
+            return string.find(st, st.lstrip()) 
+        else:
+            return len(st)
 
 # vim:et:ts=4:sw=4
