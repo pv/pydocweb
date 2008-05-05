@@ -8,6 +8,7 @@ import numpy
 import editmoin
 import os
 import string
+from StringIO import StringIO
 
 class MoinPage():
 
@@ -30,16 +31,12 @@ class MoinPage():
         template = None
         urlopener = editmoin.get_urlopener(self.url, id)
         moinfile = editmoin.fetchfile(urlopener, self.url, id, template)
-        geturl = self.url+"?action=edit"
-        filename, headers = urlopener.retrieve(geturl)
-        mf = editmoin.MoinFile(filename, id)
-        dumpfile = "coucou"
-        filename = moinfile.write_file(dumpfile)
-        fid = open(dumpfile,'r')
-        lines = fid.readlines()
+        dump = StringIO()
+        moinfile.write_file(dump)
+        dump.seek(0)
+        lines = dump.readlines()
         return string.join(lines[5:-1],"").strip() #Needs better parsing of course !!
-        
-        
+
 
 class DocModificator():
 
