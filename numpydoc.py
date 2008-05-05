@@ -1,13 +1,15 @@
+#!/usr/bin/env python
+
 """
 This programs allows you to generate the numpy documentation wiki
 """
 
 
 import inspect
-import numpy
 import editmoin
-import os
+import os, sys
 import string
+from optparse import make_option, OptionParser
 
 class MoinPage():
 
@@ -50,11 +52,13 @@ class DocModificator():
         - base_module_dir: directory where the module files are stored 
         (could be a bzr branch e.g.)
         """
-        if base_module_dir == None:
-            base_module_dir = 'numpy'
+        sys.path.append('')
+        #if base_module_dir == None:
+         #   base_module_dir = 'numpy'
         self.module = __import__(base_module_dir)
         self.wiki_url = wiki_url
         self. base_dir = base_module_dir
+        self.get_docs()
 
     def get_docs(self):
         """Returns a list of functions to be documented
@@ -85,7 +89,6 @@ class DocModificator():
         for n,fn in self.module_names:
             n_url = os.path.join(self.wiki_url, n)
             print n_url
-            print fn
             fn_doc = function_doc(n,fn)
             mf = MoinPage(n_url)
             # Another temporary file
@@ -102,42 +105,25 @@ class DocModificator():
         in the wiki, and calls the function self.write_fndoc_from_string to search for 
         the file where to replace the docstring, and replace the docstring. 
         """
-        #fl = filelist(self.base_dir)
-        # Keeps only .py extensions
-        #fl = [file for file in fl if file[-3:]=='.py']
         for n,fn in self.module_names: 
-            if n=='size':
-                print fn
-                n_url = os.path.join(self.wiki_url, n) #url of the wiki page
-                mf = MoinPage(n_url)
-                #try:
-                str = mf.retrieve_docstring()
-                self.write_fndoc_from_string(fn, str)
-            #except:
-            #    print "wiki page does not exist yet!"
+            n_url = os.path.join(self.wiki_url, n) #url of the wiki page
+            mf = MoinPage(n_url)
+            str = mf.retrieve_docstring()
+            self.write_fndoc_from_string(fn, str)
 
     def write_fndoc_from_string(self,fn,str):
         """
             
         """
-        # List of files where we search for the doc string
-        #fl = filelist(self.base_dir)
-        # Keeps only .py extensions
-        #fl = [file for file in fl if file[-3:]=='.py']
         fndoc = fn.__doc__
         indent_lv = indent_level(fndoc)
-        # Transforms the string to have the correct indentation level
-        sourcefile = inspect.getsourcefile(fn)
-        # shortlist files in the directory that may contain the docstring 
-        # to be replaced
-        #file_list = [fi for fi in fl if os.path.basename(sourcefile)==os.path.basename(fi)]
-        #for file in file_list:
+        sourcefile = inspect.getabsfile(fn)
+        print fn, sourcefile
         fid = open(sourcefile)
         str_file = fid.read()
         fid.close()
         if fndoc in str_file:
             str = string.join(str.split('\n'),'\n'+string.ljust('',indent_lv))
-            print "got it!", sourcefile
             fid = open(sourcefile, 'w')
             new_st = string.replace(str_file, fndoc, str)
             fid.write(new_st)
@@ -176,5 +162,25 @@ def indent_level(docstr):
             return string.find(st, st.lstrip()) 
         else:
             return len(st)
+
+
+def main():
+    parser = OptionParser()
+    parser.add_option("-w", "--wiki", dest="url",
+                  help = "write doc and fetch doc from the wiki at WIKI_URL ", metavar="WIKI_URL")
+    parser.add_option("-d", "--dir", dest="dir",
+                help = "write doc and fetch doc from the module locate in the directory DIR", metavar="DIR")
+    parser.add_option("--doctowiki", action="store_true", dest="write_doc_to_wiki", default=False)
+    parser.add_option("--docfromwiki", action="store_true", dest="write_doc_from_wiki", default=False)
+    (options, args) = parser.parse_args()   
+    dm = DocModificator(options.url, options.dir)
+    if options.write_doc_to_wiki:
+        dm.write_doc_to_wiki()
+    if options.write_doc_from_wiki:
+        dm.write_doc_from_wiki()
+
+if __name__ == "__main__":
+    main()
+
 
 # vim:et:ts=4:sw=4
