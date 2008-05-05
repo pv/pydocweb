@@ -53,12 +53,12 @@ class DocModificator():
 
     def get_docs(self):
         """Returns a list of functions to be documented
-            
+
         Uses utilities from module inspect.
         """
-        self.module_names = [name for name in inspect.getmembers(self.module) if \
-        (callable(name[1]) and (inspect.getdoc(name[1]) is not None) \
-        and inspect.isfunction(name[1]))]
+        self.module_names = [name,func for name,func in \
+                             inspect.getmembers(self.module) if \
+                             callable(func) and inspect.getdoc(func)]
 
     def write_doc_to_wiki(self):
         """Writes wiki pages from the module's documentation
