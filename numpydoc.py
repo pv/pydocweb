@@ -56,7 +56,7 @@ class DocModificator():
 
         Uses utilities from module inspect.
         """
-        self.module_names = [name,func for name,func in \
+        self.module_names = [(name,func) for name,func in \
                              inspect.getmembers(self.module) if \
                              callable(func) and inspect.getdoc(func)]
 
