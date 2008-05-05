@@ -51,7 +51,7 @@ class DocModificator():
         self.wiki_url = wiki_url
         self. base_dir = base_module_dir
 
-    def get_docs(self):
+    def _get_funcs(self):
         """Returns a list of functions to be documented
 
         Uses utilities from module inspect.
@@ -60,12 +60,14 @@ class DocModificator():
                              inspect.getmembers(self.module) if \
                              callable(func) and inspect.getdoc(func)]
 
-    def write_doc_to_wiki(self):
+    def upload_to_wiki(self):
         """Writes wiki pages from the module's documentation
 
         Writes a front page with a list of all function, linking to individual 
         wiki pages with the documentation for each function. Uses the class MoinPage. 
         """
+        self._get_docs()
+
         mfp = MoinPage(self.wiki_url)
         # Open temporary file for storing information. 
         # This is a hack to reuse code in editmoin 
@@ -89,14 +91,16 @@ class DocModificator():
             file.close()
             mf.write_file('temp') # write to page
 
-    def write_doc_from_wiki(self):
-        """Writes doc from a wiki to files in a directory, replacing the old 
+    def download_from_wiki(self):
+        """Grab docs from a wiki to files in a directory, replacing the old 
         docstrings by the new docstrings from the wiki
             
         Loops over functions in the module, retrieves doc from the corresponding page
         in the wiki, and calls the function self.write_fndoc_from_string to search for 
         the file where to replace the docstring, and replace the docstring. 
         """
+        self._get_funcs()
+
         #fl = filelist(self.base_dir)
         # Keeps only .py extensions
         #fl = [file for file in fl if file[-3:]=='.py']
