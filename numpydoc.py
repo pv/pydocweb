@@ -43,15 +43,13 @@ class MoinPage():
 
 class DocModificator():
 
-    def __init__(self, wiki_url = None, base_module_dir = None):
+    def __init__(self, wiki_url=None, base_module_dir='numpy'):
         """Creates doc modificator object from
         - wiki_url: url address of the wiki where the doc is to be exposed, 
         and possibly modified by users
         - base_module_dir: directory where the module files are stored 
         (could be a bzr branch e.g.)
         """
-        if base_module_dir == None:
-            base_module_dir = 'numpy'
         self.module = __import__(base_module_dir)
         self.wiki_url = wiki_url
         self. base_dir = base_module_dir
