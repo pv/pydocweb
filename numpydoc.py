@@ -9,6 +9,7 @@ import editmoin
 import os
 import string
 import sys
+import types
 from StringIO import StringIO
 
 class MoinPage():
@@ -60,7 +61,9 @@ class DocModificator():
         """
         self.module_names = [(name,func) for name,func in \
                              inspect.getmembers(self.module) if \
-                             callable(func) and inspect.getdoc(func)]
+                             callable(func) and inspect.getdoc(func) and \
+                             (isinstance(func,types.FunctionType) or
+                              isinstance(func,self.module.ufunc))]
 
     def upload_to_wiki(self):
         """Writes wiki pages from the module's documentation
@@ -78,13 +81,13 @@ class DocModificator():
         for n in self.module_names:
             file.write(' 1. [:/%s:%s]\n' % (n[0],n[0]))
         file.close()
+        print "Uploading index file..."
         mfp.write_file('numpy_list')
 
         # Generate a page for each function
         for n,fn in self.module_names:
             n_url = os.path.join(self.wiki_url, n)
-            print n_url
-            print fn
+            print "Generating %s..." % n_url
             fn_doc = function_doc(n,fn)
             mf = MoinPage(n_url)
             # Another temporary file
@@ -151,14 +154,18 @@ def function_doc(n,fn):
     - the name of the function 
     - the signature of the function (arguments)
     - the docstring
-    
+
     This string is meant to be directly fed to a wiki page.
     """
     n_doc = inspect.getdoc(fn) # doc
-    argspec = inspect.getargspec(fn) # arguments
-    args = inspect.formatargspec(*argspec)
-    doc_str = "== %s ==\n"%n + "{{{\n#!rst\n"+'**%s** '%(n)+args+'\n\n'+ \
-        inspect.getdoc(fn) + "\n}}}\n"
+    try:
+        argspec = inspect.getargspec(fn) # arguments
+        args = inspect.formatargspec(*argspec)
+    except TypeError:
+        args = '(x)'
+
+    doc_str = "== %s ==\n{{{\n#!rst\n**%s** %s\n\n%s\n}}}\n" % \
+            (n,n,args,inspect.getdoc(fn))
     return doc_str
 
 
