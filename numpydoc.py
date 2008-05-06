@@ -8,6 +8,7 @@ import numpy
 import editmoin
 import os
 import string
+import sys
 from StringIO import StringIO
 
 class MoinPage():
@@ -47,9 +48,10 @@ class DocModificator():
         - base_module_dir: directory where the module files are stored 
         (could be a bzr branch e.g.)
         """
-        self.module = __import__(base_module_dir)
+        self.base_dir = os.path.dirname(base_module_dir)
+        sys.path.insert(0,self.base_dir)
+        self.module = __import__(os.path.basename(base_module_dir))
         self.wiki_url = wiki_url
-        self. base_dir = base_module_dir
 
     def _get_funcs(self):
         """Returns a list of functions to be documented
@@ -66,7 +68,7 @@ class DocModificator():
         Writes a front page with a list of all function, linking to individual 
         wiki pages with the documentation for each function. Uses the class MoinPage. 
         """
-        self._get_docs()
+        self._get_funcs()
 
         mfp = MoinPage(self.wiki_url)
         # Open temporary file for storing information. 
