@@ -1,0 +1,11 @@
+
+Short term
+----------
+- How do we know when we need to add new entries to numpy.add_newdocs?
+
+Longer term
+-----------
+- Fetch author information from Moin history.
+- Fetch multiple page revisions from Moin history on moin-collect-local,
+  and figure out how to pass it on to bzr.
+- Maybe we want to get docstrings via an AST parser to avoid?
