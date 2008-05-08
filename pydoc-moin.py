@@ -249,20 +249,18 @@ def cmd_list(args):
     list_xml(doc.root)
 
 def cmd_moin_collect_local(args):
-    """moin-collect-local CONFDIR URL > docs.xml
+    """moin-collect-local CONFDIR > docs.xml
 
     Collect documentation from locally running MoinMoin wiki.
 
     CONFDIR is the directory where MoinMoin's config files are.
-    URL is any URL in the target wiki (determines which wiki to use
-    in the wiki farm).
     """
     options_list = [
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
                     help="prefix for the wiki pages (default: Docstrings)")
     ]
-    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, outfile=True, nargs=2)
-    dest, url = args
+    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, outfile=True, nargs=1)
+    dest, = args
 
     sys.path.append(dest)
     from MoinMoin.Page import Page
@@ -271,7 +269,7 @@ def cmd_moin_collect_local(args):
     from MoinMoin.user import User
     from MoinMoin.wikiutil import quoteWikinameFS, unquoteWikiname
  
-    request = RequestCLI(url=url)
+    request = RequestCLI()
     request.user = User(request=request, auth_username='PyDocMoin')
     request.form = {}
     
@@ -313,12 +311,10 @@ def cmd_moin_collect_local(args):
     doc.dump(opts.outfile)
  
 def cmd_moin_upload_local(args):
-    """moin-upload-local CONFDIR URL < docs.xml
+    """moin-upload-local CONFDIR < docs.xml
 
     Upload documents to MoinMoin running on local machine, as current user.
     CONFDIR is the directory where MoinMoin's config files are.
-    URL is any URL in the target wiki (determines which wiki to use
-    in the wiki farm).
 
     This will:
       - Put pages that have never been modified to the underlay
@@ -330,8 +326,8 @@ def cmd_moin_upload_local(args):
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
                     help="prefix for the wiki pages (default: Docstrings)")
     ]
-    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, nargs=2)
-    dest, url = args
+    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, nargs=1)
+    dest, = args
 
     opts.prefix = os.path.basename(opts.prefix)
 
@@ -341,8 +337,9 @@ def cmd_moin_upload_local(args):
     from MoinMoin.request import RequestCLI
     from MoinMoin.user import User
     from MoinMoin.wikiutil import quoteWikinameFS, unquoteWikiname
- 
-    request = RequestCLI(url=url)
+    
+    # XXX: moin could use the url parameter to choose a wiki in a farm
+    request = RequestCLI()
     request.user = User(request=request, auth_username='PyDocMoin')
     request.form = {}
     
