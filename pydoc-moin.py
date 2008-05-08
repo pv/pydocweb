@@ -34,7 +34,7 @@ Bidirectional conversion of ReST-formatted docstrings and Moinmoin wiki pages.
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
-import os, shutil, copy, glob
+import os, shutil, copy, glob, subprocess
 import sys, cgi, math, pkgutil, cPickle as pickle
 import inspect, imp, textwrap, re, pydoc, compiler, difflib
 from optparse import make_option, OptionParser
@@ -302,7 +302,7 @@ def cmd_moin_collect_local(args):
                 name = line[19:].strip()
             elif line.startswith('.. END DOCSTRING') and name:
                 el = etree.SubElement(doc.root, 'object', {'id': name})
-                el.text = doc._xml_encode_text("\n".join(docstring))
+                el.text = escape_text("\n".join(docstring))
                 name = None
                 docstring = []
             elif name:
@@ -492,55 +492,56 @@ def cmd_numpy_docs(args):
             print >> sys.stderr, "%s: unknown object" % name
     doc.dump(opts.outfile)
 
-def cmd_patch(args):
-    """patch OLD.XML NEW.XML > patch
-
-    Generate a patch that updates docstrings in the source files
-    corresponding to OLD.XML to the docstrings in NEW.XML
-    """
-    opts, args, p = _default_optparse(cmd_patch, args, outfile=True,
-                                      syspath=True, nargs=2)
-
-    doc_old = Documentation.load(open(args[0], 'r'))
-    doc_new = Documentation.load(open(args[1], 'r'))
-
-    old_sources = {}
-    new_sources = {}
-
-    # -- Generate patched sources
-
-    def source_lines(source):
-        return [x + "\n" for x in source.split("\n")]
-  
-    for new_el in doc_new.root.getchildren():
-        el = doc_old.resolve(new_el.get('id'))
-        if el is None or el.tag not in ('callable', 'class', 'module'): continue
-
+class SourceReplacer(object):
+    def __init__(self, doc_old, doc_new):
+        self.doc_old = doc_old
+        self.doc_new = doc_new
+        
+        self.old_sources = {}
+        self.new_sources = {}
+    
+    def replace(self, new_id):
+        """
+        Replace a docstring for given canonical name in doc_new.
+        
+        Returns
+        -------
+        touched_file : {str, None}
+            The file touched, or None if nothing was done.
+        
+        """
+        new_el = self.doc_new.get(new_id)
+        el = self.doc_old.resolve(new_id)
+        if new_el is None:
+            return None
+        if el is None or el.tag not in ('callable', 'class', 'module'):
+            return None
+        
         if el.text is None:
             el.text = ""
         old_doc = el.text.decode('string-escape')
         if new_el.text is None:
             new_el.text = ""
         new_doc = new_el.text.decode('string-escape')
-
+        
         if old_doc.strip() == new_doc.strip():
-            continue
-
+            return None
+        
         if 'file' not in el.attrib or 'line' not in el.attrib:
             file = "/tmp/unknown-file-%s.py" % el.get('id')
             line = 0
             src = "def %s():\n\"\"\"%s\n\"\"\"\n" % (el.get('id'), old_doc)
-            old_sources[file] = source_lines(src)
-            new_sources[file] = list(old_sources[file])
+            self.old_sources[file] = split_lines(src)
+            self.new_sources[file] = list(self.old_sources[file])
         else:
             file, line = el.get('file'), int(el.get('line'))
 
-        if file not in old_sources:
-            old_sources[file] = source_lines(open(file, 'r').read())
-            new_sources[file] = list(old_sources[file])
+        if file not in self.old_sources:
+            self.old_sources[file] = split_lines(open(file, 'r').read())
+            self.new_sources[file] = list(self.old_sources[file])
 
-        lines = old_sources[file]
-        new_lines = new_sources[file]
+        lines = self.old_sources[file]
+        new_lines = self.new_sources[file]
 
         # Locate start and end lines exactly in the old doc
         start_line = line
@@ -561,17 +562,20 @@ def cmd_patch(args):
             post_stuff = lines[end_line][lines[end_line].index('"""')+3:]
             indent = " "*lines[start_line].index('"""')
         else:
-            # XXX: doesn't work like this, we only know the location of the 'def' or 'class' line
-            #      we would need AST parsing to find the first statement, before which the docstring
-            #      could be inserted
-            if line == 0: line = 1
+            # XXX: doesn't work like this, we only know the location
+            # of the 'def' or 'class' line we would need AST parsing
+            # to find the first statement, before which the docstring
+            # could be inserted
+            if line == 0:
+                line = 1
             start_line  = line - 1
             end_line = line - 0
-            indent = " "*(4 + len(lines[start_line]) - len(lines[start_line].lstrip()))
+            indent = " "*(4 + len(lines[start_line])
+                          - len(lines[start_line].lstrip()))
             pre_stuff = lines[start_line] + indent
             post_stuff = "\n" + lines[end_line]
 
-        new_doc = new_doc.strip()
+        new_doc = escape_text(new_doc.strip())
 
         if '\n' not in new_doc:
             fmt_doc = '"""%s"""' % new_doc
@@ -585,19 +589,46 @@ def cmd_patch(args):
         new_lines[start_line] = pre_stuff + fmt_doc
         new_lines[end_line] = post_stuff
 
+        return file
+    
+def split_lines(line):
+    return [x + "\n" for x in line.split("\n")]
+    
+def strip_sys_path(fn):
+    """
+    If a file is in sys.path, strip the prefix.
+    """
+    fn = os.path.realpath(fn)
+    for pth in sys.path:
+        pth = os.path.realpath(pth)
+        if fn.startswith(pth + os.path.sep):
+            return fn[len(pth)+1:]
+    return fn
+
+def cmd_patch(args):
+    """patch OLD.XML NEW.XML > patch
+
+    Generate a patch that updates docstrings in the source files
+    corresponding to OLD.XML to the docstrings in NEW.XML
+    """
+    opts, args, p = _default_optparse(cmd_patch, args, outfile=True,
+                                      syspath=True, nargs=2)
+
+    # -- Generate differences
+
+    doc_old = Documentation.load(open(args[0], 'r'))
+    doc_new = Documentation.load(open(args[1], 'r'))
+
+    replacer = SourceReplacer(doc_old, doc_new)
+
+    for new_el in doc_new.root.getchildren():
+        replacer.replace(new_el.get('id'))
+
     # -- Output patches
 
-    def strip_sys_path(fn):
-        fn = os.path.realpath(fn)
-        for pth in sys.path:
-            pth = os.path.realpath(pth)
-            if fn.startswith(pth + os.path.sep):
-                return fn[len(pth)+1:]
-        return fn
-
-    for file in old_sources.iterkeys():
-        old_src = source_lines("".join(old_sources[file]))
-        new_src = source_lines("".join(new_sources[file]))
+    for file in replacer.old_sources.iterkeys():
+        old_src = split_lines("".join(replacer.old_sources[file]))
+        new_src = split_lines("".join(replacer.new_sources[file]))
 
         fn = strip_sys_path(file)
 
@@ -605,9 +636,62 @@ def cmd_patch(args):
         for line in diff:
             opts.outfile.write(line)
 
+def cmd_bzr(args):
+    """bzr OLD.XML NEW.XML PATH
+    
+    Commit changes to bzr checkout in a given PATH, one commit per
+    docstring. The code for the module is assumed to be in PATH/modulename
+    
+    IMPORTANT NOTE:
+    
+        OLD.XML must be generated by pydoc-moin collect from a compiled
+        version of the sources in PATH, otherwise the sources in PATH
+        will be overwritten by old files.
+    
+    """
+    opt_list = [
+        make_option("--author", action="store", type=str, dest="author",
+                    default="pydoc-moin", help="author to commit as bzr log"),
+        make_option("-m", "--message", action="store", type=str, dest="message",
+                    default="Updated %s docstring from wiki",
+                    help="template for commit message. %s is replaced by docstring name"),
+    ]
+    opts, args, p = _default_optparse(cmd_bzr, args, opt_list, outfile=True,
+                                      syspath=True, nargs=3)
+    old_fn, new_fn, path = args
+
+    doc_old = Documentation.load(open(old_fn, 'r'))
+    doc_new = Documentation.load(open(new_fn, 'r'))
+
+    replacer = SourceReplacer(doc_old, doc_new)
+
+    os.chdir(path)
+
+    for new_el in doc_new.root.getchildren():
+        fn = replacer.replace(new_el.get('id'))
+        if fn is None:
+            # nothing to do
+            continue
+        
+        relative_fn = strip_sys_path(fn)
+
+        if os.path.abspath(relative_fn) == fn:
+            print >> sys.stderr, "Don't know where to find file", fn
+            continue
+
+        f = open(relative_fn, 'w')
+        f.write("".join(replacer.new_sources[fn]))
+        f.close()
+
+        print "EDIT", new_el.get('id')
+        subprocess.call(["bzr", "commit", "--author=%s" % opts.author,
+                         "--message=%s" % (opts.message % new_el.get('id')),
+                         relative_fn])
+    
+
 COMMANDS = [cmd_collect, cmd_moin_upload_local, cmd_moin_upload_underlay,
             cmd_mangle, cmd_prune, cmd_list, cmd_moin_collect_local, cmd_patch,
-            cmd_numpy_docs]
+            cmd_numpy_docs, cmd_bzr]
 
 
 #------------------------------------------------------------------------------
@@ -1030,7 +1114,7 @@ class Documentation(object):
         entry = self._basic_entry('object', obj, parent, name)
         if not entry.text:
             entry.attrib['is-repr'] = '1'
-            entry.text = self._xml_encode_text(repr(obj))
+            entry.text = escape_text(repr(obj))
         return entry
 
     def _basic_entry(self, cls, obj, parent, name):
@@ -1046,7 +1130,7 @@ class Documentation(object):
         else: 
             classdoc = None
         if doc != classdoc and doc is not None:
-            entry.text = self._xml_encode_text(doc)
+            entry.text = escape_text(doc)
         else:
             entry.text = ""
 
@@ -1097,10 +1181,6 @@ class Documentation(object):
         try: return id(obj.im_func)
         except: return id(obj)
 
-    def _xml_encode_text(self, text):
-        text = text.encode('string-escape')
-        return re.sub(r"(?<!\\)\\n", "\n", text)
-
     def _get_source_info(self, obj, parent):
         """Get information about object source code"""
         try: return obj.func_code.co_filename, obj.func_code.co_firstlineno
@@ -1117,6 +1197,12 @@ class Documentation(object):
         except AttributeError: pass
 
         return parent.attrib.get('source', None), None
+
+
+def escape_text(text):
+    """Escape text so that it can be included within double quotes or XML"""
+    text = text.encode('string-escape')
+    return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)\\n", "\n", text))
 
 
 #------------------------------------------------------------------------------
