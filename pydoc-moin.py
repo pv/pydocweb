@@ -726,16 +726,16 @@ class MoinFormatter(object):
         else:
             return ""
     
-    def title(self, el, titlechar="="):
+    def title(self, el, titlechar="=", typename=""):
         if el.tag == 'module':
             title = el.attrib['id']
         else:
             title = el.attrib['id'].split('.')[-1]
         argspec = el.attrib.get('argspec')
         if argspec:
-            full_title = title + argspec
+            full_title = typename + title + argspec
         else:
-            full_title = title
+            full_title = typename + title
         t = ""
         t += "[[Anchor(%s)]]\n%s %s %s\n" % (title, titlechar, full_title, titlechar)
         t += "\n"
@@ -818,7 +818,7 @@ class MoinFormatter(object):
     
     def fmt_class(self, el, titlechar="="):
         t = ""
-        t += self.title(el, titlechar)
+        t += self.title(el, titlechar, "class ")
     
     
         bases = [self.partlink(x.attrib['ref'])
