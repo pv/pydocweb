@@ -141,11 +141,20 @@ class MoinFile:
     def has_editor(self):
         return (EDITORRE.search(self.data) is not None)
 
-    def write_file(self, filename):
-        file = open(filename, "w")
+    def write_file(self, file_or_name):
+        if hasattr(file_or_name,'write'):
+            file = file_or_name
+            close_after_use = False
+        else:
+            file = open(filename, "w")
+            close_after_use = True
+
         file.write(self._unescape(self.body))
-        file.close()
-        return filename
+
+        if close_after_use:
+            file.close()
+
+        return file_or_name
 
 
     def write_raw(self):

@@ -6,9 +6,13 @@ This programs allows you to generate the numpy documentation wiki
 
 
 import inspect
+import numpy
 import editmoin
-import os, sys
+import os
 import string
+import sys
+import types
+from StringIO import StringIO
 from optparse import make_option, OptionParser
 
 class MoinPage():
@@ -26,55 +30,56 @@ class MoinPage():
         mf = editmoin.MoinFile(filename, id)
         mf.read_raw(sourcefile)
         editmoin.sendfile(urlopener, self.url, mf)
-        editmoin.sendcancel(urlopener, self.url, mf)
+        #editmoin.sendcancel(urlopener, self.url, mf)
 
     def retrieve_docstring(self):
         template = None
         urlopener = editmoin.get_urlopener(self.url, id)
         moinfile = editmoin.fetchfile(urlopener, self.url, id, template)
-        geturl = self.url+"?action=edit"
-        filename, headers = urlopener.retrieve(geturl)
-        mf = editmoin.MoinFile(filename, id)
-        dumpfile = "coucou"
-        filename = moinfile.write_file(dumpfile)
-        fid = open(dumpfile,'r')
-        lines = fid.readlines()
+        dump = StringIO()
+        moinfile.write_file(dump)
+        dump.seek(0)
+        lines = dump.readlines()
         return string.join(lines[5:-1],"").strip() #Needs better parsing of course !!
-        
-        
+
 
 class DocModificator():
 
-    def __init__(self, wiki_url = None, base_module_dir = None):
+    def __init__(self, wiki_url=None, base_module_dir='numpy'):
         """Creates doc modificator object from
         - wiki_url: url address of the wiki where the doc is to be exposed, 
         and possibly modified by users
         - base_module_dir: directory where the module files are stored 
         (could be a bzr branch e.g.)
         """
+        print base_module_dir
         sys.path.append('')
-        #if base_module_dir == None:
-         #   base_module_dir = 'numpy'
+        self.base_dir = os.path.dirname(base_module_dir)
+        sys.path.insert(0,self.base_dir)
         self.module = __import__(base_module_dir)
+        #self.module = __import__(os.path.basename(base_module_dir))
+        print self.module
         self.wiki_url = wiki_url
-        self. base_dir = base_module_dir
-        self.get_docs()
 
-    def get_docs(self):
+    def _get_funcs(self):
         """Returns a list of functions to be documented
-            
+
         Uses utilities from module inspect.
         """
-        self.module_names = [name for name in inspect.getmembers(self.module) if \
-        (callable(name[1]) and (inspect.getdoc(name[1]) is not None) \
-        and inspect.isfunction(name[1]))]
+        self.module_names = [(name,func) for name,func in \
+                             inspect.getmembers(self.module) if \
+                             callable(func) and inspect.getdoc(func) and \
+                             (isinstance(func,types.FunctionType) or
+                              isinstance(func,self.module.ufunc))]
 
-    def write_doc_to_wiki(self):
+    def upload_to_wiki(self):
         """Writes wiki pages from the module's documentation
 
         Writes a front page with a list of all function, linking to individual 
         wiki pages with the documentation for each function. Uses the class MoinPage. 
         """
+        self._get_funcs()
+
         mfp = MoinPage(self.wiki_url)
         # Open temporary file for storing information. 
         # This is a hack to reuse code in editmoin 
@@ -83,12 +88,13 @@ class DocModificator():
         for n in self.module_names:
             file.write(' 1. [:/%s:%s]\n' % (n[0],n[0]))
         file.close()
+        print "Uploading index file..."
         mfp.write_file('numpy_list')
 
         # Generate a page for each function
         for n,fn in self.module_names:
             n_url = os.path.join(self.wiki_url, n)
-            print n_url
+            print "Generating %s..." % n_url
             fn_doc = function_doc(n,fn)
             mf = MoinPage(n_url)
             # Another temporary file
@@ -97,19 +103,29 @@ class DocModificator():
             file.close()
             mf.write_file('temp') # write to page
 
-    def write_doc_from_wiki(self):
-        """Writes doc from a wiki to files in a directory, replacing the old 
+    def download_from_wiki(self):
+        """Grab docs from a wiki to files in a directory, replacing the old 
         docstrings by the new docstrings from the wiki
             
         Loops over functions in the module, retrieves doc from the corresponding page
         in the wiki, and calls the function self.write_fndoc_from_string to search for 
         the file where to replace the docstring, and replace the docstring. 
         """
+        self._get_funcs()
+
+        #fl = filelist(self.base_dir)
+        # Keeps only .py extensions
+        #fl = [file for file in fl if file[-3:]=='.py']
         for n,fn in self.module_names: 
-            n_url = os.path.join(self.wiki_url, n) #url of the wiki page
-            mf = MoinPage(n_url)
-            str = mf.retrieve_docstring()
-            self.write_fndoc_from_string(fn, str)
+            if n=='size':
+                print fn
+                n_url = os.path.join(self.wiki_url, n) #url of the wiki page
+                mf = MoinPage(n_url)
+                #try:
+                str = mf.retrieve_docstring()
+                self.write_fndoc_from_string(fn, str)
+            #except:
+            #    print "wiki page does not exist yet!"
 
     def write_fndoc_from_string(self,fn,str):
         """
@@ -118,7 +134,6 @@ class DocModificator():
         fndoc = fn.__doc__
         indent_lv = indent_level(fndoc)
         sourcefile = inspect.getabsfile(fn)
-        print fn, sourcefile
         fid = open(sourcefile)
         str_file = fid.read()
         fid.close()
@@ -136,14 +151,18 @@ def function_doc(n,fn):
     - the name of the function 
     - the signature of the function (arguments)
     - the docstring
-    
+
     This string is meant to be directly fed to a wiki page.
     """
     n_doc = inspect.getdoc(fn) # doc
-    argspec = inspect.getargspec(fn) # arguments
-    args = inspect.formatargspec(*argspec)
-    doc_str = "== %s ==\n"%n + "{{{\n#!rst\n"+'**%s** '%(n)+args+'\n\n'+ \
-        inspect.getdoc(fn) + "\n}}}\n"
+    try:
+        argspec = inspect.getargspec(fn) # arguments
+        args = inspect.formatargspec(*argspec)
+    except TypeError:
+        args = '(x)'
+
+    doc_str = "== %s ==\n{{{\n#!rst\n**%s** %s\n\n%s\n}}}\n" % \
+            (n,n,args,inspect.getdoc(fn))
     return doc_str
 
 
@@ -163,21 +182,21 @@ def indent_level(docstr):
         else:
             return len(st)
 
-
 def main():
     parser = OptionParser()
     parser.add_option("-w", "--wiki", dest="url",
                   help = "write doc and fetch doc from the wiki at WIKI_URL ", metavar="WIKI_URL")
-    parser.add_option("-d", "--dir", dest="dir",
+    parser.add_option("-D", "--dir", dest="dir",
                 help = "write doc and fetch doc from the module locate in the directory DIR", metavar="DIR")
-    parser.add_option("--doctowiki", action="store_true", dest="write_doc_to_wiki", default=False)
-    parser.add_option("--docfromwiki", action="store_true", dest="write_doc_from_wiki", default=False)
-    (options, args) = parser.parse_args()   
-    dm = DocModificator(options.url, options.dir)
-    if options.write_doc_to_wiki:
-        dm.write_doc_to_wiki()
-    if options.write_doc_from_wiki:
-        dm.write_doc_from_wiki()
+    parser.add_option("-u", "--uploadtowiki", action="store_true", dest="upload_to_wiki", default=False)
+    parser.add_option("-d", "--downloadfromwiki", action="store_true", dest="download_from_wiki", default=False)
+    (options, args) = parser.parse_args()
+    print options
+    dm = DocModificator(wiki_url = options.url, base_module_dir = options.dir)
+    if options.upload_to_wiki:
+        dm.upload_to_wiki()
+    if options.download_from_wiki:
+        dm.download_from_wiki()
 
 if __name__ == "__main__":
     main()
