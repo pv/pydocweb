@@ -754,11 +754,6 @@ class MoinFormatter(object):
             t += "(from %s) " % self.partlink(real_from)
         return t
     
-    def additional_docs(self, el):
-        t = ""
-        t += "\n[[Include(%s/Extra Documentation)]]" % self.target(el.attrib['id'])
-        return t
-    
     def child_list(self, el, child_tag, title, titlechar="=", always_ref=False):
         t = ""
         els = self.doc.get_targets(el.findall('ref'))
@@ -813,7 +808,6 @@ class MoinFormatter(object):
         t += self.title(el, titlechar)
         t += self.docstring(el)
         t += "\n"
-        t += self.additional_docs(el)
     
         ## 
         t += self.child_list(el, 'module', 'Modules', always_ref=True)
@@ -834,7 +828,6 @@ class MoinFormatter(object):
     
         t += self.docstring(el)
         t += "\n"
-        t += self.additional_docs(el)
     
         ## 
     
@@ -848,7 +841,6 @@ class MoinFormatter(object):
         t += self.title(el, titlechar)
         t += self.docstring(el)
         t += "[[Action(edit)]]\n"
-        t += self.additional_docs(el)
         return t
     
     def fmt_object(self, el, titlechar="=="):
@@ -861,7 +853,6 @@ class MoinFormatter(object):
         else:
             t += self.docstring(el)
         t += "[[Action(edit)]]\n"
-        t += self.additional_docs(el)
         return t
     
     def format(self, el):
