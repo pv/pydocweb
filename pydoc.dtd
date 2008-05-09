@@ -1,4 +1,5 @@
 <!ELEMENT pydoc (module|class|callable|object)*>
+<!ATTLIST pydoc modules CDATA #REQUIRED>
 
 <!ELEMENT module (#PCDATA|ref)*>
 <!ATTLIST module id ID #REQUIRED>

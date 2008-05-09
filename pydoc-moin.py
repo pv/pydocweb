@@ -967,6 +967,11 @@ class Documentation(object):
         self._visit(mod, self.root, None)
         self.recache()
 
+	if 'modules' in self.root.attrib:
+            self.root.attrib['modules'] = module_name
+        else:
+            self.root.attrib['modules'] += " "  + module_name
+
     def resolve(self, name):
         """Return element with given *non*-canonical name, or None if not found"""
         el = self.get(name)
