@@ -810,8 +810,8 @@ class MoinFormatter(object):
         ## 
         t += self.child_list(el, 'module', 'Modules', always_ref=True)
         t += self.child_list(el, 'class', 'Classes', always_ref=True)
-        t += self.child_list(el, 'callable', 'Functions', always_ref=False)
-        t += self.child_list(el, 'object', 'Objects', always_ref=False)
+        t += self.child_list(el, 'callable', 'Functions', always_ref=True)
+        t += self.child_list(el, 'object', 'Objects', always_ref=True)
         return t
     
     def fmt_class(self, el, titlechar="="):

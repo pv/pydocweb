@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-WIKI_CONF = "/etc/moin"
-PREFIX = "/Docstrings"
+WIKI_CONF = "/home/moinwiki/NumpyDocWiki"
+PREFIX = "Docstrings"
 REPO_DIR = "numpy"
 MODULE = "numpy"
 
@@ -37,7 +37,7 @@ def main():
               '-i', BASEXML, WIKI_CONF])
     print "All done."
     print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
-           "a new base.xml there.")
+           "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
 
 def exec_cmd(cmd, ok_return_value=0, show_cmd=True, **kw):
     """
