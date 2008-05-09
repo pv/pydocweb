@@ -372,6 +372,10 @@ def cmd_moin_upload_local(args):
                 print "EDIT", page_name
         _moin_upload_underlay_page(underlay_dir, page_name, page_text)
 
+        # Upload a sample discussion page
+        _moin_upload_underlay_page(underlay_dir, page_name + "/Discussion",
+            "= Discussion =\n\n[[Action(edit)]]\n")
+
     # XXX: leave deleting pages for the site maintainers to do manually.
     #      It's too unsafe to do here.
 
@@ -401,42 +405,7 @@ def cmd_moin_upload_remote(args):
         file.close()
         mf.write_file('temp')
 
-
-def cmd_moin_upload_underlay(args):
-    """moin-upload-underlay OUTPUTDIR < docs.xml
-
-    Create or update entries in a MoinMoin underlay directory.
-    """
-    options_list = [
-        make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
-                    help="prefix for the wiki pages (default: Docstrings)")
-    ]
-    opts, args, p = _default_optparse(cmd_moin_upload_underlay, args, options_list, infile=True, nargs=1)
-    dest = os.path.abspath(args[0])
-    opts.prefix = os.path.basename(opts.prefix)
-
-    if not os.path.isdir(dest):
-        p.error('\'%s\' is not a directory' % dest)
-
-    if dest == os.path.dirname(dest):
-        p.error('\'%s\' appears to be the root directory or something equally suspicious. You don\'t want to do that...' % dest)
-
-    doc = Documentation.load(opts.infile)
-
-    valid_dirs = []
-
-
-    moin_formatter = MoinFormatter(opts.prefix, doc)
-
-    # create new pages
-    for el in doc.root:
-        page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
-        page_text = moin_formatter.format(el)
-
-        page_dir = _moin_upload_underlay_page(dest, page_name, page_text)
-        valid_dirs.append(os.path.abspath(page_dir))
-
-    # XXX: leave cleaning up stale pages to the site maintainer
+        # XXX: how to upload discussion pages without overwriting them?
 
 def _moin_upload_underlay_page(dest, page_name, page_text):
     from MoinMoin.wikiutil import quoteWikinameFS
@@ -710,7 +679,7 @@ def cmd_bzr(args):
                          relative_fn])
     
 
-COMMANDS = [cmd_collect, cmd_moin_upload_local, cmd_moin_upload_underlay,
+COMMANDS = [cmd_collect, cmd_moin_upload_local,
             cmd_mangle, cmd_prune, cmd_list, cmd_moin_collect_local, cmd_patch,
             cmd_numpy_docs, cmd_bzr]
 
@@ -775,6 +744,11 @@ class MoinFormatter(object):
             t += "(from %s) " % self.partlink(real_from)
         return t
     
+    def additional_docs(self, el):
+        t = ""
+        t += "\n[[Include(%s/Discussion)]]" % self.target(el.attrib['id'])
+        return t
+    
     def child_list(self, el, child_tag, title, titlechar="=", always_ref=False):
         t = ""
         els = self.doc.get_targets(el.findall('ref'))
@@ -829,6 +803,7 @@ class MoinFormatter(object):
         t += self.title(el, titlechar)
         t += self.docstring(el)
         t += "\n"
+        t += self.additional_docs(el)
     
         ## 
         t += self.child_list(el, 'module', 'Modules', always_ref=True)
@@ -849,6 +824,7 @@ class MoinFormatter(object):
     
         t += self.docstring(el)
         t += "\n"
+        t += self.additional_docs(el)
     
         ## 
     
@@ -862,6 +838,7 @@ class MoinFormatter(object):
         t += self.title(el, titlechar)
         t += self.docstring(el)
         t += "[[Action(edit)]]\n"
+        t += self.additional_docs(el)
         return t
     
     def fmt_object(self, el, titlechar="=="):
@@ -874,6 +851,7 @@ class MoinFormatter(object):
         else:
             t += self.docstring(el)
         t += "[[Action(edit)]]\n"
+        t += self.additional_docs(el)
         return t
     
     def format(self, el):
