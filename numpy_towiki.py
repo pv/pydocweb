@@ -4,6 +4,7 @@ WIKI_CONF = "/home/moinwiki/NumpyDocWiki"
 PREFIX = "Docstrings"
 REPO_DIR = "numpy"
 MODULE = "numpy"
+FRONTPAGE_FILE = "introduction.rst"
 
 BZR_AUTHOR = "pydoc-moin"
 BZR_MESSAGE = "Updated %s docstring"
@@ -34,7 +35,7 @@ def main():
                "| %(PYDOCMOIN)s numpy-docs -s %(SITE_PTH)s -o %(BASEXML)s")
               % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
-              '-i', BASEXML, WIKI_CONF])
+              '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE])
     print "All done."
     print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
            "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
