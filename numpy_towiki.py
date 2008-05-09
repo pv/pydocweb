@@ -17,23 +17,22 @@ DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
 PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
+SITE_PTH = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
 
 def main():
+    if not os.path.isdir(SITE_PTH):
+        os.makedirs(SITE_PTH)
+
+    os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
+    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=' + SITE_PTH])
+    os.chdir(DIR)
 
-    site_pth = "dist/lib/python2.5/site-packages"
-
-    if not os.path.isdir(site_pth):
-        os.makedirs(site_pth)
-
-    os.environ['PYTHONPATH'] = os.path.abspath(site_pth)
-    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=' + site_pth])
-
-    exec_cmd(("cd dist && %(PYDOCMOIN)s collect -s %(site_pth)s %(MODULE)s "
+    exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
                "| %(PYDOCMOIN)s mangle "
-               "| %(PYDOCMOIN)s numpy-docs -s %(site_pth)s -o %(BASEXML)s")
-              % dict(site_pth=site_pth, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
+               "| %(PYDOCMOIN)s numpy-docs -s %(SITE_PTH)s -o %(BASEXML)s")
+              % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
               '-i', BASEXML, WIKI_CONF])
     print "All done."
