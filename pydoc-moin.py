@@ -261,7 +261,7 @@ def cmd_moin_collect_local(args):
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
                     help="prefix for the wiki pages (default: Docstrings)")
     ]
-    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, outfile=True, nargs=1)
+    opts, args, p = _default_optparse(cmd_moin_collect_local, args, options_list, outfile=True, nargs=1)
     dest, = args
 
     sys.path.append(dest)
@@ -684,7 +684,7 @@ def cmd_bzr(args):
                     default="Updated %s docstring from wiki",
                     help="template for commit message. %s is replaced by docstring name"),
     ]
-    opts, args, p = _default_optparse(cmd_bzr, args, opt_list, outfile=True,
+    opts, args, p = _default_optparse(cmd_bzr, args, opt_list,
                                       syspath=True, nargs=3)
     old_fn, new_fn, path = args
 
@@ -707,8 +707,19 @@ def cmd_bzr(args):
             print >> sys.stderr, "Don't know where to find file", fn
             continue
 
+        new_code = "".join(replacer.new_sources[fn])
+
+        f = open(relative_fn, 'r')
+        old_code = f.read()
+        f.close()
+
+        if new_code == old_code:
+            # this is needed so that we don't need to recompile after every
+            # bzr commit; this avoids bzr error messages
+            continue
+
         f = open(relative_fn, 'w')
-        f.write("".join(replacer.new_sources[fn]))
+        f.write(new_code)
         f.close()
 
         print "EDIT", new_el.get('id')
@@ -1259,3 +1270,4 @@ class MoinPage():
 
 if __name__ == "__main__": main()
 
+# vim:sw=4 expandtab smarttab
