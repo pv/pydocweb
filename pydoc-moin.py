@@ -322,7 +322,7 @@ def cmd_moin_upload_local(args):
       - Put pages that have never been modified to the underlay
       - Not touch pages that are up-to-date
       - Replace modified pages as per usual edits
-      - Remove non-existing pages
+      - Not delete any pages
     """
     options_list = [
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
@@ -372,20 +372,8 @@ def cmd_moin_upload_local(args):
                 print "EDIT", page_name
         _moin_upload_underlay_page(underlay_dir, page_name, page_text)
 
-    for d in glob.glob('%s/%s(2f)*' % (data_dir, opts.prefix)):
-        bn = os.path.basename(d)
-        if bn.endswith("Extra_Documentation"): continue
-        if bn not in valid_pages:
-            ed = PageEditor(request, unquoteWikiname(bn), trivial=1)
-            ed.deletePage(comment=u"Delete non-existing")
-            print "DEL", bn
-
-    for d in glob.glob('%s/%s(2f)*' % (underlay_dir, opts.prefix)):
-        bn = os.path.basename(d)
-        if bn.endswith("Extra_Documentation"): continue
-        if bn not in valid_pages:
-            print "DEL", bn
-            shutil.rmtree(d)
+    # XXX: leave deleting pages for the site maintainers to do manually.
+    #      It's too unsafe to do here.
 
 def cmd_moin_upload_remote(args):
     """
@@ -418,7 +406,6 @@ def cmd_moin_upload_underlay(args):
     """moin-upload-underlay OUTPUTDIR < docs.xml
 
     Create or update entries in a MoinMoin underlay directory.
-    Will delete stale pages under the prefix!
     """
     options_list = [
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
@@ -449,12 +436,7 @@ def cmd_moin_upload_underlay(args):
         page_dir = _moin_upload_underlay_page(dest, page_name, page_text)
         valid_dirs.append(os.path.abspath(page_dir))
 
-    # cleanup stale pages
-    for d in glob.glob(os.path.join(dest, 'Docstrings*')):
-        base = os.path.abspath(d)
-        if d in valid_dirs: continue
-        print "DEL", d
-        shutil.rmtree(d)
+    # XXX: leave cleaning up stale pages to the site maintainer
 
 def _moin_upload_underlay_page(dest, page_name, page_text):
     from MoinMoin.wikiutil import quoteWikinameFS
