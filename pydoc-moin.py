@@ -83,12 +83,17 @@ def main():
     else:
         cmd(args)
 
-def _default_optparse(cmd, args, option_list=[], infile=False, outfile=False,
+def _default_optparse(cmd, args, option_list=[], infile=False, outfile=False, frontpagefile=False,
                       nargs=None, syspath=False):
     if infile:
         option_list += [
             make_option("-i", action="store", dest="infile", type="str",
                         help="input file, '-' means stdin (default)", default="-")
+        ]
+    if frontpagefile:
+        option_list += [
+            make_option("-f", action="store", dest="frontpagefile", type="str",
+                        help="front page file", default=None)
         ]
     if outfile:
         option_list += [
@@ -328,9 +333,9 @@ def cmd_moin_upload_local(args):
     """
     options_list = [
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
-                    help="prefix for the wiki pages (default: Docstrings)")
+                    help="prefix for the wiki pages (default: Docstrings)"),
     ]
-    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, nargs=1)
+    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, frontpagefile=True, nargs=1)
     dest, = args
 
     opts.prefix = os.path.basename(opts.prefix)
@@ -357,7 +362,7 @@ def cmd_moin_upload_local(args):
     for el in doc.root:
         page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
         if el.tag == 'module' and el.attrib['id'] == doc.root.attrib['modules']:
-            page_text = moin_formatter.fmt_title(el, el.attrib['id'])
+            page_text = moin_formatter.fmt_title(el, el.attrib['id'], opts.frontpagefile)
         else:
             page_text = moin_formatter.format(el)
 
@@ -859,8 +864,12 @@ class MoinFormatter(object):
         t += self.additional_docs(el)
         return t
     
-    def fmt_title(self, el, title_str):
-        t=""" Welcome to the Marathon """
+    def fmt_title(self, el, title_str, frontpagefile=None, titlechar="="):
+        t = ""
+        t += self.title(el, titlechar)
+        #t=+""" Welcome to the Marathon """
+        if frontpagefile is not None:
+            t+=open(frontpagefile).read()
         t += self.child_list(el, 'callable', 'Functions', always_ref=True)
         t += self.child_list(el, 'class', 'Classes', always_ref=True)
         t += self.child_list(el, 'module', 'Modules', always_ref=True)
