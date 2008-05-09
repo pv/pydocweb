@@ -352,9 +352,14 @@ def cmd_moin_upload_local(args):
     valid_pages = []
     moin_formatter = MoinFormatter(opts.prefix, doc)
 
+    moin_formatter.fmt_title(doc.root.attrib['modules'])
     for el in doc.root:
         page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
-        page_text = moin_formatter.format(el)
+        print page_name
+        if el.tag == 'module' and el.attrib['id'] == doc.root.attrib['modules']:
+            page_text = moin_formatter.fmt_title(el.attrib['id'])
+        else:
+            page_text = moin_formatter.format(el)
 
         #print "\n\n\n\n********************* %s *****************" % page_name
         #print page_text
@@ -894,6 +899,10 @@ class MoinFormatter(object):
         t += "[[Action(edit)]]\n"
         return t
     
+    def fmt_title(self, str):
+        t = "coucou"
+        return t
+
     def format(self, el):
         t = ("## NOTE: This page is automatically generated.\n"
              "##       Only edit portions between BEGIN DOCSTRING and END DOCSTRING.\n"
@@ -963,14 +972,12 @@ class Documentation(object):
                     __import__(nm)
                 except ImportError:
                     pass
-
         self._visit(mod, self.root, None)
-        self.recache()
-
-	if 'modules' not in self.root.attrib:
+        if 'modules' not in self.root.attrib:
             self.root.attrib['modules'] = module_name
         else:
             self.root.attrib['modules'] += " "  + module_name
+        self.recache()
 
     def resolve(self, name):
         """Return element with given *non*-canonical name, or None if not found"""
