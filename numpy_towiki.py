@@ -36,7 +36,7 @@ def main():
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
               '-i', BASEXML, WIKI_CONF])
     print "All done."
-    print ("Remember not to recompile %(REPO_DIR)s manually, or regenerate "
+    print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
            "a new base.xml there.")
 
 def exec_cmd(cmd, ok_return_value=0, show_cmd=True, **kw):
