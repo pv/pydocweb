@@ -17,7 +17,7 @@ def main():
     exec_cmd([PYDOCMOIN, 'moin-collect-local', '-o', new_xml.name, WIKI_CONF])
     exec_cmd([PYDOCMOIN, 'bzr', '-s', SITE_PTH,
               '--author=' + BZR_AUTHOR, '--message=' + BZR_MESSAGE,
-              BASEXML, new_xml.name, REPO_DIR])
+              BASEXML, new_xml.name, REPO_DIR], echo=True)
 
 if __name__ == "__main__": main()
 

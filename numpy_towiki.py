@@ -17,7 +17,7 @@ DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
 PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
-SITE_PTH = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
+SITE_PTH  = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
 
 def main():
     if not os.path.isdir(SITE_PTH):
@@ -25,7 +25,7 @@ def main():
 
     os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
-    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=' + SITE_PTH])
+    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=dist'])
     os.chdir(DIR)
 
     exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
@@ -39,7 +39,7 @@ def main():
     print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
            "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
 
-def exec_cmd(cmd, ok_return_value=0, show_cmd=True, **kw):
+def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
     """
     Run given command and check return value.
     Return concatenated input and output.
@@ -63,6 +63,7 @@ def exec_cmd(cmd, ok_return_value=0, show_cmd=True, **kw):
     if ok_return_value is not None and p.returncode != ok_return_value:
         raise RuntimeError("Command %s failed (code %d): %s"
                            % (' '.join(cmd), p.returncode, out + err))
+    if echo: print out + err
     return out + err
 
 if __name__ == "__main__": main()
