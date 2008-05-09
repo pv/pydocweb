@@ -15,9 +15,9 @@ def main():
     if not os.path.isdir(site_pth):
         raise RuntimeError("directory %s not found" % site_pth)
 
-    exec_cmd(['./pydoc-moin.py', 'moin-collect-local', '-o', new_xml.name,
+    exec_cmd([PYDOCMOIN, 'moin-collect-local', '-o', new_xml.name,
               WIKI_CONF])
-    exec_cmd(['./pydoc-moin.py', 'bzr', '-s', site_pth,
+    exec_cmd([PYDOCMOIN, 'bzr', '-s', site_pth,
               '--author=' + BZR_AUTHOR, '--message=' + BZR_MESSAGE,
               BASEXML, new_xml.name, REPO_DIR])
     print "All done."
