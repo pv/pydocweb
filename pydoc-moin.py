@@ -38,6 +38,8 @@ import os, shutil, copy, glob, subprocess
 import sys, cgi, math, pkgutil, cPickle as pickle
 import inspect, imp, textwrap, re, pydoc, compiler, difflib
 from optparse import make_option, OptionParser
+import editmoin
+from StringIO import StringIO
 
 try:
     import lxml.etree as etree
@@ -384,6 +386,32 @@ def cmd_moin_upload_local(args):
         if bn not in valid_pages:
             print "DEL", bn
             shutil.rmtree(d)
+
+def cmd_moin_upload_remote(args):
+    """
+    Remote uploading
+    """
+    options_list = [
+        make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
+                    help="prefix for the wiki pages (default: Docstrings)")
+    ]
+    opts, args, p = _default_optparse(cmd_moin_upload_remote, args, options_list, infile=True, nargs=1)
+    url, = args
+
+    doc = Documentation.load(opts.infile)
+    valid_pages = []
+    moin_formatter = MoinFormatter(opts.prefix, doc)
+    print "coucou"
+    for el in doc.root:
+        page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
+        page_text = moin_formatter.format(el)
+        fn_url = os.path.join(url, page_name)
+        print fn_url
+        mf = MoinPage(fn_url)
+        file = open('temp','w')
+        file.write(page_text)
+        file.close()
+        mf.write_file('temp')
 
 
 def cmd_moin_upload_underlay(args):
@@ -1195,6 +1223,37 @@ def escape_text(text):
     text = text.encode('string-escape')
     return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)\\n", "\n", text))
 
+
+#------------------------------------------------------------------------------
+# Remote uploading
+#------------------------------------------------------------------------------
+ 
+class MoinPage():
+
+    def __init__(self,url):
+        self.url = url
+
+
+    def write_file(self,sourcefile, id = None):
+        template = None
+        urlopener = editmoin.get_urlopener(self.url, id)
+        moinfile = editmoin.fetchfile(urlopener, self.url, id, template)
+        geturl = self.url+"?action=edit"
+        filename, headers = urlopener.retrieve(geturl)
+        mf = editmoin.MoinFile(filename, id)
+        mf.read_raw(sourcefile)
+        editmoin.sendfile(urlopener, self.url, mf)
+        #editmoin.sendcancel(urlopener, self.url, mf)
+
+    def retrieve_docstring(self):
+        template = None
+        urlopener = editmoin.get_urlopener(self.url, id)
+        moinfile = editmoin.fetchfile(urlopener, self.url, id, template)
+        dump = StringIO()
+        moinfile.write_file(dump)
+        dump.seek(0)
+        lines = dump.readlines()
+        return string.join(lines[5:-1],"").strip() #Needs better parsing of course !!
 
 #------------------------------------------------------------------------------
 
