@@ -878,8 +878,7 @@ class MoinFormatter(object):
     def format(self, el):
         t = ("## NOTE: This page is automatically generated.\n"
              "##       Only edit portions between BEGIN DOCSTRING and END DOCSTRING.\n"
-             "##       To discuss this documentation, edit the discussion page\n"
-             ) % self.target(el.attrib['id'])
+             "##       To discuss this documentation, edit the discussion page\n")
         if el.tag == "module":
             t += self.fmt_module(el)
         elif el.tag == "class":
