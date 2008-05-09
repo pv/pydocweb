@@ -31,6 +31,7 @@ def main():
 
     exec_cmd(("cd dist && %(PYDOCMOIN)s collect -s %(site_pth)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
+               "| %(PYDOCMOIN)s mangle "
                "| %(PYDOCMOIN)s numpy-docs -s %(site_pth)s -o %(BASEXML)s")
               % dict(site_pth=site_pth, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
