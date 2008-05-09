@@ -967,7 +967,7 @@ class Documentation(object):
         self._visit(mod, self.root, None)
         self.recache()
 
-	if 'modules' in self.root.attrib:
+	if 'modules' not in self.root.attrib:
             self.root.attrib['modules'] = module_name
         else:
             self.root.attrib['modules'] += " "  + module_name
