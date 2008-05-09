@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-WIKI_CONF = "/etc/moin"
-PREFIX = "/Docstrings"
+WIKI_CONF = "/home/moinwiki/NumpyDocWiki"
+PREFIX = "Docstrings"
 REPO_DIR = "numpy"
 MODULE = "numpy"
 
@@ -17,29 +17,29 @@ DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
 PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
+SITE_PTH  = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
 
 def main():
+    if not os.path.isdir(SITE_PTH):
+        os.makedirs(SITE_PTH)
+
+    os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
+    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=dist'])
+    os.chdir(DIR)
 
-    site_pth = "dist/lib/python2.5/site-packages"
-
-    if not os.path.isdir(site_pth):
-        os.makedirs(site_pth)
-
-    os.environ['PYTHONPATH'] = os.path.abspath(site_pth)
-    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=' + site_pth])
-
-    exec_cmd(("cd dist && %(PYDOCMOIN)s collect -s %(site_pth)s %(MODULE)s "
+    exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
-               "| %(PYDOCMOIN)s numpy-docs -s %(site_pth)s -o %(BASEXML)s")
-              % dict(site_pth=site_pth, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
+               "| %(PYDOCMOIN)s mangle "
+               "| %(PYDOCMOIN)s numpy-docs -s %(SITE_PTH)s -o %(BASEXML)s")
+              % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
               '-i', BASEXML, WIKI_CONF])
     print "All done."
     print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
-           "a new base.xml there.")
+           "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
 
-def exec_cmd(cmd, ok_return_value=0, show_cmd=True, **kw):
+def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
     """
     Run given command and check return value.
     Return concatenated input and output.
@@ -63,6 +63,7 @@ def exec_cmd(cmd, ok_return_value=0, show_cmd=True, **kw):
     if ok_return_value is not None and p.returncode != ok_return_value:
         raise RuntimeError("Command %s failed (code %d): %s"
                            % (' '.join(cmd), p.returncode, out + err))
+    if echo: print out + err
     return out + err
 
 if __name__ == "__main__": main()

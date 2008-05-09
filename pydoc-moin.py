@@ -384,7 +384,7 @@ def cmd_moin_upload_local(args):
 
         # Upload a sample discussion page
         _moin_upload_underlay_page(underlay_dir, page_name + "/Discussion",
-            "= Discussion =\n\n[[Action(edit)]]\n")
+            "=== Discussion ===\n\n[[Action(edit)]]\n")
 
     # XXX: leave deleting pages for the site maintainers to do manually.
     #      It's too unsafe to do here.
@@ -818,8 +818,8 @@ class MoinFormatter(object):
         ## 
         t += self.child_list(el, 'module', 'Modules', always_ref=True)
         t += self.child_list(el, 'class', 'Classes', always_ref=True)
-        t += self.child_list(el, 'callable', 'Functions', always_ref=False)
-        t += self.child_list(el, 'object', 'Objects', always_ref=False)
+        t += self.child_list(el, 'callable', 'Functions', always_ref=True)
+        t += self.child_list(el, 'object', 'Objects', always_ref=True)
         return t
     
     def fmt_class(self, el, titlechar="="):
@@ -855,7 +855,7 @@ class MoinFormatter(object):
         t = ""
         t += self.title(el, titlechar)
         if 'type' in el.attrib:
-            t += "Type: {{{%s}}}\n" % self.partlink(el.attrib['type'])
+            t += "Type: %s\n" % self.partlink(el.attrib['type'])
         if el.attrib.get('is-repr'):
             t += "{{{\n%s\n}}}" % el.text.decode("string-escape")
         else:
@@ -878,9 +878,7 @@ class MoinFormatter(object):
     def format(self, el):
         t = ("## NOTE: This page is automatically generated.\n"
              "##       Only edit portions between BEGIN DOCSTRING and END DOCSTRING.\n"
-             "##       To add additional information, you can also edit the page\n"
-             "##       %s/Extra Documentation\n"
-             ) % self.target(el.attrib['id'])
+             "##       To discuss this documentation, edit the discussion page\n")
         if el.tag == "module":
             t += self.fmt_module(el)
         elif el.tag == "class":
