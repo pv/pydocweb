@@ -155,7 +155,9 @@ def cmd_collect(args):
                     ok = True
             if ok:
                 to_retain.append(el)
+        old_attr = dict(doc.root.attrib)
         doc.root.clear()
+        doc.root.attrib.update(old_attr)
         for el in to_retain:
             doc.root.append(el)
 
