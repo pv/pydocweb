@@ -26,7 +26,8 @@ def main():
 
     os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
-    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=dist'])
+    exec_cmd(['python2.5', 'setupegg.py', 'install',
+              '--prefix=%s/dist'%REPO_DIR])
     os.chdir(DIR)
 
     exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
