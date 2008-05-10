@@ -501,11 +501,18 @@ class SourceReplacer(object):
         touched_file : {str, None}
             The file touched, or None if nothing was done.
         
+        Raises
+        ------
+        ValueError
+            If a docstring to replace wasn't found
+        
         """
         new_el = self.doc_new.get(new_id)
         el = self.doc_old.get(new_id)
+        
         if new_el is None:
-            return None
+            raise ValueError("No new object for canonical name %s" % new_id)
+        
         if el is None or el.tag not in ('callable', 'class', 'module'):
             return None
         
@@ -520,11 +527,7 @@ class SourceReplacer(object):
             return None
 
         if 'file' not in el.attrib or 'line' not in el.attrib:
-            file = "/tmp/unknown-file-%s.py" % el.get('id')
-            line = 0
-            src = "def %s():\n\"\"\"%s\n\"\"\"\n" % (el.get('id'), old_doc)
-            self.old_sources[file] = split_lines(src)
-            self.new_sources[file] = list(self.old_sources[file])
+            raise ValueError("Source location for %s is not known" % new_id)
         else:
             file, line = el.get('file'), int(el.get('line'))
 
@@ -624,7 +627,10 @@ def cmd_patch(args):
     replacer = SourceReplacer(doc_old, doc_new)
 
     for new_el in doc_new.root.getchildren():
-        replacer.replace(new_el.get('id'))
+        try:
+            replacer.replace(new_el.get('id'))
+        except ValueError, e:
+            print >> sys.stderr, "ERROR:", e
 
     # -- Output patches
 
@@ -670,7 +676,12 @@ def cmd_bzr(args):
     os.chdir(path)
 
     for new_el in doc_new.root.getchildren():
-        fn = replacer.replace(new_el.get('id'))
+        try:
+            fn = replacer.replace(new_el.get('id'))
+        except ValueError, e:
+            print >> sys.stderr, "ERROR:", e
+            continue
+
         if fn is None:
             # nothing to do
             continue
