@@ -334,6 +334,9 @@ def cmd_moin_upload_local(args):
     options_list = [
         make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
                     help="prefix for the wiki pages (default: Docstrings)"),
+        make_option("-m", "--message", action="store", type=str, dest="message",
+                    default="Replaced docstring from sources",
+                    help="edit message"),
     ]
     opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, frontpagefile=True, nargs=1)
     dest, = args
@@ -375,7 +378,7 @@ def cmd_moin_upload_local(args):
         if page.exists() and page.isStandardPage():
             ed = PageEditor(request, page_name, trivial=1)
             try:
-                ed.saveText(page_text, 0, comment=u"Replace content")
+                ed.saveText(page_text, 0, comment=opts.message)
             except PageEditor.Unchanged:
                 print "SKIP", page_name
             else:
