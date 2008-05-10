@@ -378,7 +378,7 @@ def cmd_moin_upload_local(args):
         if page.exists() and page.isStandardPage():
             ed = PageEditor(request, page_name, trivial=1)
             try:
-                ed.saveText(page_text, 0, comment=opts.message)
+                ed.saveText(page_text, 0, comment=unicode(opts.message))
             except PageEditor.Unchanged:
                 print "SKIP", page_name
             else:
