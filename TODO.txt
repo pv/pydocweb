@@ -3,6 +3,11 @@ Short term
 ----------
 - How do we know when we need to add new entries to numpy.add_newdocs?
 
+- Now when inserting docstrings, we only handle the cases where
+  1) There is a docstring that is enveloped in """
+  2) There is no docstring, but there is a line ending with ':'
+     and the docstring should be inserted on the line following that
+
 Longer term
 -----------
 - Fetch author information from Moin history.
