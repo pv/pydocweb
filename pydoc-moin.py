@@ -595,7 +595,10 @@ class SourceReplacer(object):
         return file
     
 def split_lines(line):
-    return [x + "\n" for x in line.split("\n")]
+    lines = [x + "\n" for x in line.split("\n")]
+    if lines:
+        lines[-1] = lines[-1][:-1]
+    return lines
     
 def strip_sys_path(fn):
     """
