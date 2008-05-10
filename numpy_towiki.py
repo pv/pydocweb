@@ -24,7 +24,7 @@ def main():
     regenerate_base_xml()
     os.chdir(DIR)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
-              '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE])
+              '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE], echo=True)
     print "All done."
     print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
            "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
