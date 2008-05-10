@@ -120,7 +120,7 @@ def _default_optparse(cmd, args, option_list=[], infile=False, outfile=False, fr
         opts.infile = _open_file(opts.infile, 'r')
     if syspath:
         if opts.path is not None:
-            sys.path = opts.path.split(os.path.pathsep) + sys.path
+            sys.path = [os.path.abspath(x) for x in opts.path.split(os.path.pathsep)] + sys.path
     return opts, args, p
 
 def _open_file(filename, mode):
@@ -406,12 +406,10 @@ def cmd_moin_upload_remote(args):
     doc = Documentation.load(opts.infile)
     valid_pages = []
     moin_formatter = MoinFormatter(opts.prefix, doc)
-    print "coucou"
     for el in doc.root:
         page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
         page_text = moin_formatter.format(el)
         fn_url = os.path.join(url, page_name)
-        print fn_url
         mf = MoinPage(fn_url)
         file = open('temp','w')
         file.write(page_text)
@@ -708,10 +706,14 @@ def cmd_bzr(args):
         f.close()
 
         print "EDIT", new_el.get('id')
-        subprocess.call(["bzr", "commit", "--author=%s" % opts.author,
-                         "--message=%s" % (opts.message % new_el.get('id')),
-                         relative_fn])
-    
+        p = subprocess.Popen(
+            ["bzr", "commit", "--author=%s" % opts.author,
+             "--message=%s" % (opts.message % new_el.get('id')),
+             relative_fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            print >> sys.stderr, out + err
+            raise RuntimeError("bzr commit failed")
 
 COMMANDS = [cmd_collect, cmd_moin_upload_local,
             cmd_mangle, cmd_prune, cmd_list, cmd_moin_collect_local, cmd_patch,
