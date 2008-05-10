@@ -380,7 +380,7 @@ def cmd_moin_upload_local(args):
             try:
                 ed.saveText(page_text, 0, comment=unicode(opts.message))
             except PageEditor.Unchanged:
-                print "SKIP", page_name
+                pass
             else:
                 print "EDIT", page_name
         _moin_upload_underlay_page(underlay_dir, page_name, page_text)
