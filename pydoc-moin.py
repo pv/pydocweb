@@ -500,7 +500,7 @@ class SourceReplacer(object):
         
         """
         new_el = self.doc_new.get(new_id)
-        el = self.doc_old.resolve(new_id)
+        el = self.doc_old.get(new_id)
         if new_el is None:
             return None
         if el is None or el.tag not in ('callable', 'class', 'module'):
@@ -512,10 +512,10 @@ class SourceReplacer(object):
         if new_el.text is None:
             new_el.text = ""
         new_doc = new_el.text.decode('string-escape')
-        
+
         if old_doc.strip() == new_doc.strip():
             return None
-        
+
         if 'file' not in el.attrib or 'line' not in el.attrib:
             file = "/tmp/unknown-file-%s.py" % el.get('id')
             line = 0
@@ -533,38 +533,49 @@ class SourceReplacer(object):
         new_lines = self.new_sources[file]
 
         # Locate start and end lines exactly in the old doc
-        start_line = line
-        end_line = line + old_doc.count("\n") + 10
+        # NB. Remember: line numbers reported by inspect start from 1
+        seek_start = max(line-1, 0)
+        start_line = seek_start
+        end_line = min(seek_start + old_doc.count("\n") + 10, len(lines)-1)
         start_seen = False
-        for j, l in enumerate(lines[start_line:end_line]):
+        for j, l in enumerate(lines[seek_start:end_line]):
             if '"""' in l:
                 if not start_seen:
-                    start_line = line + j
+                    start_line = seek_start + j
                     start_seen = True
                 else:
-                    end_line = line + j
+                    end_line = seek_start + j
                     break
         
         # Replace lines in new_sources
         if '"""' in lines[start_line] and '"""' in lines[end_line]:
             pre_stuff = lines[start_line][:lines[start_line].index('"""')]
-            post_stuff = lines[end_line][lines[end_line].index('"""')+3:]
+            post_stuff = lines[end_line][lines[end_line].rindex('"""')+3:]
+            pre_post_stuff = ""
             indent = " "*lines[start_line].index('"""')
         else:
             # XXX: doesn't work like this, we only know the location
             # of the 'def' or 'class' line we would need AST parsing
             # to find the first statement, before which the docstring
             # could be inserted
-            if line == 0:
-                line = 1
-            start_line  = line - 1
-            end_line = line - 0
+
+            # Find an appropriate line for the doc
+            start_line  = seek_start
+            for j, l in enumerate(lines[seek_start:end_line]):
+                if l.strip().endswith(':'):
+                    start_line = seek_start + j
+                    break
+            end_line = start_line + 1
+
+            # Formulate pre/post stuff
             indent = " "*(4 + len(lines[start_line])
                           - len(lines[start_line].lstrip()))
             pre_stuff = lines[start_line] + indent
-            post_stuff = "\n" + lines[end_line]
+            post_stuff = lines[end_line]
+            pre_post_stuff = "\n"
 
         new_doc = escape_text(new_doc.strip())
+        new_doc = "\n".join([x.rstrip() for x in new_doc.split("\n")])
 
         if '\n' not in new_doc:
             fmt_doc = '"""%s"""' % new_doc
@@ -572,10 +583,9 @@ class SourceReplacer(object):
             fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
                 indent, new_doc.strip().replace("\n", "\n"+indent), indent, indent)
 
-        fmt_doc = "\n".join([x.rstrip() for x in fmt_doc.split("\n")])
 
         new_lines[start_line:(end_line+1)] = [""] * (end_line - start_line + 1)
-        new_lines[start_line] = pre_stuff + fmt_doc
+        new_lines[start_line] = pre_stuff + fmt_doc + pre_post_stuff
         new_lines[end_line] = post_stuff
 
         return file
@@ -1148,7 +1158,7 @@ class Documentation(object):
 
         f, l = self._get_source_info(obj, parent)
         if f:
-            entry.attrib['file'] = str(f)
+            entry.attrib['file'] = os.path.abspath(str(f))
         if l is not None:
             entry.attrib['line'] = str(l)
 
@@ -1208,7 +1218,7 @@ class Documentation(object):
         try: return obj.__file__, None
         except AttributeError: pass
 
-        return parent.attrib.get('source', None), None
+        return parent.attrib.get('file', None), None
 
 
 def escape_text(text):
