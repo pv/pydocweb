@@ -378,8 +378,10 @@ def cmd_moin_upload_local(args):
         if page.exists() and page.isStandardPage():
             ed = PageEditor(request, page_name, trivial=1)
             try:
+                if page.get_raw_body().strip() == page_text.strip():
+                    raise ValueError()
                 ed.saveText(page_text, 0, comment=unicode(opts.message))
-            except PageEditor.Unchanged:
+            except (PageEditor.Unchanged, ValueError):
                 pass
             else:
                 print "EDIT", page_name
