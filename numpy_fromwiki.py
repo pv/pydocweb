@@ -4,10 +4,8 @@ import os, shutil, tempfile
 from numpy_towiki import *
 
 def main():
+    regenerate_base_xml()
     os.chdir(DIR)
-
-    if not os.path.isfile(BASEXML):
-        raise RuntimeError("base.xml is missing!")
 
     new_xml = tempfile.NamedTemporaryFile()
     

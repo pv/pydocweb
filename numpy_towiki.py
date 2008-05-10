@@ -21,6 +21,15 @@ PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
 SITE_PTH  = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
 
 def main():
+    regenerate_base_xml()
+    os.chdir(DIR)
+    exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
+              '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE])
+    print "All done."
+    print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
+           "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
+
+def regenerate_base_xml():
     if not os.path.isdir(SITE_PTH):
         os.makedirs(SITE_PTH)
 
@@ -29,16 +38,11 @@ def main():
     exec_cmd(['python2.5', 'setupegg.py', 'install',
               '--prefix=%s/dist'%REPO_DIR])
     os.chdir(DIR)
-
     exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
                "| %(PYDOCMOIN)s numpy-docs -s %(SITE_PTH)s -o %(BASEXML)s")
               % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
-    exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
-              '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE])
-    print "All done."
-    print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
-           "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
+
 
 def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
     """
