@@ -24,7 +24,7 @@ def main():
     regenerate_base_xml()
     os.chdir(DIR)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
-              '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE], echo=True)
+              '-i', BASEXML, WIKI_CONF], echo=True)
 
     # this is needed to refresh group information in Moin!
     group_cache = os.path.join(WIKI_CONF, "data/cache/wikidicts/dicts_groups")
