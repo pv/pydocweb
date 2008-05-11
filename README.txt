@@ -21,6 +21,10 @@ Wiki gateway usage
 - Run 'numpy_fromwiki.py' to collect docstrings from the wiki and dump
   them to bzr.
 
+Wiki history is never overwritten, and pydoc-moin.py behaves like a good
+wiki citizen. All changes made by pydoc-moin.py that overlap with changes
+made by real users can be reverted also using the wiki itself.
+
 
 Latex extension
 ---------------

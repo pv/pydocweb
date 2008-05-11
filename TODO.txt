@@ -1,4 +1,13 @@
 
+Documentation process
+=====================
+
+- Review process, what wiki pages are needed etc.
+
+
+Gateway
+=======
+
 Short term
 ----------
 - How do we know when we need to add new entries to numpy.add_newdocs?
