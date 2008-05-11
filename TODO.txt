@@ -8,6 +8,11 @@ Short term
   2) There is no docstring, but there is a line ending with ':'
      and the docstring should be inserted on the line following that
 
+- Test, test, and test.
+
+- When ready, run numpy_fromwiki.py periodically so that wiki changes get recorded.
+
+
 Longer term
 -----------
 - Fetch author information from Moin history.
