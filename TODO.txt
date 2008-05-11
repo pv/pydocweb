@@ -12,6 +12,8 @@ Short term
 
 - When ready, run numpy_fromwiki.py periodically so that wiki changes get recorded.
 
+- Put the wiki to /wiki instead of /mywiki
+
 
 Longer term
 -----------
