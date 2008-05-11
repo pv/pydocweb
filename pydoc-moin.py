@@ -364,7 +364,7 @@ def cmd_moin_upload_local(args):
 
     for el in doc.root:
         page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
-        if el.tag == 'module' and el.attrib['id'] == doc.root.attrib['modules']:
+        if el.tag == 'module' and el.attrib['id'] == doc.root.attrib['modules'] and opts.frontpagefile:
             page_text = moin_formatter.fmt_title(el, el.attrib['id'], opts.frontpagefile)
         else:
             page_text = moin_formatter.format(el)
