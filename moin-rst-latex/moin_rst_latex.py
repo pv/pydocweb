@@ -8,8 +8,6 @@ Many things copied from Johannes Berg's `MoinMoin Latex support`_
 
 import subprocess, os, sys, shutil, tempfile, resource, md5
 
-os.system('touch /tmp/foo')
-
 OUT_PATH = "/var/www-pub/root/pTSc0V/testwiki/math"
 OUT_URI_BASE = "http://192.168.0.100/pTSc0V/testwiki/math/"
 
