@@ -25,6 +25,13 @@ def main():
     os.chdir(DIR)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
               '-i', BASEXML, WIKI_CONF, '-f', FRONTPAGE_FILE], echo=True)
+
+    # this is needed to refresh group information in Moin!
+    group_cache = os.path.join(WIKI_CONF, "data/cache/wikidicts/dicts_groups")
+    if os.path.isfile(group_cache):
+        os.unlink(group_cache)
+
+    # all done
     print "All done."
     print ("Don't recompile %(REPO_DIR)s manually, or regenerate "
            "a new base.xml there." % dict(REPO_DIR=REPO_DIR))
