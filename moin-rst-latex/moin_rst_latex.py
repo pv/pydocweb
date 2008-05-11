@@ -33,6 +33,33 @@ DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1"]
 # Running LaTeX safely
 # -----------------------------------------------------------------------------
 
+def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
+    """
+    Run given command and check return value.
+    Return concatenated input and output.
+    """
+    try:
+        if show_cmd:
+            print '%s$' % os.getcwd(),
+            if isinstance(cmd, str):
+                print cmd
+            else:
+                print ' '.join(cmd)
+            print '[running ...]'
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE, **kw)
+        out, err = p.communicate()
+    except OSError, e:
+        raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
+    
+    if ok_return_value is not None and p.returncode != ok_return_value:
+        raise RuntimeError("Command %s failed (code %d): %s"
+                           % (' '.join(cmd), p.returncode, out + err))
+    if echo: print out + err
+    return out + err
+
 def latex_to_png(prologue, in_text, out_png):
     out_png = os.path.abspath(out_png)
     cwd = os.getcwd()
@@ -43,16 +70,12 @@ def latex_to_png(prologue, in_text, out_png):
         f.write(LATEX_TEMPLATE % dict(raw=in_text.encode('utf-8'),
                                       prologue=prologue))
         f.close()
-        ret = subprocess.call([LIMITED_LATEX] + LATEX_ARGS + ['foo.tex'],
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if ret != 0:
-            raise RuntimeError("Executing latex failed")
-        ret = subprocess.call([DVIPNG] + DVIPNG_ARGS + ['-o', 'foo.png',
-                                                        'foo.dvi'],
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if ret != 0:
-            raise RuntimeError("Executing dvipng failed")
+        exec_cmd([LIMITED_LATEX] + LATEX_ARGS + ['foo.tex'], show_cmd=False)
+        exec_cmd([DVIPNG] + DVIPNG_ARGS + ['-o', 'foo.png', 'foo.dvi'],
+                 show_cmd=False)
         shutil.copy('foo.png', out_png)
+    except OSError, e:
+        raise RuntimeError(str(e))
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmp_dir)
@@ -70,18 +93,27 @@ def latex_to_uri(in_text):
 # -----------------------------------------------------------------------------
 import MoinMoin.parser.rst
 import docutils
+import docutils.utils
 import docutils.core, docutils.nodes, docutils.parsers.rst
 
 def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-    uri = latex_to_uri(ur'$%s$' % text)
-    img = docutils.nodes.image("", uri=uri)
-    return [img], []
+    try:
+        uri = latex_to_uri(ur'$%s$' % text)
+        img = docutils.nodes.image("", uri=uri)
+        return [img], []
+    except RuntimeError, e:
+        item = docutils.nodes.literal(text=str(text))
+        return [item], []
 
 def math_directive(name, arguments, options, content, lineno,
                    content_offset, block_text, state, state_machine):
-    uri = latex_to_uri(ur'\begin{align*}%s\end{align*}' % u''.join(content))
-    img = docutils.nodes.image("", uri=uri, align='center')
-    return [img]
+    try:
+        uri = latex_to_uri(ur'\begin{align*}%s\end{align*}' % u'\n'.join(content))
+        img = docutils.nodes.image("", uri=uri, align='center')
+        return [img]
+    except RuntimeError, e:
+        item = docutils.nodes.literal_block(text=u"\n".join(content))
+        return [item]
 
 # -----------------------------------------------------------------------------
 # Register to reStructuredText engine
