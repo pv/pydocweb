@@ -378,7 +378,8 @@ def cmd_moin_upload_local(args):
         if page.exists() and page.isStandardPage():
             ed = PageEditor(request, page_name, trivial=1)
             try:
-                if page.get_raw_body().strip() == page_text.strip():
+                if strip_trailing_whitespace(page.get_raw_body()).strip() \
+                        == strip_trailing_whitespace(page_text).strip():
                     raise ValueError()
                 ed.saveText(page_text, 0, comment=unicode(opts.message))
             except (PageEditor.Unchanged, ValueError):
@@ -580,8 +581,7 @@ class SourceReplacer(object):
             post_stuff = lines[end_line]
             pre_post_stuff = "\n"
 
-        new_doc = escape_text(new_doc.strip())
-        new_doc = "\n".join([x.rstrip() for x in new_doc.split("\n")])
+        new_doc = escape_text(strip_trailing_whitespace(new_doc.strip()))
 
         if '\n' not in new_doc:
             fmt_doc = '"""%s"""' % new_doc
@@ -595,7 +595,10 @@ class SourceReplacer(object):
         new_lines[end_line] = post_stuff
 
         return file
-    
+
+def strip_trailing_whitespace(text):
+    return "\n".join([x.rstrip() for x in text.split("\n")])
+ 
 def split_lines(line):
     lines = [x + "\n" for x in line.split("\n")]
     if lines:
