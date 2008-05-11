@@ -4,6 +4,9 @@ Documentation process
 
 - Review process, what wiki pages are needed etc.
 
+From dicussion
+--------------
+
 
 Gateway
 =======
@@ -20,8 +23,6 @@ Short term
 - Test, test, and test.
 
 - When ready, run numpy_fromwiki.py periodically so that wiki changes get recorded.
-
-- Put the wiki to /wiki instead of /mywiki
 
 
 Longer term

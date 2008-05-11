@@ -18,6 +18,9 @@ Wiki gateway usage
 - Run 'numpy_towiki.py' to collect docstrings from 'numpy' and upload them
   to the wiki.
 
+- Run 'numpy_checkwiki.py' to create a patch showing the difference between
+  the wiki and the bzr branch.
+
 - Run 'numpy_fromwiki.py' to collect docstrings from the wiki and dump
   them to bzr.
 
