@@ -1,12 +1,11 @@
 import os, sys, shutil, tempfile, subprocess, os, random
 import xml.etree.ElementTree as etree
-import test_module as test_module_orig
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       '..', 'pydoc-moin.py'))
 
-TEST_MODULE = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           'test_module'))
+sample_module = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                           'sample_module'))
 
 # -----------------------------------------------------------------------------
 
@@ -16,18 +15,18 @@ def test_roundtrip():
     # -- collect base docstrings
 
     ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                           '-o', 'base.xml', 'test_module'])
+                           '-o', 'base.xml', 'sample_module'])
     assert ret == 0
 
     # -- check if something is missing
     
     doc = etree.parse(open('base.xml', 'r'))
 
-    for name in ['test_module',
-                 'test_module.test1',
-                 'test_module.test1.test_func4',
-                 'test_module.test2',
-                 'test_module.test2.Cls2.func2']:
+    for name in ['sample_module',
+                 'sample_module.sample1',
+                 'sample_module.sample1.func4',
+                 'sample_module.sample2',
+                 'sample_module.sample2.Cls2.func2']:
         ok = False
         for el in doc.getroot():
             if el.get('id') == name:
@@ -58,13 +57,13 @@ def test_roundtrip():
     assert ret == 0
 
     f = open('out.patch', 'r')
-    ret = subprocess.call(['patch', '-p0'], stdin=f)
+    ret = subprocess.call(['patch', '-t', '-p0'], stdin=f)
     f.close()
 
     # -- collect them again
     
     ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                           '-o', 'base2.xml', 'test_module'])
+                           '-o', 'base2.xml', 'sample_module'])
     assert ret == 0
 
     # -- compare to inserted docstrings
@@ -94,7 +93,7 @@ _orig_cwd = None
 def setUp():
     global _tmpdir, _orig_cwd
     _tmpdir = tempfile.mkdtemp()
-    shutil.copytree(TEST_MODULE, os.path.join(_tmpdir, 'test_module'))
+    shutil.copytree(sample_module, os.path.join(_tmpdir, 'sample_module'))
     _orig_cwd = os.getcwd()
     os.chdir(_tmpdir)
 

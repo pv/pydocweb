@@ -1,13 +1,13 @@
 """
-test1 docstring
+sample1 docstring
 
 """
 
-def test_func1():
+def func1():
     pass
 
-def test_func2():
-    r"""test1.func2 docstring
+def func2():
+    r"""sample1.func2 docstring
 
     quux
     \r
@@ -15,24 +15,24 @@ def test_func2():
     
     pass
 
-def test_func3(a,
+def func3(a,
                b={1:
                   3, 4: 5},
                c=1, d="""foobar"""):
     pass
 
-def test_func4(a,
+def func4(a,
                b='baz',
                c=123,
                ):        # foobar
-    """test1.test_func4 docstring docstring"""
+    """sample1.func4 docstring docstring"""
     pass
 
-def test_func5(a,
+def func5(a,
                b={3:
                   """Foo bar quux"""
                   },
                c=6
                ):
-    "test.test_func5 docstring"
+    "sample1.func5 docstring"
     pass

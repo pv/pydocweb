@@ -40,11 +40,11 @@ class Cls2(
 
 
     
-        'test2.Cls2 docstring'
+        'sample2.Cls2 docstring'
         def func1(a, b):
             pass
         def func2(a, b, c):
-            "test2.Cls2.func2 docstring \
+            "sample2.Cls2.func2 docstring \
                                         \
                                         \
             "
@@ -53,3 +53,4 @@ class Cls2(
 def func4(a, b):
 	"Quux docstring"
 	pass
+
