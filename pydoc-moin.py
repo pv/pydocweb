@@ -45,7 +45,7 @@ try:
     import lxml.etree as etree
 except ImportError:
     try:
-        from cElementTree as etree
+        import cElementTree as etree
     except ImportError:
         try:
             from xml.etree import ElementTree as etree
