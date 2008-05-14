@@ -23,7 +23,12 @@ class TestRoundtrip(object):
         # -- collect base docstrings
 
         ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                               '-o', 'base.xml', 'sample_module'])
+                               '-o', 'base0.xml', 'sample_module'])
+        assert ret == 0
+
+        ret = subprocess.call([PYDOCM, 'numpy-docs', '-s', cwd,
+                               '-o', 'base.xml', '-i', 'base0.xml',
+                               '-m', 'sample_module.sample3'])
         assert ret == 0
 
         # -- check if something is missing
@@ -89,7 +94,7 @@ class TestRoundtrip(object):
 
             name = el.attrib['id']
 
-            assert el.text is not None, name
+            assert el.text is not None, "%s\n%s" % (name, patch)
             assert el.text.strip() == new_item_docstrings[name].strip(), \
                    "%s\n%s\n----------\n%s\n-------\n%s\n----" % (
                 name, patch, el.text.strip(), new_item_docstrings[name].strip())
