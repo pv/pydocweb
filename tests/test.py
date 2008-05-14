@@ -28,7 +28,7 @@ class TestRoundtrip(object):
 
         ret = subprocess.call([PYDOCM, 'numpy-docs', '-s', cwd,
                                '-o', 'base.xml', '-i', 'base0.xml',
-                               '-m', 'sample_module.sample3'])
+                               '-m', 'sample_module.add_newdocs'])
         assert ret == 0
 
         # -- check if something is missing

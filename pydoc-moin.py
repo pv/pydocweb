@@ -486,6 +486,7 @@ def cmd_numpy_docs(args):
         if el is not None:
             el.attrib['file'] = file
             el.attrib['line'] = str(line)
+            el.attrib['is-addnewdoc'] = '1'
         else:
             print >> sys.stderr, "%s: unknown object" % name
     doc.dump(opts.outfile)
@@ -570,29 +571,41 @@ class SourceReplacer(object):
             return s[:n_indent_ch]
 
         indent = None
-        pre_stuff, post_stuff = "", ""
-        
-        if len(statements) >= 1 and is_string(statements[0][0]):
-            start_line, start_pos, end_line, end_pos = statements[0][1:]
-        elif el.tag == 'module':
-            start_line, start_pos, end_line, end_pos = 0, 0, 0, 0
-        elif len(statements) >= 2 and is_string(statements[1][0]):
-            start_line, start_pos, end_line, end_pos = statements[1][1:]
-        elif len(statements) >= 2 and is_block(statements[0][0]):
-            start_line, start_pos = statements[0][3:]
-            start2_line, start2_pos = statements[1][1:3]
+        pre_stuff, post_stuff = "", "\n"
 
-            if start_line == start2_line:
-                # def foo(): bar
-                start_pos = start2_pos
-                indent = get_indent("    " + lines[start_line])
-                pre_stuff = "\n" + indent
-                post_stuff = indent
+        if el.attrib.get('is-addnewdoc') == '1':
+            try:
+                pre_stuff, post_stuff = self._parse_addnewdoc(statements[0][0])
+                start_line, start_pos, end_line, end_pos = statements[0][1:]
+                indent = "    "
+                pre_stuff += indent
+            except ValueError, err:
+                raise ValueError("%s: %s" % (new_id, str(err)))
+        elif el.tag == 'module':
+            if len(statements) >= 1 and is_string(statements[0][0]):
+                start_line, start_pos, end_line, end_pos = statements[0][1:]
             else:
-                start_pos = len(lines[start_line])
-                indent = get_indent(lines[statements[1][1]])
-                pre_stuff = indent
-            end_line, end_pos = start_line, start_pos
+                start_line, start_pos, end_line, end_pos = 0, 0, 0, 0
+        elif len(statements) >= 2 and is_block(statements[0][0]):
+            if is_string(statements[1][0]):
+                start_line, start_pos, end_line, end_pos = statements[1][1:]
+            else:
+                start_line, start_pos = statements[0][3:]
+                start2_line, start2_pos = statements[1][1:3]
+
+                if start_line == start2_line:
+                    # def foo(): bar
+                    start_pos = start2_pos
+                    indent = get_indent("    " + lines[start_line])
+                    pre_stuff = "\n" + indent
+                    post_stuff = "\n" + indent
+                else:
+                    # def foo():
+                    #     bar
+                    start_pos = len(lines[start_line])
+                    indent = get_indent(lines[statements[1][1]])
+                    pre_stuff = indent
+                end_line, end_pos = start_line, start_pos
         else:
             raise ValueError("Source location for %s known, but failed to "
                              "find a place for the docstring" % new_id)
@@ -609,7 +622,7 @@ class SourceReplacer(object):
         new_doc = new_doc.replace('"""', r'\"\"\"')
         new_doc = new_doc.strip()
 
-        fmt_doc = '"""\n%s%s\n%s\n%s"""\n' % (
+        fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
             indent, new_doc.replace("\n", "\n"+indent), indent, indent)
             
         # Replace
@@ -621,6 +634,29 @@ class SourceReplacer(object):
             lines[start_line] = pre_stuff + fmt_doc + post_stuff
         
         return file
+
+    def _parse_addnewdoc(self, statement):
+        if not (isinstance(statement, compiler.ast.Discard)
+                and isinstance(statement.expr, compiler.ast.CallFunc)
+                and statement.expr.node.name == 'add_newdoc'):
+            raise ValueError('not a add_newdoc statement')
+        expr = statement.expr
+        v = expr.args
+        name = "%s.%s" % (v[0].value, v[1].value)
+        if isinstance(v[2], compiler.ast.Tuple):
+            y = v[2].getChildNodes()
+            name += ".%s" % (y[0].value)
+            pre = "add_newdoc('%s', '%s', ('%s',\n" % (
+                v[0].value.encode('string-escape'),
+                v[1].value.encode('string-escape'),
+                y[0].value.encode('string-escape'))
+            post = "))\n"
+        else:
+            pre = "add_newdoc('%s', '%s',\n" % (
+                v[0].value.encode('string-escape'),
+                v[1].value.encode('string-escape'))
+            post = ")\n"
+        return pre, post
 
 def iter_chars_on_lines(lines, start_line=0, start_pos=0):
     """

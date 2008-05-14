@@ -6,6 +6,7 @@
 <!ATTLIST module type CDATA #REQUIRED>
 <!ATTLIST module file CDATA #IMPLIED>
 <!ATTLIST module line CDATA #IMPLIED>
+<!ATTLIST module is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT class (#PCDATA|ref|base|callable|object)*>
 <!ATTLIST class id ID #REQUIRED>
@@ -13,6 +14,7 @@
 <!ATTLIST class type CDATA #REQUIRED>
 <!ATTLIST class file CDATA #IMPLIED>
 <!ATTLIST class line CDATA #IMPLIED>
+<!ATTLIST class is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT callable (#PCDATA)*>
 <!ATTLIST callable id ID #REQUIRED>
@@ -22,6 +24,7 @@
 <!ATTLIST callable line CDATA #IMPLIED>
 <!ATTLIST callable objclass CDATA #IMPLIED>
 <!ATTLIST callable argspec CDATA #IMPLIED>
+<!ATTLIST callable is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT object (#PCDATA)*>
 <!ATTLIST object id ID #REQUIRED>
@@ -30,6 +33,7 @@
 <!ATTLIST object file CDATA #IMPLIED>
 <!ATTLIST object line CDATA #IMPLIED>
 <!ATTLIST object is-repr (0|1) #IMPLIED>
+<!ATTLIST object is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT base EMPTY>
 <!ATTLIST base ref CDATA #REQUIRED>
