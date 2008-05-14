@@ -18,6 +18,8 @@ class TestRoundtrip(object):
     def test_roundtrip(self):
         cwd = os.getcwd()
 
+        random.seed(1234)
+
         # -- collect base docstrings
 
         ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
@@ -44,14 +46,16 @@ class TestRoundtrip(object):
 
         new_item_docstrings = {}
 
+        stripall = lambda x: pydoc_moin.strip_trailing_whitespace(x).strip()
+
         for el in doc.getroot():
             if el.tag not in ('object', 'callable', 'class', 'module'): continue
             if el.get('line') is None: continue
 
             name = el.attrib['id']
             new_item_docstrings[name] = "%s\n%s"%(name, garbage_generator())
+            new_item_docstrings[name] = stripall(new_item_docstrings[name])
             el.text = new_item_docstrings[name].encode("string-escape")
-            el.text = pydoc_moin.strip_trailing_whitespace(el.text)
         f = open('new.xml', 'w')
         f.write('<?xml version="1.0"?>')
         doc.write(f)
@@ -64,7 +68,7 @@ class TestRoundtrip(object):
         assert ret == 0
 
         f = open('out.patch', 'r')
-        ret = subprocess.call(['patch', '-t', '-p0'], stdin=f)
+        ret = subprocess.call(['patch', '-st', '-p0'], stdin=f)
         f.close()
 
         patch = open('out.patch', 'r').read()
@@ -84,8 +88,11 @@ class TestRoundtrip(object):
             if el.get('line') is None: continue
 
             name = el.attrib['id']
+
+            assert el.text is not None, name
             assert el.text.strip() == new_item_docstrings[name].strip(), \
-                   "%s\n%s" % (name, patch)
+                   "%s\n%s\n----------\n%s\n-------\n%s\n----" % (
+                name, patch, el.text.strip(), new_item_docstrings[name].strip())
 
 
     def setUp(self):
@@ -107,7 +114,7 @@ class TestRoundtrip(object):
 
 def garbage_generator(length=40*2):
     letters = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-               "0123456789\n\n\n\n\n\n\"\"\"\"\"\"''''''      \t\t")
+               "0123456789\n\n\n\n\n\n\"\"\"\"\"\"''''''      ")
     result = ""
     for j in xrange(length):
         result += letters[random.randint(0, len(letters)-1)]
@@ -126,7 +133,7 @@ def test_iter_statements():
 
     """
 
-    lines = pydoc_moin.split_lines(t1)
+    lines = t1.splitlines(1)
     ch_iter = pydoc_moin.iter_chars_on_lines(lines)
     
     it = pydoc_moin.iter_statements(ch_iter)
