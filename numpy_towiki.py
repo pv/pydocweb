@@ -45,10 +45,10 @@ def regenerate_base_xml():
     exec_cmd(['python2.5', 'setupegg.py', 'install',
               '--prefix=%s/dist'%REPO_DIR])
     os.chdir(DIR)
-    exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
+    exec_cmd([("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
                "| %(PYDOCMOIN)s numpy-docs -s %(SITE_PTH)s -o %(BASEXML)s")
-              % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
+              % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN)], shell=True)
 
 
 def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
