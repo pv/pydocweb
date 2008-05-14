@@ -1417,7 +1417,7 @@ def escape_text(text):
 # Remote uploading
 #------------------------------------------------------------------------------
  
-class MoinPage():
+class MoinPage(object):
 
     def __init__(self,url):
         self.url = url
