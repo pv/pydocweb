@@ -40,10 +40,13 @@ def regenerate_base_xml():
     if not os.path.isdir(SITE_PTH):
         os.makedirs(SITE_PTH)
 
+    dist_dir = os.path.join(REPO_DIR, 'dist.%s' % os.getlogin())
+
     os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
-    exec_cmd(['python2.5', 'setupegg.py', 'install',
-              '--prefix=%s/dist'%REPO_DIR])
+    if os.path.isdir(dist_dir):
+        shutil.rmtree(dist_dir)
+    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=%s' % dist_dir])
     os.chdir(DIR)
     exec_cmd([("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
