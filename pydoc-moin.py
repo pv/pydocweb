@@ -531,71 +531,177 @@ class SourceReplacer(object):
             raise ValueError("Source location for %s is not known" % new_id)
         else:
             file, line = el.get('file'), int(el.get('line'))
-
+            line = max(line-1, 0) # numbering starts from line 1
+        
         if file not in self.old_sources:
             self.old_sources[file] = split_lines(open(file, 'r').read())
             self.new_sources[file] = list(self.old_sources[file])
-
-        lines = self.old_sources[file]
-        new_lines = self.new_sources[file]
-
-        # Locate start and end lines exactly in the old doc
-        # NB. Remember: line numbers reported by inspect start from 1
-        seek_start = max(line-1, 0)
-        start_line = seek_start
-        end_line = min(seek_start + old_doc.count("\n") + 10, len(lines)-1)
-        start_seen = False
-        for j, l in enumerate(lines[seek_start:end_line]):
-            if '"""' in l:
-                if not start_seen:
-                    start_line = seek_start + j
-                    start_seen = True
-                else:
-                    end_line = seek_start + j
-                    break
         
-        # Replace lines in new_sources
-        if '"""' in lines[start_line] and '"""' in lines[end_line]:
-            pre_stuff = lines[start_line][:lines[start_line].index('"""')]
-            post_stuff = lines[end_line][lines[end_line].rindex('"""')+3:]
-            pre_post_stuff = ""
-            indent = " "*lines[start_line].index('"""')
+        lines = self.new_sources[file]
+
+        # -- Find replace location
+        
+        ch_iter = iter_chars_on_lines(lines, line)
+        statement_iter = iter_statements(ch_iter)
+        
+        statements = []
+        try:
+            statements.append(statement_iter.next())
+            statements.append(statement_iter.next())
+        except StopIteration:
+            pass
+
+        if new_id == 'sample_module.sample2.Cls1.__init__':
+            print "||", lines[line:line+4]
+            print ">>", new_id, statements[0][0], statements[1][0]
+        
+        def is_string(s):
+            return (isinstance(s, compiler.ast.Discard) and
+                    isinstance(s.expr, compiler.ast.Const) and
+                    type(s.expr.value) in (str, unicode))
+
+        def get_indent(s):
+            n_indent_ch = len(s) - len(s.lstrip())
+            return s[:n_indent_ch]
+
+        indent = None
+        pre_stuff, post_stuff = "", ""
+        
+        if len(statements) >= 1 and is_string(statements[0][0]):
+            start_line, start_pos, end_line, end_pos = statements[0][1:]
+        elif el.tag == 'module':
+            start_line, start_pos, end_line, end_pos = 0, 0, 0, 0
+        elif len(statements) >= 2 and is_string(statements[1][0]):
+            start_line, start_pos, end_line, end_pos = statements[1][1:]
+        elif len(statements) >= 2:
+            start_line, start_pos = statements[0][3:]
+            start2_line, start2_pos = statements[1][1:3]
+
+            if start_line == start2_line:
+                # def foo(): bar
+                start_pos = start2_pos
+                indent = get_indent("    " + lines[start_line])
+                pre_stuff = "\n" + indent
+                post_stuff = indent
+            else:
+                start_pos = len(lines[start_line])
+                indent = get_indent(lines[statements[1][1]])
+                pre_stuff = indent
+            end_line, end_pos = start_line, start_pos
         else:
-            # XXX: doesn't work like this, we only know the location
-            # of the 'def' or 'class' line we would need AST parsing
-            # to find the first statement, before which the docstring
-            # could be inserted
-
-            # Find an appropriate line for the doc
-            start_line  = seek_start
-            for j, l in enumerate(lines[seek_start:end_line]):
-                if l.strip().endswith(':'):
-                    start_line = seek_start + j
-                    break
-            end_line = start_line + 1
-
-            # Formulate pre/post stuff
-            indent = " "*(4 + len(lines[start_line])
-                          - len(lines[start_line].lstrip()))
-            pre_stuff = lines[start_line] + indent
-            post_stuff = lines[end_line]
-            pre_post_stuff = "\n"
-
+            raise ValueError("Source location for %s known, but failed to "
+                             "find a place for the docstring" % new_id)
+        
+        # Prepare replacing
+        pre_stuff = lines[start_line][:start_pos] + pre_stuff
+        post_stuff += lines[end_line][end_pos:]
+        
+        if indent is None:
+            indent = get_indent(pre_stuff)
+        
+        # Format new doc
         new_doc = escape_text(strip_trailing_whitespace(new_doc.strip()))
+        new_doc = new_doc.replace('"""', r'\"\"\"')
+        new_doc = new_doc.strip()
 
-        if '\n' not in new_doc:
-            fmt_doc = '"""%s"""' % new_doc
-        else:
-            fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
-                indent, new_doc.strip().replace("\n", "\n"+indent), indent, indent)
-
-
-        new_lines[start_line:(end_line+1)] = [""] * (end_line - start_line + 1)
-        new_lines[start_line] = pre_stuff + fmt_doc + pre_post_stuff
-        new_lines[end_line] = post_stuff
-
+        fmt_doc = '"""\n%s%s\n%s\n%s"""\n' % (
+            indent, new_doc.replace("\n", "\n"+indent), indent, indent)
+            
+        if '__init__' in new_id:
+            print ">>>%s<<<" % fmt_doc, new_id
+            
+        # Replace
+        lines[start_line:(end_line+1)] = [""] * (end_line - start_line + 1)
+        if end_line > start_line:
+            lines[start_line] = pre_stuff + fmt_doc
+            lines[end_line] = post_stuff
+        elif end_line == start_line:
+            lines[start_line] = pre_stuff + fmt_doc + post_stuff
+        
         return file
 
+def iter_chars_on_lines(lines, start_line=0, start_pos=0):
+    """
+    Iterate characters in a list of lines as if it were a stream.
+    """
+    for lineno, line in enumerate(lines[start_line:]):
+        for pos, char in enumerate(line[start_pos:]):
+            yield char, start_line + lineno, start_pos + pos
+        start_pos = 0
+
+def iter_statements(ch_iter):
+    """
+    Iterate consecutive standalone statements in Python code.
+    
+    For functions and classes, only Pass appears as a child node,
+    and docstrings are returned as separate statements.
+    
+    Parameters
+    ----------
+    ch_iter : iterator -> (char, line_number, char_position)
+        Iterator over characters in Python code
+    
+    Yields
+    ------
+    statement : compiler.ast.*
+        Statement encountered
+    start_lineno : int
+        Statement start line number
+    start_pos : int
+        Statement start character position
+    end_lineno : int
+        Statement end line number
+    end_pos : int
+        Statement end character position
+    
+    """
+    statement = ""
+    statement_lineno = None
+    statement_pos = None
+    done = False
+    while not done:
+        try:
+            ch, lineno, pos = ch_iter.next()
+            statement += ch
+
+            if statement.strip() and statement_lineno is None:
+                statement_lineno = lineno
+                statement_pos = pos
+            
+            if ch not in "\n:":
+                # slurp
+                continue
+        except StopIteration:
+            done = True
+            ch = 'x'
+
+        if statement_lineno is None:
+            continue
+        
+        try:
+            # Try to parse the statement as a stand-alone:
+            # - "pass" on top so that strings are not mistaken as docstrings
+            # - "pass" on bottom so that any children are replaced with Pass()
+            # - "\npass" first to catch comment lines
+            try:
+                p = compiler.parse("pass\n" + statement.strip() + "\npass")
+            except (SyntaxError, IndentationError):
+                p = compiler.parse("pass\n" + statement.strip() + " pass")
+
+            expr = p.getChildNodes()[0].getChildNodes()[1]
+
+            if isinstance(expr, compiler.ast.Pass) \
+                   and len(p.getChildNodes()[0].getChildNodes()) == 2:
+                # found a comment line
+                pass
+            else:
+                yield expr, statement_lineno, statement_pos, lineno, pos + 1
+            statement = ""
+            statement_lineno = None
+            statement_pos = None
+        except (SyntaxError, IndentationError):
+            pass # no complete statement seen yet
+        
 def strip_trailing_whitespace(text):
     return "\n".join([x.rstrip() for x in text.split("\n")])
  
@@ -649,6 +755,7 @@ def cmd_patch(args):
         diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
         for line in diff:
             opts.outfile.write(line)
+        opts.outfile.write("\n")
 
 def cmd_bzr(args):
     """bzr OLD.XML NEW.XML PATH
@@ -1201,6 +1308,13 @@ class Documentation(object):
         except (AttributeError, ValueError):
             pass
 
+        if hasattr(obj, 'im_class') and hasattr(obj, 'im_func'):
+            # is this inherited from base classes?
+            for b in obj.im_class.__bases__:
+                obj2 = getattr(b, obj.im_func.func_name, None)
+                if hasattr(obj2, 'im_func') and obj2.im_func is obj.im_func:
+                    return self._canonical_name(obj2, parent, name)
+        
         try:
             if obj.im_class.__module__ is not None:
                 return "%s.%s.%s" % (obj.im_class.__module__, 

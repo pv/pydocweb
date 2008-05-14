@@ -1,107 +1,138 @@
-import os, sys, shutil, tempfile, subprocess, os, random
+import os, sys, shutil, tempfile, subprocess, os, random, glob, compiler.ast
 import xml.etree.ElementTree as etree
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       '..', 'pydoc-moin.py'))
 
-sample_module = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           'sample_module'))
+sys.path.insert(0, os.path.dirname(PYDOCM))
+pydoc_moin = __import__('pydoc-moin')
+sys.path.pop(0)
+
+SAMPLE_MODULE = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                             'sample_module'))
 
 # -----------------------------------------------------------------------------
 
-def test_roundtrip():
-    cwd = os.getcwd()
+class TestRoundtrip(object):
 
-    # -- collect base docstrings
+    def test_roundtrip(self):
+        cwd = os.getcwd()
 
-    ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                           '-o', 'base.xml', 'sample_module'])
-    assert ret == 0
+        # -- collect base docstrings
 
-    # -- check if something is missing
-    
-    doc = etree.parse(open('base.xml', 'r'))
+        ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
+                               '-o', 'base.xml', 'sample_module'])
+        assert ret == 0
 
-    for name in ['sample_module',
-                 'sample_module.sample1',
-                 'sample_module.sample1.func4',
-                 'sample_module.sample2',
-                 'sample_module.sample2.Cls2.func2']:
-        ok = False
+        # -- check if something is missing
+
+        doc = etree.parse(open('base.xml', 'r'))
+
+        for name in ['sample_module',
+                     'sample_module.sample1',
+                     'sample_module.sample1.func4',
+                     'sample_module.sample2',
+                     'sample_module.sample2.Cls2.func2']:
+            ok = False
+            for el in doc.getroot():
+                if el.get('id') == name:
+                    ok = True
+                    break
+            assert ok, name
+
+        # -- generate garbage replacement docstring
+
+        new_item_docstrings = {}
+
         for el in doc.getroot():
-            if el.get('id') == name:
-                ok = True
-                break
-        assert ok, name
+            if el.tag not in ('object', 'callable', 'class', 'module'): continue
+            if el.get('line') is None: continue
 
-    # -- generate garbage replacement docstring
+            name = el.attrib['id']
+            new_item_docstrings[name] = "%s\n%s"%(name, garbage_generator())
+            el.text = new_item_docstrings[name].encode("string-escape")
+            el.text = pydoc_moin.strip_trailing_whitespace(el.text)
+        f = open('new.xml', 'w')
+        f.write('<?xml version="1.0"?>')
+        doc.write(f)
+        f.close()
 
-    new_item_docstrings = {}
+        # -- replace docstrings in source
 
-    for el in doc.getroot():
-        if el.tag not in ('object', 'callable', 'class', 'module'): continue
-        if el.get('line') is None: continue
+        ret = subprocess.call([PYDOCM, 'patch', '-o', 'out.patch',
+                               '-s', cwd, 'base.xml', 'new.xml'])
+        assert ret == 0
 
-        name = el.attrib['id']
-        new_item_docstrings[name] = garbage_generator()
-        el.text = new_item_docstrings[name].encode("string-escape")
-    f = open('new.xml', 'w')
-    f.write('<?xml version="1.0"?>')
-    doc.write(f)
-    f.close()
+        f = open('out.patch', 'r')
+        ret = subprocess.call(['patch', '-t', '-p0'], stdin=f)
+        f.close()
 
-    # -- replace docstrings in source
+        patch = open('out.patch', 'r').read()
 
-    ret = subprocess.call([PYDOCM, 'patch', '-o', 'out.patch',
-                           '-s', cwd, 'base.xml', 'new.xml'])
-    assert ret == 0
+        # -- collect them again
 
-    f = open('out.patch', 'r')
-    ret = subprocess.call(['patch', '-t', '-p0'], stdin=f)
-    f.close()
+        ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
+                               '-o', 'base2.xml', 'sample_module'])
+        assert ret == 0, patch
 
-    # -- collect them again
-    
-    ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                           '-o', 'base2.xml', 'sample_module'])
-    assert ret == 0
+        # -- compare to inserted docstrings
 
-    # -- compare to inserted docstrings
+        doc2 = etree.parse(open('base2.xml', 'r'))
 
-    doc2 = etree.parse(open('base2.xml', 'r'))
+        for el in doc2.getroot():
+            if el.tag not in ('object', 'callable', 'class', 'module'): continue
+            if el.get('line') is None: continue
 
-    for el in doc2.getroot():
-        if el.tag not in ('object', 'callable', 'class', 'module'): continue
-        if el.get('line') is None: continue
+            name = el.attrib['id']
+            assert el.text.strip() == new_item_docstrings[name].strip(), \
+                   "%s\n%s" % (name, patch)
 
-        name = el.attrib['id']
-        assert el.text.strip() == new_item_docstrings[name]
 
-def garbage_generator(length=79*5):
+    def setUp(self):
+        self.tmpdir = tempfile.mkdtemp()
+        shutil.copytree(SAMPLE_MODULE,
+                        os.path.join(self.tmpdir, 'sample_module'))
+        self.orig_cwd = os.getcwd()
+        os.chdir(self.tmpdir)
+        for f in glob.glob('sample_module/*.pyc'):
+            os.unlink(f)
+
+    def tearDown(self):
+        if self.tmpdir:
+            shutil.rmtree(self.tmpdir)
+            self.tmpdir = None
+        if self.orig_cwd:
+            os.chdir(self.orig_cwd)
+            self.orig_cwd = None
+
+def garbage_generator(length=40*2):
     letters = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                "0123456789\n\n\n\n\n\n\"\"\"\"\"\"''''''      \t\t")
     result = ""
     for j in xrange(length):
         result += letters[random.randint(0, len(letters)-1)]
-    return result
+    return result + "\"\"\""
 
 # -----------------------------------------------------------------------------
 
-_tmpdir = None
-_orig_cwd = None
+def test_iter_statements():
+    t1 = """\
     
-def setUp():
-    global _tmpdir, _orig_cwd
-    _tmpdir = tempfile.mkdtemp()
-    shutil.copytree(sample_module, os.path.join(_tmpdir, 'sample_module'))
-    _orig_cwd = os.getcwd()
-    os.chdir(_tmpdir)
+    def foo(a,
+            b,
+            c)  :
+            'foobar quux'
+            pass
 
-def tearDown():
-    global _tmpdir, _orig_cwd
-    if _tmpdir:
-        shutil.rmtree(_tmpdir)
-        _tmpdir = None
-    if _orig_cwd:
-        os.chdir(_orig_cwd)
-        _orig_cwd = None
+    """
+
+    lines = pydoc_moin.split_lines(t1)
+    ch_iter = pydoc_moin.iter_chars_on_lines(lines)
+    
+    it = pydoc_moin.iter_statements(ch_iter)
+    s = list(it)
+    assert isinstance(s[0][0], compiler.ast.Function)
+    assert lines[s[0][1]][s[0][2]:].startswith('def foo')
+    assert isinstance(s[1][0], compiler.ast.Discard)
+    assert isinstance(s[1][0].getChildNodes()[0], compiler.ast.Const)
+    assert isinstance(s[2][0], compiler.ast.Pass)

@@ -54,3 +54,5 @@ def func4(a, b):
 	"Quux docstring"
 	pass
 
+class Cls3:
+    def foo(self): pass
