@@ -446,7 +446,7 @@ def cmd_numpy_docs(args):
     Get source line information for docstrings added by numpy.add_newdoc
     function calls.
     """
-    opts, args, p = _default_optparse(cmd_patch, args,
+    opts, args, p = _default_optparse(cmd_numpy_docs, args,
                                       infile=True, outfile=True, nargs=0,
                                       syspath=True)
     
@@ -534,7 +534,7 @@ class SourceReplacer(object):
             line = max(line-1, 0) # numbering starts from line 1
         
         if file not in self.old_sources:
-            self.old_sources[file] = split_lines(open(file, 'r').read())
+            self.old_sources[file] = open(file, 'r').read().splitlines(1)
             self.new_sources[file] = list(self.old_sources[file])
         
         lines = self.new_sources[file]
@@ -551,10 +551,6 @@ class SourceReplacer(object):
         except StopIteration:
             pass
 
-        if new_id == 'sample_module.sample2.Cls1.__init__':
-            print "||", lines[line:line+4]
-            print ">>", new_id, statements[0][0], statements[1][0]
-        
         def is_string(s):
             return (isinstance(s, compiler.ast.Discard) and
                     isinstance(s.expr, compiler.ast.Const) and
@@ -606,9 +602,6 @@ class SourceReplacer(object):
 
         fmt_doc = '"""\n%s%s\n%s\n%s"""\n' % (
             indent, new_doc.replace("\n", "\n"+indent), indent, indent)
-            
-        if '__init__' in new_id:
-            print ">>>%s<<<" % fmt_doc, new_id
             
         # Replace
         lines[start_line:(end_line+1)] = [""] * (end_line - start_line + 1)
@@ -705,12 +698,6 @@ def iter_statements(ch_iter):
 def strip_trailing_whitespace(text):
     return "\n".join([x.rstrip() for x in text.split("\n")])
  
-def split_lines(line):
-    lines = [x + "\n" for x in line.split("\n")]
-    if lines:
-        lines[-1] = lines[-1][:-1]
-    return lines
-    
 def strip_sys_path(fn):
     """
     If a file is in sys.path, strip the prefix.
@@ -747,15 +734,13 @@ def cmd_patch(args):
     # -- Output patches
 
     for file in replacer.old_sources.iterkeys():
-        old_src = split_lines("".join(replacer.old_sources[file]))
-        new_src = split_lines("".join(replacer.new_sources[file]))
+        old_src = "".join(replacer.old_sources[file]).splitlines(1)
+        new_src = "".join(replacer.new_sources[file]).splitlines(1)
 
         fn = strip_sys_path(file)
 
         diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
-        for line in diff:
-            opts.outfile.write(line)
-        opts.outfile.write("\n")
+        opts.outfile.writelines(diff)
 
 def cmd_bzr(args):
     """bzr OLD.XML NEW.XML PATH
