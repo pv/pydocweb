@@ -446,13 +446,18 @@ def cmd_numpy_docs(args):
     Get source line information for docstrings added by numpy.add_newdoc
     function calls.
     """
-    opts, args, p = _default_optparse(cmd_numpy_docs, args,
+    options_list = [
+        make_option("-m", "--module", action="store", dest="module",
+                    type="str", default="numpy.add_newdocs",
+                    help="module to look in (default: numpy.add_newdocs)")
+    ]
+    opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
                                       infile=True, outfile=True, nargs=0,
                                       syspath=True)
     
     new_info = {}
-    module_names = ['numpy.add_newdocs']
-
+    module_names = [opts.module]
+    
     def ast_parse_file(file_name, source):
         tree = compiler.parse(source)
         root = tree.getChildNodes()[0]
@@ -465,9 +470,9 @@ def cmd_numpy_docs(args):
                 if isinstance(v[2], compiler.ast.Tuple):
                     y = v[2].getChildNodes()
                     name += ".%s" % (y[0].value)
-                    line = v[2].lineno
+                    line = stmt.expr.lineno
                 else:
-                    line = v[2].lineno
+                    line = stmt.expr.lineno
                 new_info[name] = (file_name, line)
 
     for module_name in module_names:
@@ -540,7 +545,7 @@ class SourceReplacer(object):
         lines = self.new_sources[file]
 
         # -- Find replace location
-        
+
         ch_iter = iter_chars_on_lines(lines, line)
         statement_iter = iter_statements(ch_iter)
         
@@ -555,7 +560,11 @@ class SourceReplacer(object):
             return (isinstance(s, compiler.ast.Discard) and
                     isinstance(s.expr, compiler.ast.Const) and
                     type(s.expr.value) in (str, unicode))
-
+        
+        def is_block(s):
+            return (isinstance(s, compiler.ast.Class) or
+                    isinstance(s, compiler.ast.Function))
+        
         def get_indent(s):
             n_indent_ch = len(s) - len(s.lstrip())
             return s[:n_indent_ch]
@@ -569,7 +578,7 @@ class SourceReplacer(object):
             start_line, start_pos, end_line, end_pos = 0, 0, 0, 0
         elif len(statements) >= 2 and is_string(statements[1][0]):
             start_line, start_pos, end_line, end_pos = statements[1][1:]
-        elif len(statements) >= 2:
+        elif len(statements) >= 2 and is_block(statements[0][0]):
             start_line, start_pos = statements[0][3:]
             start2_line, start2_pos = statements[1][1:3]
 
