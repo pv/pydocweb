@@ -18,7 +18,9 @@ DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
 PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
-SITE_PTH  = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
+DIST_DIR  = os.path.join(REPO_DIR, 'dist.%s' % os.getlogin())
+SITE_PTH  = os.path.join(DIST_DIR, "lib/python2.5/site-packages")
+
 
 def main():
     regenerate_base_xml()
@@ -40,13 +42,11 @@ def regenerate_base_xml():
     if not os.path.isdir(SITE_PTH):
         os.makedirs(SITE_PTH)
 
-    dist_dir = os.path.join(REPO_DIR, 'dist.%s' % os.getlogin())
-
     os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
-    if os.path.isdir(dist_dir):
-        shutil.rmtree(dist_dir)
-    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=%s' % dist_dir])
+    if os.path.isdir(DIST_DIR):
+        shutil.rmtree(DIST_DIR)
+    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=%s' % DIST_DIR])
     os.chdir(DIR)
     exec_cmd([("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
