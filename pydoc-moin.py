@@ -749,6 +749,7 @@ class SourceReplacer(object):
 
         fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
             indent, new_doc.replace("\n", "\n"+indent), indent, indent)
+        fmt_doc = strip_trailing_whitespace(fmt_doc)
             
         # Replace
         lines[start_line:(end_line+1)] = [""] * (end_line - start_line + 1)
