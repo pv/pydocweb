@@ -6,7 +6,7 @@ REPO_DIR = "numpy"
 MODULE = "numpy"
 FRONTPAGE_FILE = "introduction.rst"
 
-BZR_AUTHOR = "pydoc-moin"
+BZR_AUTHOR = "pydoc_moin"
 BZR_MESSAGE = "Updated %s docstring"
 
 # -----------------------------------------------------------------------------
@@ -17,7 +17,7 @@ import os, shutil
 DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
-PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
+PYDOCMOIN = os.path.join(DIR, "pydoc_moin.py")
 SITE_PTH  = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
 
 def main():

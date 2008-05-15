@@ -2,10 +2,10 @@ import os, sys, shutil, tempfile, subprocess, os, random, glob, compiler.ast
 import xml.etree.ElementTree as etree
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                      '..', 'pydoc-moin.py'))
+                                      '..', 'pydoc_moin.py'))
 
 sys.path.insert(0, os.path.dirname(PYDOCM))
-pydoc_moin = __import__('pydoc-moin')
+pydoc_moin = __import__('pydoc_moin')
 sys.path.pop(0)
 
 SAMPLE_MODULE = os.path.abspath(os.path.join(os.path.dirname(__file__),
