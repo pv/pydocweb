@@ -7,6 +7,7 @@ Many things copied from Johannes Berg's `MoinMoin Latex support`_
 """
 
 import subprocess, os, sys, shutil, tempfile, resource, md5
+import Image
 
 OUT_PATH = "/var/www-pub/root/pTSc0V/testwiki/math"
 OUT_URI_BASE = "http://192.168.0.100/pTSc0V/testwiki/math/"
@@ -25,7 +26,11 @@ LATEX_TEMPLATE = r"""
 \end{document}
 """
 LATEX_ARGS = ["--interaction=nonstopmode"]
-DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1"]
+DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1",
+               "--truecolor"
+               # NOTE: PIL doesn't handle indexed PNG alpha gracefully,
+               #       hence truecolor...
+               ]
 
 # -----------------------------------------------------------------------------
 # Running LaTeX safely
@@ -58,38 +63,80 @@ def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
     if echo: print out + err
     return out + err
 
-def latex_to_png(prologue, in_text, out_png):
+def extract_baseline(png_fn):
+    img = Image.open(png_fn).convert('RGBA')
+    red, green, blue, alpha = img.split()
+    baseline_offset = 0
+    for y in xrange(1, img.size[1]):
+        if alpha.getpixel((0, img.size[1]-1 - y)) != 0:
+            baseline_offset = y-1
+            break
+    right_edge = 0
+    for x in xrange(img.size[0]):
+        if alpha.getpixel((x, baseline_offset)) == 0:
+            right_edge = x + 1
+            break
+    img2 = img.crop((right_edge, 0, img.size[0], img.size[1]))
+    img2.save(png_fn, 'PNG')
+    return baseline_offset
+
+def latex_to_png(prologue, in_text, out_png, with_baseline=False):
     out_png = os.path.abspath(out_png)
     cwd = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
     try:
         os.chdir(tmp_dir)
         f = open('foo.tex', 'w')
+        if with_baseline:
+            in_text = r"\rule{1ex}{1ex}\ " + in_text
         f.write(LATEX_TEMPLATE % dict(raw=in_text.encode('utf-8'),
                                       prologue=prologue))
         f.close()
         exec_cmd([LIMITED_LATEX] + LATEX_ARGS + ['foo.tex'], show_cmd=False)
         exec_cmd([DVIPNG] + DVIPNG_ARGS + ['-o', 'foo.png', 'foo.dvi'],
                  show_cmd=False)
+        if with_baseline:
+            baseline_offset = extract_baseline('foo.png')
+        else:
+            baseline_offset = 0
         shutil.copy('foo.png', out_png)
+        return baseline_offset
     except OSError, e:
         raise RuntimeError(str(e))
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmp_dir)
 
-def latex_to_uri(in_text):
+def latex_to_uri(in_text, with_baseline=False):
     file_basename = md5.new(in_text.encode('utf-8')).hexdigest() + ".png"
     file_name = os.path.join(OUT_PATH, file_basename)
+    baseline_file_name = file_name + '.baseline'
     if not os.path.isfile(file_name):
-        latex_to_png("", in_text, file_name)
+        baseline_offset = latex_to_png("", in_text, file_name, with_baseline)
+        if with_baseline:
+            f = open(baseline_file_name, 'w')
+            f.write(str(baseline_offset))
+            f.close()
+    elif with_baseline:
+        if os.path.isfile(baseline_file_name):
+            f = open(baseline_file_name, 'r')
+            try:
+                baseline_offset = int(f.read())
+            except:
+                baseline_offset = 0
+            finally:
+                f.close()
+        else:
+            baseline_offset = 0
     uri = OUT_URI_BASE + file_basename
-    return uri
+    if with_baseline:
+        return uri, baseline_offset
+    else:
+        return uri
 
 # -----------------------------------------------------------------------------
 # Roles and directives
 # -----------------------------------------------------------------------------
-import MoinMoin.parser.rst
 import docutils
 import docutils.utils
 import docutils.core, docutils.nodes, docutils.parsers.rst
