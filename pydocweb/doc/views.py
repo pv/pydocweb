@@ -1,11 +1,20 @@
 from django.shortcuts import render_to_response, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.core.urlresolvers import reverse
+
 from pydocweb.doc.models import *
 
 
 # Create your views here.
 
 def frontpage(request):
-    return render_to_response('frontpage.html', {})
+    return HttpResponsePermanentRedirect(reverse(wiki, args=['Front Page']))
+
+def wiki(request, name):
+    pass
+
+def edit_wiki(request, name):
+    pass
 
 def docstring_index(request):
     pass

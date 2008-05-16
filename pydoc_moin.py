@@ -1357,7 +1357,7 @@ class Documentation(object):
             pass
 
         if (hasattr(obj, 'im_class') and hasattr(obj, 'im_func') and
-                hasattr(obj.im_class, '__bases__'):
+                hasattr(obj.im_class, '__bases__')):
             # is this inherited from base classes?
             for b in obj.im_class.__bases__:
                 obj2 = getattr(b, obj.im_func.func_name, None)
