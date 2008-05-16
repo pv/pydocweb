@@ -69,11 +69,11 @@ def extract_baseline(png_fn):
     baseline_offset = 0
     for y in xrange(1, img.size[1]):
         if alpha.getpixel((0, img.size[1]-1 - y)) != 0:
-            baseline_offset = y-1
+            baseline_offset = y
             break
     right_edge = 0
     for x in xrange(img.size[0]):
-        if alpha.getpixel((x, baseline_offset)) == 0:
+        if alpha.getpixel((x, img.size[1]-1 - baseline_offset)) == 0:
             right_edge = x + 1
             break
     img2 = img.crop((right_edge, 0, img.size[0], img.size[1]))
@@ -145,8 +145,9 @@ import docutils.core, docutils.nodes, docutils.parsers.rst
 
 def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     try:
-        uri = latex_to_uri(ur'$%s$' % text)
-        img = docutils.nodes.image("", uri=uri)
+        uri, baseline_off = latex_to_uri(ur'$%s$' % text, with_baseline=True)
+        img = docutils.nodes.image("", uri=uri,
+                                   classes=["img-offset-%d" % baseline_off])
         return [img], []
     except RuntimeError, e:
         item = docutils.nodes.literal(text=str(text))
