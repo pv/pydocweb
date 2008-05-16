@@ -17,8 +17,10 @@ import os, shutil
 DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
-PYDOCMOIN = os.path.join(DIR, "pydoc_moin.py")
-SITE_PTH  = os.path.join(REPO_DIR, "dist/lib/python2.5/site-packages")
+PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
+DIST_DIR  = os.path.join(REPO_DIR, 'dist.%s' % os.getlogin())
+SITE_PTH  = os.path.join(DIST_DIR, "lib/python2.5/site-packages")
+
 
 def main():
     regenerate_base_xml()
@@ -42,13 +44,14 @@ def regenerate_base_xml():
 
     os.environ['PYTHONPATH'] = os.path.abspath(SITE_PTH)
     os.chdir(REPO_DIR)
-    exec_cmd(['python2.5', 'setupegg.py', 'install',
-              '--prefix=%s/dist'%REPO_DIR])
+    if os.path.isdir(DIST_DIR):
+        shutil.rmtree(DIST_DIR)
+    exec_cmd(['python2.5', 'setupegg.py', 'install', '--prefix=%s' % DIST_DIR])
     os.chdir(DIR)
-    exec_cmd(("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
+    exec_cmd([("%(PYDOCMOIN)s collect -s %(SITE_PTH)s %(MODULE)s "
                "| %(PYDOCMOIN)s prune "
                "| %(PYDOCMOIN)s numpy-docs -s %(SITE_PTH)s -o %(BASEXML)s")
-              % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN), shell=True)
+              % dict(SITE_PTH=SITE_PTH, MODULE=MODULE, BASEXML=BASEXML, PYDOCMOIN=PYDOCMOIN)], shell=True)
 
 
 def exec_cmd(cmd, ok_return_value=0, show_cmd=True, echo=False, **kw):
