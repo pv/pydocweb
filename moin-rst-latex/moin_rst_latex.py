@@ -67,7 +67,7 @@ def extract_baseline(png_fn):
     img = Image.open(png_fn).convert('RGBA')
     red, green, blue, alpha = img.split()
     baseline_offset = 0
-    for y in xrange(1, img.size[1]):
+    for y in xrange(img.size[1]):
         if alpha.getpixel((0, img.size[1]-1 - y)) != 0:
             baseline_offset = y
             break
