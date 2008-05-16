@@ -77,6 +77,8 @@ def extract_baseline(png_fn):
             right_edge = x + 1
             break
     img2 = img.crop((right_edge, 0, img.size[0], img.size[1]))
+    red2, green2, blue2, alpha2 = img2.split()
+    img2 = img2.crop(alpha2.getbbox())
     img2.save(png_fn, 'PNG')
     return baseline_offset
 
