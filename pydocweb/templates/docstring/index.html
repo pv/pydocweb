@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
 {% block title %}
-{{space}}
+All entries
 {% endblock %}
 
 {% block content %}
-<h1>{{space}}</h1>
+<h1>All entries</h1>
 
 <table>
   {% for doc in docs %}
   <tr>
-    <td><a href="{% url pydocweb.doc.views.docstring space,doc.name %}">{{doc.name}}</a></td>
+    <td><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></td>
   </tr>
   {% endfor %}
 </table>

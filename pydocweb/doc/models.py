@@ -15,8 +15,7 @@ REVIEW_STATUS = ["none",
                  "proofed"]
 
 class Docstring(models.Model):
-    space       = models.CharField(maxlength=256)
-    name        = models.CharField(maxlength=MAX_NAME_LEN)
+    name        = models.CharField(maxlength=MAX_NAME_LEN, primary_key=True)
     
     type_       = models.CharField(maxlength=16)
     
@@ -28,6 +27,8 @@ class Docstring(models.Model):
     repr_       = models.TextField(null=True)
     
     source_doc  = models.TextField()
+    
+    status      = models.CharField(maxlength=16, default='none')
     merged      = models.BooleanField()
     dirty       = models.BooleanField()
     
@@ -36,16 +37,30 @@ class Docstring(models.Model):
     
     # contents = [DocstringAlias...]
     # revisions = [DocstringRevision...]
+    # comments = [ReviewComment...]
     
     class Meta:
         ordering = ['name']
     
     # --
     
+    @property
+    def reviewed(self):
+        return self.status == 'reviewed' or self.status == 'proofed'
+
+    @property
+    def proofed(self):
+        return self.status == 'proofed'
+
     def edit(self, new_text, author, comment):
         if new_text == self.text:
             # NOOP
             return
+
+        if self.status == 'proofed':
+            self.status = 'proofed_old'
+        elif self.status == 'reviewed':
+            self.status = 'reviewed_old'
         
         self.dirty = True
         self.save()
@@ -65,9 +80,15 @@ class Docstring(models.Model):
     def get_source_file_content(self):
         if self.file_name is None:
             return None
+        
         fn_1 = os.path.realpath(self.file_name)
-        fn_2 = os.path.realpath(django.settings.SVN_DIRS[self.space])
-        if not fn_1.startswith(fn_2 + os.path.sep):
+        
+        in_svn_dir = False
+        for fn_2 in settings.SVN_DIRS.values():
+            fn_2 = os.path.realpath(fn_2)
+            in_svn_dir = in_svn_dir or fn_1.startswith(fn_2 + os.path.sep)
+        
+        if not in_svn_dir:
             return None
         else:
             f = open(fn_1, 'r')
@@ -89,15 +110,15 @@ class DocstringRevision(models.Model):
         ordering = ['-revno']
 
 class DocstringAlias(models.Model):
-    target = models.ForeignKey(Docstring)
     parent = models.ForeignKey(Docstring, related_name="contents")
+    target = models.CharField(maxlength=MAX_NAME_LEN, null=True)
     alias = models.CharField(maxlength=MAX_NAME_LEN)
 
 # -- Wiki pages
 
 class WikiPage(models.Model):
-    name = models.CharField(maxlength=256)
-
+    name = models.CharField(maxlength=256, primary_key=True)
+    
     def edit(self, new_text, author, comment):
         rev = WikiPageRevision(page=self,
                                author=author,
@@ -126,23 +147,8 @@ class WikiPageRevision(models.Model):
     
 # -- Reviewing
 
-class ReviewStatus(models.Model):
-    docstring = models.OneToOneField(Docstring, primary_key=True)
-    status = models.CharField(maxlength=16, default='none')
-    # comments = [ReviewComment...]
-    
-    # --
-    
-    @property
-    def reviewed(self):
-        return self.status == 'reviewed' or self.status == 'proofed'
-
-    @property
-    def proofed(self):
-        return self.status == 'proofed'
-
 class ReviewComment(models.Model):
-    docstring = models.ForeignKey(ReviewStatus, related_name="comments")
+    docstring = models.ForeignKey(Docstring, related_name="comments")
     text      = models.TextField()
     author    = models.CharField(maxlength=256)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
@@ -160,19 +166,24 @@ import tempfile, os, subprocess, sys, shutil
 class MalformedPydocXML(RuntimeError): pass
 
 @transaction.commit_on_success
-def update_docstrings_from_xml(space, stream):
+def update_docstrings_from_xml(stream):
     """
     Read XML from stream and update database accordingly.
     
     """
     try:
-        _update_docstrings_from_xml(space, stream)
+        _update_docstrings_from_xml(stream)
     except (TypeError, ValueError, AttributeError, KeyError), e:
         raise MalformedPydocXML(str(e))
 
-def _update_docstrings_from_xml(space, stream):
+def _update_docstrings_from_xml(stream):
     tree = etree.parse(stream)
     root = tree.getroot()
+
+    known_entries = {}
+    for el in root:
+        if el.tag not in ('module', 'class', 'callable', 'object'): continue
+        known_entries[el.attrib['id']] = True
     
     for el in root:
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
@@ -199,8 +210,7 @@ def _update_docstrings_from_xml(space, stream):
         except (ValueError, TypeError):
             line = None
         
-        doc, created = Docstring.objects.get_or_create(name=el.attrib['id'],
-                                                       space=space)
+        doc, created = Docstring.objects.get_or_create(name=el.attrib['id'])
         doc.type_ = el.tag
         doc.type_name = el.get('type')
         doc.argspec = el.get('argspec')
@@ -237,34 +247,39 @@ def _update_docstrings_from_xml(space, stream):
         # -- Contents
         
         for ref in el.findall('ref'):
-            target, created = Docstring.objects.get_or_create(
-                name=ref.attrib['ref'], space=space)
             alias = DocstringAlias()
-            alias.target = target
+            alias.target = ref.attrib['ref']
             alias.parent = doc
             alias.alias = ref.attrib['name']
             alias.save()
 
-def update_docstrings(space):
-    svn_dir = os.path.realpath(settings.SVN_DIRS[space])
+def update_docstrings():
+    for svn_dir in settings.SVN_DIRS:
+        svn_dir = os.path.realpath(svn_dir)
+        dist_dir = os.path.join(svn_dir, 'dist')
 
-    cwd = os.getcwd()
-    os.chdir(svn_dir)
-    try:
-        _exec_cmd(['svn', 'up'])
-        _exec_cmd(['svn', 'revert', '-R', '.'])
-    finally:
-        os.chdir(cwd)
+        if os.path.isdir(dist_dir):
+            shutil.rmtree(dist_dir)
+        
+        cwd = os.getcwd()
+        os.chdir(svn_dir)
+        try:
+            _exec_cmd(['svn', 'up'])
+            _exec_cmd(['svn', 'revert', '-R', '.'])
+            _exec_cmd([sys.executable, 'setupegg.py', 'install',
+                       '--prefix=%s' % dist_dir])
+        finally:
+            os.chdir(cwd)
 
-    base_xml_fn, site_dir = regenerate_base_xml(space)
+    base_xml_fn = regenerate_base_xml()
 
     f = open(base_xml_fn, 'r')
     try:
-        update_docstrings_from_xml(space, f)
+        update_docstrings_from_xml(f)
     finally:
         f.close()
         
-def patch_against_source(space, revs):
+def patch_against_source(revs):
     """
     Generate a patch against source files, for the given docstrings.
     """
@@ -286,51 +301,38 @@ def patch_against_source(space, revs):
     new_xml_file.flush()
 
     # -- Generate patch
-    svn_dir = os.path.realpath(settings.SVN_DIRS[space])
-    dist_dir = os.path.join(svn_dir, 'dist')
-    site_dir = os.path.join(
-        dist_dir, 'lib/python%d.%d/site-packages' % sys.version_info[:2])
-    base_xml_fn = os.path.join(svn_dir, 'base.xml')
+    base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
     
-    patch = _exec_chainpipe([[settings.PYDOCMOIN, 'patch', '-s', site_dir,
+    patch = _exec_chainpipe([[settings.PYDOCMOIN, 'patch',
+                              '-s', _site_path(),
                               base_xml_fn, new_xml_file.name]])
     return patch
 
-def regenerate_base_xml(space):
-    svn_dir = os.path.realpath(settings.SVN_DIRS[space])
-    
-    dist_dir = os.path.join(svn_dir, 'dist')
-    site_dir = os.path.join(
-        dist_dir, 'lib/python%d.%d/site-packages' % sys.version_info[:2])
-    
-    if os.path.isdir(site_dir):
-        shutil.rmtree(site_dir)
-    
-    cwd = os.getcwd()
-    os.chdir(svn_dir)
-    try:
-        _exec_cmd([sys.executable, 'setupegg.py', 'install',
-                   '--prefix=%s' % dist_dir])
-    finally:
-        os.chdir(cwd)
-
+def regenerate_base_xml():
     cmds = []
     cmds.append(
-        [settings.PYDOCMOIN, 'collect', '-s', site_dir]
-        + settings.MODULES[space]
+        [settings.PYDOCMOIN, 'collect', '-s', _site_path()]
+        + list(settings.MODULES)
     )
     cmds.append([settings.PYDOCMOIN, 'prune'])
     try:
-        cmds.append([settings.PYDOCMOIN, 'numpy-docs', '-s', site_dir,
-                     '-m', settings.ADDNEWDOCS_MODULES[space]])
+        cmds.append([settings.PYDOCMOIN, 'numpy-docs', '-s', _site_path()])
+        for mod in settings.ADDNEWDOCS_MODULES:
+            cmds[-1] += ['-m', mod]
     except KeyError:
         pass
 
-    base_xml_fn = os.path.join(svn_dir, 'base.xml')
+    base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
     base_xml = open(base_xml_fn, 'w')
     _exec_chainpipe(cmds, final_out=base_xml)
     base_xml.close()
-    return base_xml_fn, site_dir
+    return base_xml_fn
+
+def _site_path():
+    site_dirs = [os.path.join(os.path.realpath(svn_dir),
+                    'dist/lib/python%d.%d/site-packages' % sys.version_info[:2])
+                 for svn_dir in settings.SVN_DIRS]
+    return os.path.pathsep.join(site_dirs)
 
 def _exec_chainpipe(cmds, final_out=None):
     procs = []

@@ -7,15 +7,10 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
-SVN_DIRS = dict(
-    numpy="/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
-)
-MODULES = dict(
-    numpy=['numpy'],
-)
-ADDNEWDOCS_MODULES = dict(
-    numpy='numpy.add_newdocs',
-)
+SVN_DIRS = ("/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
+            )#"/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/scipy")
+MODULES = ("numpy",)# "scipy")
+ADDNEWDOCS_MODULES = ("numpy.add_newdocs",)
 PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
 
 #------------------------------------------------------------------------------

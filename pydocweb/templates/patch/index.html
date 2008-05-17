@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block title %}
-Patch for {{space}}
+Patch
 {% endblock %}
 
 {% block content %}
-<h1>Patch for {{space}}</h1>
+<h1>Patch</h1>
 
-<form action="{% url pydocweb.doc.views.patch space %}" method="post">
+<form action="{% url pydocweb.doc.views.patch %}" method="post">
 <table>
   <tr>
     <th></th>
@@ -26,7 +26,7 @@ Patch for {{space}}
       {% endif %}
     </td>
     <td>
-      <a href="{% url pydocweb.doc.views.docstring space,entry.doc.name %}">{{entry.doc.name}}</a>
+      <a href="{% url pydocweb.doc.views.docstring entry.doc.name %}">{{entry.doc.name}}</a>
     </td>
     <td>{{entry.status}}</td>
     <td>

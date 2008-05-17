@@ -100,22 +100,20 @@ def diff_wiki(request, name):
 # Docstrings
 #------------------------------------------------------------------------------
 
-def docstring_index(request, space):
+def docstring_index(request):
     # XXX: implement
-    docs = Docstring.objects.filter(space=space)
+    docs = Docstring.objects.all()
     return render_template(request, 'docstring/index.html',
-                           dict(space=space, docs=docs))
+                           dict(docs=docs))
 
-def docstring(request, space, name):
+def docstring(request, name):
     # XXX: merge notify
-    doc = get_object_or_404(Docstring, space=space, name=name)
+    doc = get_object_or_404(Docstring, name=name)
     body = rst.render_html(doc.text)
     
     # XXX: comments
-    status, created = ReviewStatus.objects.get_or_create(docstring=doc)
-
     comments = []
-    for comment in status.comments.all():
+    for comment in doc.comments.all():
         comments.append(dict(
             id=comment.id,
             author=comment.author,
@@ -123,13 +121,13 @@ def docstring(request, space, name):
         ))
     
     return render_template(request, 'docstring/base.html',
-                           dict(space=space, name=name, body=body,
-                                status=status.status,
+                           dict(name=name, body=body,
+                                status=doc.status,
                                 comments=comments))
 
-def edit(request, space, name):
+def edit(request, name):
     # XXX: merge
-    doc = get_object_or_404(Docstring, space=space, name=name)
+    doc = get_object_or_404(Docstring, name=name)
     
     if request.method == 'POST':
         form = EditForm(request.POST)
@@ -138,7 +136,7 @@ def edit(request, space, name):
             doc.edit(data['text'],
                      "XXX", # XXX: author!
                      data['comment'])
-            return HttpResponseRedirect(reverse(docstring, args=[space, name]))
+            return HttpResponseRedirect(reverse(docstring, args=[name]))
     else:
         try:
             rev = doc.revisions.all()[0]
@@ -148,10 +146,10 @@ def edit(request, space, name):
         form = EditForm(data)
     
     return render_template(request, 'docstring/edit.html',
-                           dict(form=form, name=name, space=space))
+                           dict(form=form, name=name))
 
-def comment_edit(request, space, name, comment_id):
-    doc = get_object_or_404(Docstring, space=space, name=name)
+def comment_edit(request, name, comment_id):
+    doc = get_object_or_404(Docstring, name=name)
     try:
         comment = ReviewComment.objects.get(docstring=doc, id=comment_id,
                                             author="XXX") # XXX: author
@@ -162,17 +160,17 @@ def comment_edit(request, space, name, comment_id):
     # XXX: implement
     pass
 
-def comment_new(request, space, name):
+def comment_new(request, name):
     # XXX: implement
     pass
 
-def log(request, space, name):
-    doc = get_object_or_404(Docstring, space=space, name=name)
+def log(request, name):
+    doc = get_object_or_404(Docstring, name=name)
     # XXX: implement
     pass
 
-def diff(request, space, name):
-    doc = get_object_or_404(Docstring, space=space, name=name)
+def diff(request, name):
+    doc = get_object_or_404(Docstring, name=name)
     # XXX: implement
     pass
 
@@ -181,10 +179,10 @@ def diff(request, space, name):
 # Sources
 #------------------------------------------------------------------------------
 
-def source_index(request, space):
+def source_index(request):
     pass
 
-def source(request, space, file_name):
+def source(request, file_name):
     pass
 
 
@@ -192,36 +190,24 @@ def source(request, space, file_name):
 # Control
 #------------------------------------------------------------------------------
 
-def patch(request, space):
+def patch(request):
     if request.method == "POST":
         included_docs = request.POST.keys()
         patch = patch_against_source(
-            space, Docstring.objects.filter(name__in=included_docs))
+            Docstring.objects.filter(name__in=included_docs))
         return HttpResponse(patch, mimetype="text/plain")
     
-    changed = Docstring.objects.filter(space=space, dirty=True)
-    entries = []
-
-    for doc in changed:
-        try:
-            stat = ReviewStatus.objects.get(docstring=doc)
-            status = stat.status
-        except:
-            status = "none"
-        entries.append(dict(doc=doc, status=status))
-
-    entries.sort(key=lambda x: (
-        x['doc'].merged,
-        REVIEW_STATUS.index(x['status']),
-        x['doc'].name))
+    entries = Docstring.objects.filter(dirty=True)
+    entries.order_by('name')
+    entries.order_by('status')
+    entries.order_by('merged')
     
     return render_template(request, "patch/index.html",
-                           dict(space=space,
-                                changed=entries))
+                           dict(changed=entries))
 
-def control(request, space):
+def control(request):
     
     pass
 
-def status(request, space):
+def status(request):
     pass

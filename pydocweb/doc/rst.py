@@ -44,20 +44,12 @@ class RstWriter(docutils.writers.html4css1.Writer):
         return True
 
     def _resolve_name(self, name):
-        if '/' in name:
-            space, real_name = name.split('/', 1)
-            spaces = [space]
-        else:
-            spaces = settings.SVN_DIRS.keys()
-            real_name = name
-        for space in spaces:
-            try:
-                doc = models.Docstring.objects.get(space=space, name=real_name)
-                return reverse('pydocweb.doc.views.docstring',
-                               kwargs=dict(space=doc.space, name=doc.name))
-            except models.Docstring.DoesNotExist:
-                pass
-        return reverse('pydocweb.doc.views.wiki', args=[name])
+        try:
+            doc = models.Docstring.objects.get(name=name)
+            return reverse('pydocweb.doc.views.docstring',
+                           kwargs=dict(name=doc.name))
+        except models.Docstring.DoesNotExist:
+            return reverse('pydocweb.doc.views.wiki', args=[name])
     
     resolver.priority = 001
 
