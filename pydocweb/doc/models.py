@@ -84,14 +84,25 @@ class DocstringAlias(models.Model):
 class WikiPage(models.Model):
     name = models.CharField(maxlength=256)
 
+    @property
+    def text(self):
+        try:
+            return self.revisions.all()[0].text
+        except IndexError:
+            return None
+
 class WikiPageRevision(models.Model):
     revno = models.AutoField(primary_key=True)
     page = models.ForeignKey(WikiPage, related_name="revisions")
     text = models.TextField()
     author = models.CharField(maxlength=256)
-    comment   = models.CharField(maxlength=1024)
+    comment = models.CharField(maxlength=1024)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
 
+    class Meta:
+        get_latest_by = "timestamp"
+        ordering = ['-revno']
+    
 # -- Reviewing
 
 class ReviewStatus(models.Model):
