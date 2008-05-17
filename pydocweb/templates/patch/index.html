@@ -18,19 +18,19 @@ Patch
   {% for entry in changed %}
   <tr>
     <td>
-      <input type="checkbox" name="{{entry.doc.name}}" 
-      {% if entry.doc.merged %}
+      <input type="checkbox" name="{{entry.name}}" 
+      {% if entry.merged %}
 	     checked/>
       {% else %}
              />
       {% endif %}
     </td>
     <td>
-      <a href="{% url pydocweb.doc.views.docstring entry.doc.name %}">{{entry.doc.name}}</a>
+      <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a>
     </td>
     <td>{{entry.status}}</td>
     <td>
-      {% if entry.doc.merged %}
+      {% if entry.merged %}
         OK
       {% else %}
         <b>Not merged</b>

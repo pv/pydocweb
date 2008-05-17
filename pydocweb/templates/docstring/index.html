@@ -8,9 +8,20 @@ All entries
 <h1>All entries</h1>
 
 <table>
-  {% for doc in docs %}
+  <tr>
+    <th>Name</th>
+    <th>Review</th>
+    <th>Merged</th>
+  </tr>
+  {% for doc in entries %}
   <tr>
     <td><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></td>
+    <td>{{doc.status}}</td>
+    {% if doc.merged %}
+    <td></td>
+    {% else %}
+    <td><b>NO</b></td>
+    {% endif %}
   </tr>
   {% endfor %}
 </table>

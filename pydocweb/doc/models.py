@@ -14,6 +14,14 @@ REVIEW_STATUS = ["none",
                  "proofed_old",
                  "proofed"]
 
+REVIEW_STATUS_NAMES = [
+    ('none', 'Not reviewed'),
+    ('reviewed_old', 'Old revision reviewed'),
+    ('reviewed', 'Reviewed'),
+    ('proofed_old', 'Old revision proofed'),
+    ('proofed', 'Proofed'),
+]
+
 class Docstring(models.Model):
     name        = models.CharField(maxlength=MAX_NAME_LEN, primary_key=True)
     
@@ -287,6 +295,7 @@ def patch_against_source(revs):
     # -- Generate new.xml
     new_root = etree.Element('pydoc')
     new_xml = etree.ElementTree(new_root)
+    namelist = []
     for rev in revs:
         el = etree.SubElement(new_root, 'object')
         if isinstance(rev, Docstring):
@@ -295,18 +304,22 @@ def patch_against_source(revs):
         else:
             el.attrib['id'] = rev.docstring.name
             el.text = rev.text.encode('string-escape')
+        namelist.append(el.attrib['id'])
     new_xml_file = tempfile.NamedTemporaryFile()
     new_xml_file.write('<?xml version="1.0"?>')
     new_xml.write(new_xml_file)
     new_xml_file.flush()
-
+    
     # -- Generate patch
     base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
     
+    err = tempfile.TemporaryFile()
     patch = _exec_chainpipe([[settings.PYDOCMOIN, 'patch',
                               '-s', _site_path(),
-                              base_xml_fn, new_xml_file.name]])
-    return patch
+                              base_xml_fn, new_xml_file.name]],
+                            stderr=err)
+    err.seek(0)
+    return err.read() + "\n" + patch
 
 def regenerate_base_xml():
     cmds = []
@@ -334,13 +347,13 @@ def _site_path():
                  for svn_dir in settings.SVN_DIRS]
     return os.path.pathsep.join(site_dirs)
 
-def _exec_chainpipe(cmds, final_out=None):
+def _exec_chainpipe(cmds, final_out=None, stderr=sys.stderr):
     procs = []
     inp = open('/dev/null', 'r')
     outp = subprocess.PIPE
     for j, cmd in enumerate(cmds):
         if j == len(cmds)-1 and final_out is not None: outp = final_out
-        p = subprocess.Popen(cmd, stdin=inp, stdout=outp)
+        p = subprocess.Popen(cmd, stdin=inp, stdout=outp, stderr=stderr)
         inp = p.stdout
         procs.append(p)
     if final_out is not None:

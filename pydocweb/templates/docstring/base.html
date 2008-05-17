@@ -8,12 +8,21 @@
 <h1>{{name}}</h1>
 
 <div id="review-status">
-  Review: {{status}}
+  Review: 
+  <form action="{% url pydocweb.doc.views.review name %}" method="post">
+    <ul>
+      {{review_form.as_ul}}
+      <li><input type="submit" value="Change" /></li>
+    </ul>
+  </form>
 </div>
 
 <div id="docstring">
   {{body}}
 </div>
+
+<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
+<a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
 <div id="comments">
   <h1>Discussion</h1>
@@ -21,10 +30,10 @@
   <div class="comment">
     <div class="author">{{comment.author}}</div>
     <div class="text">{{comment.text}}</div>
-    <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_edit space,name,comment.id %}">Edit</a></div>
+    <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_edit name,comment.id %}">Edit</a></div>
   </div>
   {% endfor %}
-  <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_new space,name %}">New comment</a></div>
+  <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_new name %}">New comment</a></div>
 </div>
 
 {% endblock %}

@@ -11,6 +11,7 @@ urlpatterns = patterns(
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/edit/$', 'edit'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/comment/(?P<comment_id>\d+)$', 'comment_edit'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/comment/$', 'comment_new'), 
+    (r'^doc/(?P<name>[a-zA-Z0-9._]+)/review/$', 'review'), 
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/log/$', 'log'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/diff/$', 'diff'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/$', 'docstring'),

@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import (HttpResponseRedirect, HttpResponsePermanentRedirect,
-                         HttpResponse)
+                         HttpResponse, Http404)
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 
@@ -102,9 +102,16 @@ def diff_wiki(request, name):
 
 def docstring_index(request):
     # XXX: implement
-    docs = Docstring.objects.all()
+    entries = Docstring.objects.filter()
+    entries.order_by('name')
+    entries.order_by('status')
+    entries.order_by('merged')
+    
     return render_template(request, 'docstring/index.html',
-                           dict(docs=docs))
+                           dict(entries=entries))
+
+class ReviewForm(forms.Form):
+    status = forms.ChoiceField(REVIEW_STATUS_NAMES)
 
 def docstring(request, name):
     # XXX: merge notify
@@ -119,11 +126,14 @@ def docstring(request, name):
             author=comment.author,
             html=rst.render_html(comment.text),
         ))
+
+    review_form = ReviewForm(dict(status=doc.status))
     
     return render_template(request, 'docstring/base.html',
                            dict(name=name, body=body,
                                 status=doc.status,
-                                comments=comments))
+                                comments=comments,
+                                review_form=review_form))
 
 def edit(request, name):
     # XXX: merge
@@ -174,6 +184,16 @@ def diff(request, name):
     # XXX: implement
     pass
 
+def review(request, name):
+    if request.method == 'POST':
+        doc = get_object_or_404(Docstring, name=name)
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            doc.status = form.clean_data['status']
+            doc.save()
+        return HttpResponseRedirect(reverse(docstring, args=[name]))
+    else:
+        raise Http404()
 
 #------------------------------------------------------------------------------
 # Sources
@@ -197,13 +217,21 @@ def patch(request):
             Docstring.objects.filter(name__in=included_docs))
         return HttpResponse(patch, mimetype="text/plain")
     
-    entries = Docstring.objects.filter(dirty=True)
-    entries.order_by('name')
-    entries.order_by('status')
-    entries.order_by('merged')
+    docs = Docstring.objects.filter(dirty=True)
+    docs.order_by('name')
+    docs.order_by('status')
+    docs.order_by('merged')
+
+    name_map = dict(REVIEW_STATUS_NAMES)
     
+    docs = [
+        dict(merged=entry.merged,
+             status=name_map[entry.status],
+             name=entry.name)
+        for entry in docs
+    ]
     return render_template(request, "patch/index.html",
-                           dict(changed=entries))
+                           dict(changed=docs))
 
 def control(request):
     
