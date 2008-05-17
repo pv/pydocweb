@@ -47,15 +47,25 @@ class EditForm(forms.Form):
 
 def edit_wiki(request, name):
     if request.method == 'POST':
+        if request.POST.get('button_cancel'):
+            return HttpResponseRedirect(reverse(wiki, args=[name]))
+        
         revision = None
         form = EditForm(request.POST)
         if form.is_valid():
             data = form.clean_data
-            page, created = WikiPage.objects.get_or_create(name=name)
-            page.edit(data['text'],
-                      "XXX", # XXX: author!
-                      data['comment'])
-            return HttpResponseRedirect(reverse(wiki, args=[name]))
+            if request.POST.get('button_preview'):
+                preview = rst.render_html(data['text'])
+                return render_template(request, 'wiki/edit.html',
+                                       dict(form=form, name=name,
+                                            revision=revision,
+                                            preview=preview))
+            else:
+                page, created = WikiPage.objects.get_or_create(name=name)
+                page.edit(data['text'],
+                          "XXX", # XXX: author!
+                          data['comment'])
+                return HttpResponseRedirect(reverse(wiki, args=[name]))
     else:
         try:
             revision = request.GET.get('revision')
@@ -156,14 +166,24 @@ def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
     
     if request.method == 'POST':
+        if request.POST.get('button_cancel'):
+            return HttpResponseRedirect(reverse(docstring, args=[name]))
+        
         revision = None
         form = EditForm(request.POST)
         if form.is_valid():
             data = form.clean_data
-            doc.edit(data['text'],
-                     "XXX", # XXX: author!
-                     data['comment'])
-            return HttpResponseRedirect(reverse(docstring, args=[name]))
+            if request.POST.get('button_preview'):
+                preview = rst.render_html(data['text'])
+                return render_template(request, 'docstring/edit.html',
+                                       dict(form=form, name=name,
+                                            revision=revision,
+                                            preview=preview))
+            else:
+                doc.edit(data['text'],
+                         "XXX", # XXX: author!
+                         data['comment'])
+                return HttpResponseRedirect(reverse(docstring, args=[name]))
     else:
         revision = request.GET.get('revision')
         if revision is None:
@@ -180,7 +200,8 @@ def edit(request, name):
         form = EditForm(data)
     
     return render_template(request, 'docstring/edit.html',
-                           dict(form=form, name=name, revision=revision))
+                           dict(form=form, name=name, revision=revision,
+                                preview=None))
 
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
