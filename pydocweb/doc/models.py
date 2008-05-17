@@ -8,19 +8,17 @@ MAX_NAME_LEN = 256
 
 # -- Editing Docstrings
 
-REVIEW_STATUS = ["none",
-                 "reviewed_old",
-                 "reviewed",
-                 "proofed_old",
-                 "proofed"]
+REVIEW_NONE = 0
+REVIEW_REVIEWED_OLD = 1
+REVIEW_REVIEWED = 2
+REVIEW_PROOFED_OLD = 3
+REVIEW_PROOFED = 4
 
-REVIEW_STATUS_NAMES = [
-    ('none', 'Not reviewed'),
-    ('reviewed_old', 'Old revision reviewed'),
-    ('reviewed', 'Reviewed'),
-    ('proofed_old', 'Old revision proofed'),
-    ('proofed', 'Proofed'),
-]
+REVIEW_STATUS_NAMES = ['Not reviewed',
+                       'Old revision reviewed',
+                       'Reviewed',
+                       'Old revision proofed',
+                       'Proofed']
 
 class Docstring(models.Model):
     name        = models.CharField(maxlength=MAX_NAME_LEN, primary_key=True)
@@ -36,7 +34,7 @@ class Docstring(models.Model):
     
     source_doc  = models.TextField()
     
-    status      = models.CharField(maxlength=16, default='none')
+    status      = models.IntegerField(default=0)
     merged      = models.BooleanField()
     dirty       = models.BooleanField()
     
@@ -54,21 +52,21 @@ class Docstring(models.Model):
     
     @property
     def reviewed(self):
-        return self.status == 'reviewed' or self.status == 'proofed'
+        return self.status in (REVIEW_REVIEWED, REVIEW_PROOFED)
 
     @property
     def proofed(self):
-        return self.status == 'proofed'
-
+        return self.status == REVIEW_PROOFED
+    
     def edit(self, new_text, author, comment):
         if new_text == self.text:
             # NOOP
             return
 
-        if self.status == 'proofed':
-            self.status = 'proofed_old'
-        elif self.status == 'reviewed':
-            self.status = 'reviewed_old'
+        if self.status == REVIEW_REVIEWED:
+            self.status = REVIEW_REVIEWED_OLD
+        elif self.status == REVIEW_PROOFED:
+            self.status = REVIEW_PROOFED_OLD
         
         self.dirty = True
         self.save()
@@ -85,25 +83,6 @@ class Docstring(models.Model):
         except IndexError:
             return self.source_doc
 
-    def get_source_file_content(self):
-        if self.file_name is None:
-            return None
-        
-        fn_1 = os.path.realpath(self.file_name)
-        
-        in_svn_dir = False
-        for fn_2 in settings.SVN_DIRS.values():
-            fn_2 = os.path.realpath(fn_2)
-            in_svn_dir = in_svn_dir or fn_1.startswith(fn_2 + os.path.sep)
-        
-        if not in_svn_dir:
-            return None
-        else:
-            f = open(fn_1, 'r')
-            try:
-                return f.read()
-            finally:
-                f.close()
 
 class DocstringRevision(models.Model):
     revno     = models.AutoField(primary_key=True)
@@ -380,3 +359,24 @@ def _exec_cmd(cmd, ok_return_value=0, **kw):
         raise RuntimeError("Command %s failed (code %d): %s"
                            % (' '.join(cmd), p.returncode, out + err))
     return out + err
+
+def strip_svn_dir_prefix(file_name):
+    for svn_dir in settings.SVN_DIRS:
+        fn_1 = os.path.realpath(os.path.join(svn_dir, file_name))
+        fn_2 = os.path.realpath(svn_dir)
+        if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
+            return fn_1[len(fn_2)+1:]
+    return None
+
+def get_source_file_content(relative_file_name):
+    in_svn_dir = False
+    for svn_dir in settings.SVN_DIRS:
+        fn_1 = os.path.realpath(os.path.join(svn_dir, relative_file_name))
+        fn_2 = os.path.realpath(svn_dir)
+        if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
+            f = open(fn_1, 'r')
+            try:
+                return f.read()
+            finally:
+                f.close()
+    return None

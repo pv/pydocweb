@@ -14,8 +14,7 @@ Edit {{name}}
   <input type="submit" value="Edit" />
 </form>
 
-{% if revision %}
-{% else %}
+{% if not revision %}
 <form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">
   <input type="hidden" name="text" value="" />
   <input type="hidden" name="comment" value="Deleted" />

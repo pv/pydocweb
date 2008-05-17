@@ -17,12 +17,12 @@
   {% for rev in revisions %}
   <tr>
     <td>
-      <a href="{% url pydocweb.doc.views.wiki name %}?revision={{rev.id}}">{{rev.timestamp}}</a>
+      <a href="{% url pydocweb.doc.views.docstring name %}?revision={{rev.id}}">{{rev.timestamp}}</a>
     </td>
     <td>{{rev.author}}</td>
     <td>{{rev.comment}}</td>
     <td>
-      <a href="{% url pydocweb.doc.views.edit_wiki name %}?revision={{rev.id}}">Revert</a>
+      <a href="{% url pydocweb.doc.views.edit name %}?revision={{rev.id}}">Revert</a>
     </td>
   </tr>
   {% endfor %}

@@ -7,6 +7,13 @@
 {% block content %}
 <h1>{{name}}</h1>
 
+{% if revision %}
+<div id="revision-header">
+  Revision {{revision}}.
+  <a href="{% url pydocweb.doc.views.docstring name %}">Back to current revision.</a>
+  <a href="{% url pydocweb.doc.views.log name %}">Back to log.</a>
+</div>
+{% else %}
 <div id="review-status">
   Review: 
   <form action="{% url pydocweb.doc.views.review name %}" method="post">
@@ -17,10 +24,19 @@
   </form>
 </div>
 
+{% if needs_merge %}
+<div id="merge-warning">
+  The versions of this documentation in SVN and here are out of sync.
+  You will need to merge the changes before editing.
+</div>
+{% endif %}
+{% endif %}
+
 <div id="docstring">
   {{body}}
 </div>
 
+{% if not revision %}
 <a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
 <a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
@@ -35,5 +51,6 @@
   {% endfor %}
   <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_new name %}">New comment</a></div>
 </div>
+{% endif %}
 
 {% endblock %}

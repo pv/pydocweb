@@ -16,7 +16,9 @@
 <h1>{{name}}</h1>
 {{body}}
 
+{% if not revision %}
 <a href="{% url pydocweb.doc.views.edit_wiki name %}">Edit</a>
 <a href="{% url pydocweb.doc.views.log_wiki name %}">Log</a>
+{% endif %}
 
 {% endblock %}

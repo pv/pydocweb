@@ -20,7 +20,6 @@ def frontpage(request):
     return HttpResponsePermanentRedirect(reverse(wiki, args=['Front Page']))
 
 def wiki(request, name):
-    # XXX: viewing old revisions
     try:
         page = WikiPage.objects.get(name=name)
         revision = request.GET.get('revision')
@@ -47,8 +46,8 @@ class EditForm(forms.Form):
     comment = forms.CharField(required=False)
 
 def edit_wiki(request, name):
-    # XXX: page deletion
     if request.method == 'POST':
+        revision = None
         form = EditForm(request.POST)
         if form.is_valid():
             data = form.clean_data
@@ -59,12 +58,12 @@ def edit_wiki(request, name):
             return HttpResponseRedirect(reverse(wiki, args=[name]))
     else:
         try:
-            page = WikiPage.objects.get(name=name)
             revision = request.GET.get('revision')
+            page = WikiPage.objects.get(name=name)
             try:
                 revision = int(revision)
                 rev = page.revisions.get(revno=revision)
-                comment = "Reverted back to %d" % revision
+                comment = "Reverted"
             except (TypeError, ValueError, WikiPageRevision.DoesNotExist):
                 rev = page.revisions.all()[0]
                 comment = ""
@@ -101,24 +100,34 @@ def diff_wiki(request, name):
 #------------------------------------------------------------------------------
 
 def docstring_index(request):
-    # XXX: implement
-    entries = Docstring.objects.filter()
-    entries.order_by('name')
-    entries.order_by('status')
-    entries.order_by('merged')
-    
+    # XXX: improve!
+    entries = Docstring.objects.all()
+    entries = entries.order_by('merged', 'status', 'name')
     return render_template(request, 'docstring/index.html',
                            dict(entries=entries))
 
 class ReviewForm(forms.Form):
-    status = forms.ChoiceField(REVIEW_STATUS_NAMES)
+    _choices = [(str(j), x) for j, x in enumerate(REVIEW_STATUS_NAMES)]
+    status = forms.IntegerField(
+        min_value=0, max_value=len(REVIEW_STATUS_NAMES),
+        widget=forms.Select(choices=_choices))
 
 def docstring(request, name):
-    # XXX: merge notify
     doc = get_object_or_404(Docstring, name=name)
-    body = rst.render_html(doc.text)
+
+    revision = request.GET.get('revision')
+    if revision is None:
+        body = rst.render_html(doc.text)
+    elif revision == 'SVN':
+        body = rst.render_html(doc.source_doc)
+    else:
+        try:
+            revision = int(revision)
+            rev = doc.revisions.get(revno=revision)
+            body = rst.render_html(rev.text)
+        except (TypeError, ValueError, DocstringRevision.DoesNotExist):
+            raise Http404()
     
-    # XXX: comments
     comments = []
     for comment in doc.comments.all():
         comments.append(dict(
@@ -126,20 +135,23 @@ def docstring(request, name):
             author=comment.author,
             html=rst.render_html(comment.text),
         ))
-
+    
     review_form = ReviewForm(dict(status=doc.status))
     
-    return render_template(request, 'docstring/base.html',
+    return render_template(request, 'docstring/page.html',
                            dict(name=name, body=body,
-                                status=doc.status,
+                                status=REVIEW_STATUS_NAMES[doc.status],
                                 comments=comments,
-                                review_form=review_form))
+                                review_form=review_form,
+                                needs_merge=not doc.merged,
+                                revision=revision))
 
 def edit(request, name):
     # XXX: merge
     doc = get_object_or_404(Docstring, name=name)
     
     if request.method == 'POST':
+        revision = None
         form = EditForm(request.POST)
         if form.is_valid():
             data = form.clean_data
@@ -148,15 +160,22 @@ def edit(request, name):
                      data['comment'])
             return HttpResponseRedirect(reverse(docstring, args=[name]))
     else:
-        try:
-            rev = doc.revisions.all()[0]
-            data = dict(text=rev.text)
-        except IndexError:
-            data = dict(text=doc.source_doc)
+        revision = request.GET.get('revision')
+        if revision is None:
+            data = dict(text=doc.text, comment="")
+        elif revision == 'SVN':
+            data = dict(text=doc.source_doc, comment="")
+        else:
+            try:
+                revision = int(revision)
+                rev = doc.revisions.get(revno=revision)
+                data = dict(text=rev.text, comment="Reverted")
+            except (TypeError, ValueError, DocstringRevision.DoesNotExist):
+                raise Http404()
         form = EditForm(data)
     
     return render_template(request, 'docstring/edit.html',
-                           dict(form=form, name=name))
+                           dict(form=form, name=name, revision=revision))
 
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
@@ -176,8 +195,25 @@ def comment_new(request, name):
 
 def log(request, name):
     doc = get_object_or_404(Docstring, name=name)
-    # XXX: implement
-    pass
+
+    revisions = []
+    for rev in doc.revisions.all():
+        revisions.append(dict(
+            id=rev.revno,
+            author=rev.author,
+            comment=rev.comment,
+            timestamp=rev.timestamp
+        ))
+
+    revisions.append(dict(
+        id="SVN",
+        author="",
+        comment="",
+        timestamp="SVN",
+    ))
+
+    return render_template(request, 'docstring/log.html',
+                           dict(name=name, revisions=revisions))
 
 def diff(request, name):
     doc = get_object_or_404(Docstring, name=name)
@@ -199,11 +235,13 @@ def review(request, name):
 # Sources
 #------------------------------------------------------------------------------
 
-def source_index(request):
-    pass
-
 def source(request, file_name):
-    pass
+    src = get_source_file_content(file_name)
+    if src is None:
+        raise Http404()
+    lines = src.splitlines()
+    return render_template(request, 'source.html',
+                           dict(lines=lines, file_name=file_name))
 
 
 #------------------------------------------------------------------------------
@@ -222,20 +260,15 @@ def patch(request):
     docs.order_by('status')
     docs.order_by('merged')
 
-    name_map = dict(REVIEW_STATUS_NAMES)
-    
     docs = [
         dict(merged=entry.merged,
-             status=name_map[entry.status],
+             status=REVIEW_STATUS_NAMES[entry.status],
              name=entry.name)
         for entry in docs
     ]
-    return render_template(request, "patch/index.html",
+    return render_template(request, "patch.html",
                            dict(changed=docs))
 
 def control(request):
-    
-    pass
-
-def status(request):
+    # XXX: implement
     pass
