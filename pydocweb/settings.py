@@ -18,6 +18,8 @@ ADDNEWDOCS_MODULES = dict(
 )
 PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
 
+#------------------------------------------------------------------------------
+
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'  # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
@@ -47,11 +49,13 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydocweb/media/'
+MATH_ROOT = MEDIA_ROOT + "math/"
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = ''
+MEDIA_URL = '/site_media'
+MATH_URL = MEDIA_URL + '/math/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -66,6 +70,11 @@ TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
     'django.template.loaders.app_directories.load_template_source',
 #     'django.template.loaders.eggs.load_template_source',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.auth',
+    'pydocweb.doc.context_processors.media_url',
 )
 
 MIDDLEWARE_CLASSES = (

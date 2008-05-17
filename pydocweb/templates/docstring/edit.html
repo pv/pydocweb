@@ -1,0 +1,13 @@
+{% extends "docstring/base.html" %}
+
+{% block content %}
+<h1>{{space}}: {{name}}</h1>
+
+<p>Edit:</p>
+
+<form action="{% url pydocweb.doc.views.edit_docstring name=name %}" method="post">
+  {{ form.as_p }}
+  <input type="submit" value="Edit" />
+</form>
+
+{% endblock %}

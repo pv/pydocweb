@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+Patch for {{space}}
+{% endblock %}
+
+{% block content %}
+<h1>Patch for {{space}}</h1>
+
+<form action="{% url pydocweb.doc.views.patch space %}" method="post">
+<table>
+  <tr>
+    <th></th>
+    <th>Name</th>
+    <th>Review</th>
+    <th>Merge</th>
+  </tr>
+  {% for entry in changed %}
+  <tr>
+    <td>
+      <input type="checkbox" name="{{entry.doc.name}}" 
+      {% if entry.doc.merged %}
+	     checked/>
+      {% else %}
+             />
+      {% endif %}
+    </td>
+    <td>
+      <a href="{% url pydocweb.doc.views.docstring space,entry.doc.name %}">{{entry.doc.name}}</a>
+    </td>
+    <td>{{entry.status}}</td>
+    <td>
+      {% if entry.doc.merged %}
+        OK
+      {% else %}
+        <b>Not merged</b>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<input type="submit" value="Generate patch" />
+</form>
+
+{% endblock %}

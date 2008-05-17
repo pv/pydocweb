@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{name}}
+{% endblock %}
+
+{% block content %}
+<h1>{{name}}</h1>
+<p>This page "{{name}}" does not yet exist.</p>
+<p>
+  <a href="{% url pydocweb.doc.views.edit_wiki name=name %}">Create new wiki page</a>
+</p>
+{% endblock %}

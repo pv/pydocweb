@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit {{name}}
+{% endblock %}
+
+{% block content %}
+<h1>{{name}}</h1>
+
+<p>Edit:</p>
+
+<form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">
+  {{ form.as_p }}
+  <input type="submit" value="Edit" />
+</form>
+
+{% endblock %}

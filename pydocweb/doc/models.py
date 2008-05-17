@@ -8,6 +8,12 @@ MAX_NAME_LEN = 256
 
 # -- Editing Docstrings
 
+REVIEW_STATUS = ["none",
+                 "reviewed_old",
+                 "reviewed",
+                 "proofed_old",
+                 "proofed"]
+
 class Docstring(models.Model):
     space       = models.CharField(maxlength=256)
     name        = models.CharField(maxlength=MAX_NAME_LEN)
@@ -23,6 +29,7 @@ class Docstring(models.Model):
     
     source_doc  = models.TextField()
     merged      = models.BooleanField()
+    dirty       = models.BooleanField()
     
     file_name   = models.CharField(maxlength=2048, null=True)
     line_number = models.IntegerField(null=True)
@@ -35,14 +42,21 @@ class Docstring(models.Model):
     
     # --
     
-    def edit_docstring(self, new_text, author, comment):
+    def edit(self, new_text, author, comment):
+        if new_text == self.text:
+            # NOOP
+            return
+        
+        self.dirty = True
+        self.save()
         rev = DocstringRevision(docstring=self,
                                 text=new_text,
                                 author=author,
                                 comment=comment)
         rev.save()
     
-    def get_docstring(self):
+    @property
+    def text(self):
         try:
             return self.revisions.all()[0].text
         except IndexError:
@@ -84,6 +98,13 @@ class DocstringAlias(models.Model):
 class WikiPage(models.Model):
     name = models.CharField(maxlength=256)
 
+    def edit(self, new_text, author, comment):
+        rev = WikiPageRevision(page=self,
+                               author=author,
+                               text=new_text,
+                               comment=comment)
+        rev.save()
+    
     @property
     def text(self):
         try:
@@ -188,15 +209,27 @@ def _update_docstrings_from_xml(space, stream):
         doc.repr_ = repr_
         doc.file_ = el.get('file')
         doc.line_number = line
+
+        if created:
+            # New docstring
+            doc.merged = True
+            doc.dirty = False
+        elif docstring.strip() != doc.source_doc.strip():
+            # Source has changed
+            try:
+                doc_rev = doc.revisions.all()[0]
+                if doc_rev.text.strip() != docstring.strip():
+                    # Conflict with latest revision
+                    doc.merged = False
+                else:
+                    # Source agrees with latest revision
+                    doc.merged = True
+                    doc.dirty = False
+            except IndexError:
+                # No user edits
+                doc.merged = True
+                doc.dirty = False
         doc.source_doc = docstring
-        
-        doc.merged = True
-        try:
-            doc_rev = doc.revisions.all()[0]
-            if doc_rev.text.strip() != docstring.strip():
-                doc.merged = False
-        except IndexError:
-            pass
         
         doc.contents.all().delete()
         doc.save()
@@ -219,6 +252,7 @@ def update_docstrings(space):
     os.chdir(svn_dir)
     try:
         _exec_cmd(['svn', 'up'])
+        _exec_cmd(['svn', 'revert', '-R', '.'])
     finally:
         os.chdir(cwd)
 
@@ -242,7 +276,7 @@ def patch_against_source(space, revs):
         el = etree.SubElement(new_root, 'object')
         if isinstance(rev, Docstring):
             el.attrib['id'] = rev.name
-            el.text = rev.get_docstring().encode('string-escape')
+            el.text = rev.text.encode('string-escape')
         else:
             el.attrib['id'] = rev.docstring.name
             el.text = rev.text.encode('string-escape')

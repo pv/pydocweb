@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{name}}
+{% endblock %}
+
+{% block content %}
+<h1>{{name}}</h1>
+{{body}}
+
+<a href="{% url pydocweb.doc.views.edit_wiki name %}">Edit</a>
+
+{% endblock %}
