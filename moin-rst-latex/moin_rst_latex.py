@@ -147,6 +147,7 @@ def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     try:
         uri, baseline_off = latex_to_uri(ur'$%s$' % text, with_baseline=True)
         img = docutils.nodes.image("", uri=uri,
+                                   alt=text,
                                    classes=["img-offset-%d" % baseline_off])
         return [img], []
     except RuntimeError, e:
@@ -157,7 +158,10 @@ def math_directive(name, arguments, options, content, lineno,
                    content_offset, block_text, state, state_machine):
     try:
         uri = latex_to_uri(ur'\begin{align*}%s\end{align*}' % u'\n'.join(content))
-        img = docutils.nodes.image("", uri=uri, align='center')
+        img = docutils.nodes.image("",
+                                   uri=uri,
+                                   alt=u'\n'.join(content),
+                                   align='center')
         return [img]
     except RuntimeError, e:
         item = docutils.nodes.literal_block(text=u"\n".join(content))
