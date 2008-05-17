@@ -447,16 +447,17 @@ def cmd_numpy_docs(args):
     function calls.
     """
     options_list = [
-        make_option("-m", "--module", action="store", dest="module",
-                    type="str", default="numpy.add_newdocs",
-                    help="module to look in (default: numpy.add_newdocs)")
+        make_option("-m", "--module", action="append", dest="modules",
+                    help="modules to look in (default: numpy.add_newdocs)")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
                                       infile=True, outfile=True, nargs=0,
                                       syspath=True)
+
+    if not opts.modules:
+        opts.modules = ["numpy.add_newdocs"]
     
     new_info = {}
-    module_names = [opts.module]
     
     def ast_parse_file(file_name, source):
         tree = compiler.parse(source)
@@ -475,7 +476,7 @@ def cmd_numpy_docs(args):
                     line = stmt.expr.lineno
                 new_info[name] = (file_name, line)
 
-    for module_name in module_names:
+    for module_name in opts.modules:
         module = __import__(module_name, {}, {}, [''])
         ast_parse_file(inspect.getsourcefile(module),
                        inspect.getsource(module))
