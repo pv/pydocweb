@@ -1,6 +1,8 @@
+import datetime
+
 from django.db import models
 from django.db import transaction
-import datetime
+from django.conf import settings
 
 MAX_NAME_LEN = 256
 
@@ -22,7 +24,7 @@ class Docstring(models.Model):
     source_doc  = models.TextField()
     merged      = models.BooleanField()
     
-    file_       = models.ForeignKey('SourceFile')
+    file_name   = models.CharField(maxlength=2048, null=True)
     line_number = models.IntegerField(null=True)
     
     # contents = [DocstringAlias...]
@@ -33,8 +35,32 @@ class Docstring(models.Model):
     
     # --
     
-    def edit_text(self, new_text, author):
-        rev = DocstringRevision()
+    def edit_docstring(self, new_text, author, comment):
+        rev = DocstringRevision(docstring=self,
+                                text=new_text,
+                                author=author,
+                                comment=comment)
+        rev.save()
+    
+    def get_docstring(self):
+        try:
+            return self.revisions.all()[0].text
+        except IndexError:
+            return self.source_doc
+
+    def get_source_file_content(self):
+        if self.file_name is None:
+            return None
+        fn_1 = os.path.realpath(self.file_name)
+        fn_2 = os.path.realpath(django.settings.SVN_DIRS[self.space])
+        if not fn_1.startswith(fn_2 + os.path.sep):
+            return None
+        else:
+            f = open(fn_1, 'r')
+            try:
+                return f.read()
+            finally:
+                f.close()
 
 class DocstringRevision(models.Model):
     revno     = models.AutoField(primary_key=True)
@@ -65,16 +91,6 @@ class WikiPageRevision(models.Model):
     author = models.CharField(maxlength=256)
     comment   = models.CharField(maxlength=1024)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
-
-# -- Source code
-
-class SourceFile(models.Model):
-    space     = models.CharField(maxlength=256)
-    file_name = models.CharField(maxlength=2048)
-    text      = models.TextField()
-
-    class Meta:
-        ordering = ['file_name']
 
 # -- Reviewing
 
@@ -107,6 +123,7 @@ class ReviewComment(models.Model):
 
 # -----------------------------------------------------------------------------
 import lxml.etree as etree
+import tempfile, os, subprocess, sys, shutil
 
 class MalformedPydocXML(RuntimeError): pass
 
@@ -134,7 +151,7 @@ def _update_docstrings_from_xml(space, stream):
         bases = " ".join(bases)
         if not bases:
             bases = None
-
+        
         if el.text:
             docstring = el.text.decode('string-escape')
         else:
@@ -145,37 +162,30 @@ def _update_docstrings_from_xml(space, stream):
             repr_ = e.text.decode('string-escape')
             docstring = ""
         
-        if el.get('file') is not None:
-            file_ = SourceFile.objects.get_or_create(file_name=el.get('file'),
-                                                     space=space)
-        else:
-            file_ = None
-        
         try:
             line = int(el.get('line'))
         except (ValueError, TypeError):
             line = None
         
-        doc = Docstring.objects.get_or_create(name=el.attrib['id'],
-                                              space=space)
+        doc, created = Docstring.objects.get_or_create(name=el.attrib['id'],
+                                                       space=space)
         doc.type_ = el.tag
         doc.type_name = el.get('type')
         doc.argspec = el.get('argspec')
         doc.objclass = el.get('objclass')
         doc.bases = el.get('bases')
         doc.repr_ = repr_
-        doc.file_ = file_
+        doc.file_ = el.get('file')
         doc.line_number = line
         doc.source_doc = docstring
         
-        if doc.revisions:
-            doc_rev = doc.revisions[0]
+        doc.merged = True
+        try:
+            doc_rev = doc.revisions.all()[0]
             if doc_rev.text.strip() != docstring.strip():
                 doc.merged = False
-            else:
-                doc.merged = True
-        else:
-            doc.merged = True
+        except IndexError:
+            pass
         
         doc.contents.all().delete()
         doc.save()
@@ -183,26 +193,130 @@ def _update_docstrings_from_xml(space, stream):
         # -- Contents
         
         for ref in el.findall('ref'):
-            target = Docstring.objects.get_or_create(name=ref.attrib['ref'],
-                                                     space=space)
+            target, created = Docstring.objects.get_or_create(
+                name=ref.attrib['ref'], space=space)
             alias = DocstringAlias()
             alias.target = target
             alias.parent = doc
             alias.alias = ref.attrib['name']
             alias.save()
 
-    # -- Source files in XML
-    
-    for el in root.findall('source'):
-        file_ = SourceFile.objects.get_or_create(file_name=el.attrib['file'],
-                                                 space=space)
-        file_.text = el.text
+def update_docstrings(space):
+    svn_dir = os.path.realpath(settings.SVN_DIRS[space])
 
-def patch_against_source(revs):
+    cwd = os.getcwd()
+    os.chdir(svn_dir)
+    try:
+        _exec_cmd(['svn', 'up'])
+    finally:
+        os.chdir(cwd)
+
+    base_xml_fn, site_dir = regenerate_base_xml(space)
+
+    f = open(base_xml_fn, 'r')
+    try:
+        update_docstrings_from_xml(space, f)
+    finally:
+        f.close()
+        
+def patch_against_source(space, revs):
     """
     Generate a patch against source files, for the given docstrings.
     """
+
+    # -- Generate new.xml
+    new_root = etree.Element('pydoc')
+    new_xml = etree.ElementTree(new_root)
+    for rev in revs:
+        el = etree.SubElement(new_root, 'object')
+        if isinstance(rev, Docstring):
+            el.attrib['id'] = rev.name
+            el.text = rev.get_docstring().encode('string-escape')
+        else:
+            el.attrib['id'] = rev.docstring.name
+            el.text = rev.text.encode('string-escape')
+    new_xml_file = tempfile.NamedTemporaryFile()
+    new_xml_file.write('<?xml version="1.0"?>')
+    new_xml.write(new_xml_file)
+    new_xml_file.flush()
+
+    # -- Generate patch
+    svn_dir = os.path.realpath(settings.SVN_DIRS[space])
+    dist_dir = os.path.join(svn_dir, 'dist')
+    site_dir = os.path.join(
+        dist_dir, 'lib/python%d.%d/site-packages' % sys.version_info[:2])
+    base_xml_fn = os.path.join(svn_dir, 'base.xml')
     
-    doc = rev.docstring
+    patch = _exec_chainpipe([[settings.PYDOCMOIN, 'patch', '-s', site_dir,
+                              base_xml_fn, new_xml_file.name]])
+    return patch
+
+def regenerate_base_xml(space):
+    svn_dir = os.path.realpath(settings.SVN_DIRS[space])
     
+    dist_dir = os.path.join(svn_dir, 'dist')
+    site_dir = os.path.join(
+        dist_dir, 'lib/python%d.%d/site-packages' % sys.version_info[:2])
     
+    if os.path.isdir(site_dir):
+        shutil.rmtree(site_dir)
+    
+    cwd = os.getcwd()
+    os.chdir(svn_dir)
+    try:
+        _exec_cmd([sys.executable, 'setupegg.py', 'install',
+                   '--prefix=%s' % dist_dir])
+    finally:
+        os.chdir(cwd)
+
+    cmds = []
+    cmds.append(
+        [settings.PYDOCMOIN, 'collect', '-s', site_dir]
+        + settings.MODULES[space]
+    )
+    cmds.append([settings.PYDOCMOIN, 'prune'])
+    try:
+        cmds.append([settings.PYDOCMOIN, 'numpy-docs', '-s', site_dir,
+                     '-m', settings.ADDNEWDOCS_MODULES[space]])
+    except KeyError:
+        pass
+
+    base_xml_fn = os.path.join(svn_dir, 'base.xml')
+    base_xml = open(base_xml_fn, 'w')
+    _exec_chainpipe(cmds, final_out=base_xml)
+    base_xml.close()
+    return base_xml_fn, site_dir
+
+def _exec_chainpipe(cmds, final_out=None):
+    procs = []
+    inp = open('/dev/null', 'r')
+    outp = subprocess.PIPE
+    for j, cmd in enumerate(cmds):
+        if j == len(cmds)-1 and final_out is not None: outp = final_out
+        p = subprocess.Popen(cmd, stdin=inp, stdout=outp)
+        inp = p.stdout
+        procs.append(p)
+    if final_out is not None:
+        procs[-1].communicate()
+        return None
+    else:
+        return procs[-1].communicate()[0]
+
+def _exec_cmd(cmd, ok_return_value=0, **kw):
+    """
+    Run given command and check return value.
+    Return concatenated input and output.
+    """
+    try:
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE, **kw)
+        out, err = p.communicate()
+    except OSError, e:
+        raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
+    
+    if ok_return_value is not None and p.returncode != ok_return_value:
+        raise RuntimeError("Command %s failed (code %d): %s"
+                           % (' '.join(cmd), p.returncode, out + err))
+    return out + err

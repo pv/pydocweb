@@ -7,6 +7,17 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
+SVN_DIRS = dict(
+    numpy="/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
+)
+MODULES = dict(
+    numpy=['numpy'],
+)
+ADDNEWDOCS_MODULES = dict(
+    numpy='numpy.add_newdocs',
+)
+PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
+
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'  # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
@@ -59,6 +70,7 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.csrf.middleware.CsrfMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',
