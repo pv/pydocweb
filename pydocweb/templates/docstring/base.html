@@ -7,6 +7,24 @@
 {% block content %}
 <h1>{{space}}: {{name}}</h1>
 
-{{body}}
+<div id="review-status">
+  Review: {{status}}
+</div>
+
+<div id="docstring">
+  {{body}}
+</div>
+
+<div id="comments">
+  <h1>Discussion</h1>
+  {% for comment in comments %}
+  <div class="comment">
+    <div class="author">{{comment.author}}</div>
+    <div class="text">{{comment.text}}</div>
+    <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_edit space,name,comment.id %}">Edit</a></div>
+  </div>
+  {% endfor %}
+  <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_new space,name %}">New comment</a></div>
+</div>
 
 {% endblock %}

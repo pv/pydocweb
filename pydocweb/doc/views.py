@@ -67,16 +67,32 @@ def log_wiki(request, name):
 #------------------------------------------------------------------------------
 
 def docstring_index(request, space):
+    # XXX: implement
     pass
 
 def docstring(request, space, name):
+    # XXX: merge notify
     doc = get_object_or_404(Docstring, space=space, name=name)
     body = rst.render_html(doc.text)
+    
+    # XXX: comments
+    status, created = ReviewStatus.objects.get_or_create(docstring=doc)
 
+    comments = []
+    for comment in status.comments.all():
+        comments.append(dict(
+            id=comment.id,
+            author=comment.author,
+            html=rst.render_html(comment.text),
+        ))
+    
     return render_template(request, 'docstring/base.html',
-                           dict(space=space, name=name, body=body))
+                           dict(space=space, name=name, body=body,
+                                status=status.status,
+                                comments=comments))
 
 def edit(request, space, name):
+    # XXX: merge
     doc = get_object_or_404(Docstring, space=space, name=name)
     
     if request.method == 'POST':
@@ -94,21 +110,34 @@ def edit(request, space, name):
         except IndexError:
             data = dict(text=doc.source_doc)
         form = EditForm(data)
-
+    
     return render_template(request, 'docstring/edit.html',
                            dict(form=form, name=name, space=space))
 
 def comment_edit(request, space, name, comment_id):
     doc = get_object_or_404(Docstring, space=space, name=name)
-    comment = get_object_or_404(ReviewComment, docstring=doc, id=comment_id)
+    try:
+        comment = ReviewComment.objects.get(docstring=doc, id=comment_id,
+                                            author="XXX") # XXX: author
+    except ReviewComment.DoesNotExist:
+        comment = None
+
+    # XXX: deletion
+    # XXX: implement
+    pass
+
+def comment_new(request, space, name):
+    # XXX: implement
     pass
 
 def log(request, space, name):
     doc = get_object_or_404(Docstring, space=space, name=name)
+    # XXX: implement
     pass
 
 def diff(request, space, name):
     doc = get_object_or_404(Docstring, space=space, name=name)
+    # XXX: implement
     pass
 
 
