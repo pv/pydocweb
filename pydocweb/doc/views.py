@@ -20,20 +20,31 @@ def frontpage(request):
     return HttpResponsePermanentRedirect(reverse(wiki, args=['Front Page']))
 
 def wiki(request, name):
+    # XXX: viewing old revisions
     try:
         page = WikiPage.objects.get(name=name)
-        body = rst.render_html(page.text)
+        revision = request.GET.get('revision')
+        try:
+            revision = int(revision)
+            rev = page.revisions.get(revno=revision)
+        except (TypeError, ValueError, WikiPageRevision.DoesNotExist):
+            rev = page
+        
+        if not rev.text and revision is None:
+            raise WikiPage.DoesNotExist()
+        body = rst.render_html(rev.text)
         if body is None:
             raise WikiPage.DoesNotExist()
         return render_template(request, 'wiki/page.html',
-                               dict(name=name, body=body))
+                               dict(name=name, body=body, revision=revision))
     except WikiPage.DoesNotExist:
         return render_template(request, 'wiki/not_found.html',
                                dict(name=name))
 
 class EditForm(forms.Form):
-    text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)))
-    comment = forms.CharField()
+    text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)),
+                           required=False)
+    comment = forms.CharField(required=False)
 
 def edit_wiki(request, name):
     # XXX: page deletion
@@ -49,18 +60,41 @@ def edit_wiki(request, name):
     else:
         try:
             page = WikiPage.objects.get(name=name)
-            rev = page.revisions.all()[0]
-            data = dict(text=rev.text)
+            revision = request.GET.get('revision')
+            try:
+                revision = int(revision)
+                rev = page.revisions.get(revno=revision)
+                comment = "Reverted back to %d" % revision
+            except (TypeError, ValueError, WikiPageRevision.DoesNotExist):
+                rev = page.revisions.all()[0]
+                comment = ""
+            data = dict(text=rev.text, comment=comment)
         except (WikiPage.DoesNotExist, IndexError):
             data = {}
+            revision = None
         form = EditForm(data)
 
     return render_template(request, 'wiki/edit.html',
-                           dict(form=form, name=name))
+                           dict(form=form, name=name, revision=revision))
 
 def log_wiki(request, name):
     page = get_object_or_404(WikiPage, name=name)
+
+    revisions = []
+    for rev in page.revisions.all():
+        revisions.append(dict(
+            id=rev.revno,
+            author=rev.author,
+            comment=rev.comment,
+            timestamp=rev.timestamp,
+        ))
     
+    return render_template(request, 'wiki/log.html',
+                           dict(name=name, revisions=revisions))
+
+def diff_wiki(request, name):
+    page = get_object_or_404(WikiPage, name=name)
+
 
 #------------------------------------------------------------------------------
 # Docstrings
@@ -68,7 +102,9 @@ def log_wiki(request, name):
 
 def docstring_index(request, space):
     # XXX: implement
-    pass
+    docs = Docstring.objects.filter(space=space)
+    return render_template(request, 'docstring/index.html',
+                           dict(space=space, docs=docs))
 
 def docstring(request, space, name):
     # XXX: merge notify

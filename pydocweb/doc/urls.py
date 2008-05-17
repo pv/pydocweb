@@ -6,6 +6,7 @@ urlpatterns = patterns(
     (r'^$', 'frontpage'),
     (r'^wiki/(?P<name>.+)/edit/$', 'edit_wiki'),
     (r'^wiki/(?P<name>.+)/log/$', 'log_wiki'),
+    (r'^wiki/(?P<name>.+)/diff/$', 'diff_wiki'),
     (r'^wiki/(?P<name>.+)/$', 'wiki'),
     (r'^doc/(?P<space>\w+)/(?P<name>[a-zA-Z0-9._]+)/edit/$', 'edit'),
     (r'^doc/(?P<space>\w+)/(?P<name>[a-zA-Z0-9._]+)/comment/(?P<comment_id>\d+)$', 'comment_edit'),

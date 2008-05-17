@@ -5,9 +5,18 @@
 {% endblock %}
 
 {% block content %}
+{% if revision %}
+<div id="revision-header">
+  Revision {{revision}}.
+  <a href="{% url pydocweb.doc.views.wiki name %}">Back to current revision.</a>
+  <a href="{% url pydocweb.doc.views.log_wiki name %}">Back to log.</a>
+</div>
+{% endif %}
+
 <h1>{{name}}</h1>
 {{body}}
 
 <a href="{% url pydocweb.doc.views.edit_wiki name %}">Edit</a>
+<a href="{% url pydocweb.doc.views.log_wiki name %}">Log</a>
 
 {% endblock %}

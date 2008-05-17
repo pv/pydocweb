@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{name}}
+{% endblock %}
+
+{% block content %}
+<h1>{{name}}</h1>
+{{body}}
+
+<table>
+  <tr>
+    <th>Revision</th>
+    <th>Time</th>
+    <th>Author</th>
+    <th>Comment</th>
+  </tr>
+  {% for rev in revisions %}
+  <tr>
+    <td>
+      <a href="{% url pydocweb.doc.views.wiki name %}?revision={{rev.id}}">{{rev.id}}</a>
+    </td>
+    <td>{{rev.timestamp}}</td>
+    <td>{{rev.author}}</td>
+    <td>{{rev.comment}}</td>
+    <td>
+      <a href="{% url pydocweb.doc.views.edit_wiki name %}?revision={{rev.id}}">Revert</a>
+    </td>
+  </tr>
+  {% endfor %}
+{% endblock %}
