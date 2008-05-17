@@ -128,7 +128,7 @@ class WikiPageRevision(models.Model):
 
 class ReviewStatus(models.Model):
     docstring = models.OneToOneField(Docstring, primary_key=True)
-    status = models.CharField(maxlength=16, default='')
+    status = models.CharField(maxlength=16, default='none')
     # comments = [ReviewComment...]
     
     # --
