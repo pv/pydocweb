@@ -15,7 +15,6 @@
 </div>
 {% else %}
 <div id="review-status">
-  Review: 
   <form action="{% url pydocweb.doc.views.review name %}" method="post">
     <ul>
       {{review_form.as_ul}}

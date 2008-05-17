@@ -77,6 +77,7 @@ def edit_wiki(request, name):
                            dict(form=form, name=name, revision=revision))
 
 def log_wiki(request, name):
+    # XXX: diff
     page = get_object_or_404(WikiPage, name=name)
 
     revisions = []
@@ -110,7 +111,9 @@ class ReviewForm(forms.Form):
     _choices = [(str(j), x) for j, x in enumerate(REVIEW_STATUS_NAMES)]
     status = forms.IntegerField(
         min_value=0, max_value=len(REVIEW_STATUS_NAMES),
-        widget=forms.Select(choices=_choices))
+        widget=forms.Select(choices=_choices),
+        label="Review status"
+        )
 
 def docstring(request, name):
     doc = get_object_or_404(Docstring, name=name)
@@ -137,6 +140,8 @@ def docstring(request, name):
         ))
     
     review_form = ReviewForm(dict(status=doc.status))
+
+    # XXX: contents
     
     return render_template(request, 'docstring/page.html',
                            dict(name=name, body=body,
@@ -194,6 +199,7 @@ def comment_new(request, name):
     pass
 
 def log(request, name):
+    # XXX: diff
     doc = get_object_or_404(Docstring, name=name)
 
     revisions = []

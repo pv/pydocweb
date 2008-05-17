@@ -1,3 +1,62 @@
+body { 
+  font-size: 10pt;
+}
+
+h1 { 
+  font-size: 18pt;
+}
+
+h2 { 
+  font-size: 16pt;
+}
+
+h3 { 
+  font-size: 14pt;
+}
+
+h4 { 
+  font-size: 12pt;
+}
+
+#review-status { 
+  margin-top: .5ex;
+  margin-bottom: .5ex;
+}
+
+#review-status li { 
+  display: inline;
+}
+
+#review-status ul { 
+  display: inline;
+  padding-left: 0;
+}
+
+#review-status form { 
+  display: inline;
+}
+
+#docstring { 
+  border: dashed thin #ccc;
+  padding-left: 1em;
+}
+
+#docstring h1 { 
+  font-size: 14pt;
+  margin-bottom: .5ex;
+}
+
+#docstring h2 { 
+  font-size: 12pt;
+  color: #008;
+  margin-bottom: .5ex;
+}
+
+#docstring h3 { 
+  font-size: 10pt;
+  color: #008;
+  margin-bottom: .5ex;
+}
 
 /* math images */
 .img-offset-1  { margin-bottom: -1px; }
