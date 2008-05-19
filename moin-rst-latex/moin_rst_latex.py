@@ -151,7 +151,7 @@ def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
                                    classes=["img-offset-%d" % baseline_off])
         return [img], []
     except RuntimeError, e:
-        item = docutils.nodes.literal(text=str(text))
+        item = docutils.nodes.literal(text=str(text) + str(e))
         return [item], []
 
 def math_directive(name, arguments, options, content, lineno,
@@ -164,7 +164,7 @@ def math_directive(name, arguments, options, content, lineno,
                                    align='center')
         return [img]
     except RuntimeError, e:
-        item = docutils.nodes.literal_block(text=u"\n".join(content))
+        item = docutils.nodes.literal_block(text=u"\n".join(content) + str(e))
         return [item]
 
 # -----------------------------------------------------------------------------
