@@ -17,7 +17,7 @@ import os, shutil
 DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
-PYDOCMOIN = os.path.join(DIR, "pydoc-moin.py")
+PYDOCMOIN = os.path.join(DIR, "pydoc_moin.py")
 DIST_DIR  = os.path.join(REPO_DIR, 'dist.%s' % os.getlogin())
 SITE_PTH  = os.path.join(DIST_DIR, "lib/python2.5/site-packages")
 
