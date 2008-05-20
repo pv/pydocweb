@@ -7,6 +7,10 @@ Control panel
 {% block content %}
 <h1>Update docstrings</h1>
 
+<p>
+<b>Warning:</b> updating docstrings can take several minutes.
+</p>
+
 <form action="{% url pydocweb.doc.views.control %}" method="post">
 <input type="submit" name="update-docstrings" value="Update docstrings" />
 </form>
