@@ -62,7 +62,10 @@ def render_html(text):
                                   file_insertion_enabled=0,
                                   raw_enabled=0,
                                   stylesheet_path='',
-                                  template='')
+                                  template='',
+                                  default_reference_context=None,
+                                  default_reference_role=None,
+                                  )
     )
     return parts['html_body']
 

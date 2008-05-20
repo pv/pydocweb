@@ -97,7 +97,7 @@ class TestRoundtrip(object):
             assert el.text is not None, "%s\n%s" % (name, patch)
             assert el.text.strip() == new_item_docstrings[name].strip(), \
                    "%s\n%s\n----------\n%s\n-------\n%s\n----" % (
-                name, patch, el.text.strip(), new_item_docstrings[name].strip())
+                name, patch, new_item_docstrings[name].strip(), el.text.strip())
 
 
     def setUp(self):
@@ -119,7 +119,7 @@ class TestRoundtrip(object):
 
 def garbage_generator(length=40*2):
     letters = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-               "0123456789\n\n\n\n\n\n\"\"\"\"\"\"''''''      ")
+               "0123456789\\\\\\\n\n\n\n\n\n\"\"\"\"\"\"''''''      ")
     result = ""
     for j in xrange(length):
         result += letters[random.randint(0, len(letters)-1)]

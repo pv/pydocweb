@@ -7,11 +7,26 @@
 {% block content %}
 <h1>{{name}}</h1>
 
+{% if conflict_warning %}
+<div id='merge-warning'>
+  <p><b>This file has conflicts with the version in SVN.
+      Correct the docstring between all conflict markers
+      (<tt>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</tt> and 
+      <tt>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</tt>).
+  </b></p>
+</div>
+{% endif %}
+{% if merge_warning %}
+<div id='merge-warning'>
+  <p>This file was previously automatically merged with SVN.</p>
+</div>
+{% endif %}
+
 <p>Edit:</p>
 
 <form action="{% url pydocweb.doc.views.edit_docstring name=name %}" method="post">
   {{ form.as_p }}
-  <input type="submit" name="button_edit" value="Edit" />
+  <input type="submit" name="button_edit" value="Save" />
   <input type="submit" name="button_preview" value="Preview" />
   <input type="submit" name="button_cancel" value="Cancel" />
 </form>

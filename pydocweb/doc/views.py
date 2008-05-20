@@ -45,6 +45,11 @@ class EditForm(forms.Form):
                            required=False)
     comment = forms.CharField(required=False)
 
+    def clean(self):
+        # fix CRLF -> LF
+        self.clean_data['text']="\n".join(self.clean_data['text'].splitlines())
+        return self.clean_data
+
 def edit_wiki(request, name):
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
@@ -111,9 +116,18 @@ def diff_wiki(request, name):
 #------------------------------------------------------------------------------
 
 def docstring_index(request):
-    # XXX: improve!
     entries = Docstring.objects.all()
-    entries = entries.order_by('merged', 'status', 'name')
+    entries = entries.order_by('merge_status', '-dirty', '-review', 'name')
+    CHANGE_NAMES = ['Unchanged', 'Changed']
+    entries = [dict(name=c.name,
+                    merge_status=c.merge_status,
+                    review=c.review,
+                    dirty=c.dirty,
+                    status="%s, %s, %s" % (CHANGE_NAMES[int(c.dirty)],
+                                           MERGE_STATUS_NAMES[c.merge_status],
+                                           REVIEW_STATUS_NAMES[c.review]),
+                    )
+               for c in entries]
     return render_template(request, 'docstring/index.html',
                            dict(entries=entries))
 
@@ -149,20 +163,42 @@ def docstring(request, name):
             html=rst.render_html(comment.text),
         ))
     
-    review_form = ReviewForm(dict(status=doc.status))
+    review_form = ReviewForm(dict(status=doc.review))
 
-    # XXX: contents
-    
-    return render_template(request, 'docstring/page.html',
-                           dict(name=name, body=body,
-                                status=REVIEW_STATUS_NAMES[doc.status],
-                                comments=comments,
-                                review_form=review_form,
-                                needs_merge=not doc.merged,
-                                revision=revision))
+    if revision is None and doc.merge_status == MERGE_CONFLICT:
+        conflict = doc.merge()
+        return render_template(request, 'docstring/merge.html',
+                               dict(name=name,
+                                    status=REVIEW_STATUS_NAMES[doc.review],
+                                    merge_text=conflict,
+                                    comments=comments,
+                                    merge_type='conflict',
+                                    doc=doc,
+                                    review_form=review_form))
+    elif revision is None and doc.merge_status == MERGE_MERGED:
+        import difflib
+        merge_text = difflib.unified_diff(
+            doc.base_doc, doc.source_doc,
+            fromfile="base version",
+            tofile="SVN version"
+            )
+        return render_template(request, 'docstring/merge.html',
+                               dict(name=name, body=body,
+                                    status=REVIEW_STATUS_NAMES[doc.review],
+                                    comments=comments,
+                                    doc=doc,
+                                    merge_text=merge_text,
+                                    review_form=review_form))
+    else:
+        return render_template(request, 'docstring/page.html',
+                               dict(name=name, body=body,
+                                    status=REVIEW_STATUS_NAMES[doc.review],
+                                    comments=comments,
+                                    doc=doc,
+                                    review_form=review_form,
+                                    revision=revision))
 
 def edit(request, name):
-    # XXX: merge
     doc = get_object_or_404(Docstring, name=name)
     
     if request.method == 'POST':
@@ -180,10 +216,13 @@ def edit(request, name):
                                             revision=revision,
                                             preview=preview))
             else:
-                doc.edit(data['text'],
-                         "XXX", # XXX: author!
-                         data['comment'])
-                return HttpResponseRedirect(reverse(docstring, args=[name]))
+                try:
+                    doc.edit(data['text'],
+                             "XXX", # XXX: author!
+                             data['comment'])
+                    return HttpResponseRedirect(reverse(docstring, args=[name]))
+                except RuntimeError:
+                    pass
     else:
         revision = request.GET.get('revision')
         if revision is None:
@@ -198,10 +237,18 @@ def edit(request, name):
             except (TypeError, ValueError, DocstringRevision.DoesNotExist):
                 raise Http404()
         form = EditForm(data)
-    
-    return render_template(request, 'docstring/edit.html',
-                           dict(form=form, name=name, revision=revision,
-                                preview=None))
+
+    if revision is None and doc.merge_status == MERGE_CONFLICT:
+        if data['text'] == doc.text:
+            data['text'] = doc.merge()
+        return render_template(request, 'docstring/edit.html',
+                               dict(form=form, name=name, revision=revision,
+                                    conflict_warning=True, preview=None))
+    else:
+        return render_template(request, 'docstring/edit.html',
+                               dict(form=form, name=name, revision=revision,
+                                    merge_warning=(doc.merge_status!=MERGE_NONE),
+                                    preview=None))
 
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
@@ -252,7 +299,7 @@ def review(request, name):
         doc = get_object_or_404(Docstring, name=name)
         form = ReviewForm(request.POST)
         if form.is_valid():
-            doc.status = form.clean_data['status']
+            doc.review = form.clean_data['status']
             doc.save()
         return HttpResponseRedirect(reverse(docstring, args=[name]))
     else:
@@ -283,19 +330,38 @@ def patch(request):
         return HttpResponse(patch, mimetype="text/plain")
     
     docs = Docstring.objects.filter(dirty=True)
-    docs.order_by('name')
-    docs.order_by('status')
-    docs.order_by('merged')
-
+    docs.order_by('-merge_status', '-review', 'name')
+    
     docs = [
-        dict(merged=entry.merged,
-             status=REVIEW_STATUS_NAMES[entry.status],
+        dict(merged=(entry.merge_status == MERGE_NONE),
+             merge_status=MERGE_STATUS_NAMES[entry.merge_status],
+             status=REVIEW_STATUS_NAMES[entry.review],
              name=entry.name)
         for entry in docs
     ]
     return render_template(request, "patch.html",
                            dict(changed=docs))
 
+def merge(request):
+    """
+    Review current merge status
+    """
+    if request.method == 'POST':
+        ok = request.POST.keys()
+        for obj in Docstring.objects.filter(merge_status=MERGE_MERGED,
+                                            name__in=ok):
+            obj.mark_merge_ok()
+    
+    conflicts = Docstring.objects.filter(merge_status=MERGE_CONFLICT)
+    merged = Docstring.objects.filter(merge_status=MERGE_MERGED)
+
+    return render_template(request, 'merge.html',
+                           dict(conflicts=conflicts, merged=merged))
+
 def control(request):
-    # XXX: implement
-    pass
+    if request.method == 'POST':
+        if 'update-docstrings' in request.POST.keys():
+            update_docstrings()
+
+    return render_template(request, 'control.html',
+                           dict())

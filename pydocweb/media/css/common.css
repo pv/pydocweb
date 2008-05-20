@@ -18,6 +18,15 @@ h4 {
   font-size: 12pt;
 }
 
+.content-list li { 
+  display: inline-block;
+  min-width: 15em;
+}
+
+#navbar li { 
+  display: inline;
+}
+
 #review-status { 
   margin-top: .5ex;
   margin-bottom: .5ex;

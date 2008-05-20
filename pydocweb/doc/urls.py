@@ -16,6 +16,7 @@ urlpatterns = patterns(
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/diff/$', 'diff'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/$', 'docstring'),
     (r'^doc/$', 'docstring_index'),
+    (r'^merge/$', 'merge'),
     (r'^patch/$', 'patch'),
     (r'^control/$', 'control'),
     (r'^source/(?P<file_name>.+)$', 'source'),

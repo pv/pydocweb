@@ -29,13 +29,7 @@ Patch
       <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a>
     </td>
     <td>{{entry.status}}</td>
-    <td>
-      {% if entry.merged %}
-        OK
-      {% else %}
-        <b>Not merged</b>
-      {% endif %}
-    </td>
+    <td>{{entry.merge_status}}</td>
   </tr>
   {% endfor %}
 </table>

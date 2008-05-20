@@ -7,23 +7,16 @@ All entries
 {% block content %}
 <h1>All entries</h1>
 
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Review</th>
-    <th>Merged</th>
-  </tr>
-  {% for doc in entries %}
-  <tr>
-    <td><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></td>
-    <td>{{doc.status}}</td>
-    {% if doc.merged %}
-    <td></td>
-    {% else %}
-    <td><b>NO</b></td>
-    {% endif %}
-  </tr>
+
+{% regroup entries by status as status_list %}
+
+{% for status in status_list %}
+<h2>{{status.grouper}}</h2>
+<ul class="content-list">
+  {% for doc in status.list %}
+  <li><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></li>
   {% endfor %}
-</table>
+</ul>
+{% endfor %}
 
 {% endblock %}
