@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}
+Merge
+{% endblock %}
+
+{% block content %}
+<h1>Merge</h1>
+
+<h2>Conflicts</h2>
+<ul>
+  {% for entry in conflicts %}
+  <li><a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a></li>
+  {% endfor %}
+</ul>
+
+<h2>Merged</h2>
+<form action="{% url pydocweb.doc.views.merge %}" method="post">
+<ul>
+  {% for entry in merged %}
+  <li>
+    <input type="checkbox" name="{{entry.name}}" checked /> <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a></li>
+  {% endfor %}
+</ul>
+<input type="submit" value="Accept merges" />
+</form>
+
+{% endblock %}

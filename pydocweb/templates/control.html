@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}
+Control panel
+{% endblock %}
+
+{% block content %}
+<h1>Update docstrings</h1>
+
+<form action="{% url pydocweb.doc.views.control %}" method="post">
+<input type="submit" name="update-docstrings" value="Update docstrings" />
+</form>
+
+{% endblock %}

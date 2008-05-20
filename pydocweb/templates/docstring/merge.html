@@ -1,0 +1,32 @@
+{% extends "docstring/page.html" %}
+
+{% block content %}
+<h1>{{name}}</h1>
+
+<div id="merge-warning">
+  {% ifequal merge_type "conflict" %}
+  <p>Merge conflict with SVN.  You need to correct this by 
+    editing the docstring.</p>
+  {% else %}
+  <p>This docstring has been merged automatically with SVN.</p>
+  <form action="">
+  </form>
+  {% endifequal %}
+</div>
+
+<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
+<a href="{% url pydocweb.doc.views.log name %}">Log</a>
+
+<div id="merge-info">
+  <pre>{{merge_text}}</pre>
+</div>
+
+<div id="docstring">
+  {{body}}
+</div>
+
+{% block discussion %}
+{{block.super}}
+{% endblock %}
+
+{% endblock %}
