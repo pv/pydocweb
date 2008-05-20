@@ -117,7 +117,7 @@ def diff_wiki(request, name):
 
 def docstring_index(request):
     entries = Docstring.objects.all()
-    entries = entries.order_by('merge_status', '-dirty', '-review', 'name')
+    entries = entries.order_by('-merge_status', '-dirty', '-review', 'name')
     CHANGE_NAMES = ['Unchanged', 'Changed']
     entries = [dict(name=c.name,
                     merge_status=c.merge_status,
