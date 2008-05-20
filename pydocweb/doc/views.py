@@ -177,11 +177,12 @@ def docstring(request, name):
                                     review_form=review_form))
     elif revision is None and doc.merge_status == MERGE_MERGED:
         import difflib
-        merge_text = difflib.unified_diff(
-            doc.base_doc, doc.source_doc,
-            fromfile="base version",
-            tofile="SVN version"
-            )
+        merge_text = "".join(list(difflib.unified_diff(
+            doc.revisions.all()[1].text.splitlines(1),
+            doc.revisions.all()[0].text.splitlines(1),
+            fromfile="previous revision",
+            tofile="current revision"
+            )))
         return render_template(request, 'docstring/merge.html',
                                dict(name=name, body=body,
                                     status=REVIEW_STATUS_NAMES[doc.review],

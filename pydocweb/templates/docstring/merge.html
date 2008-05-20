@@ -8,14 +8,14 @@
   <p>Merge conflict with SVN.  You need to correct this by 
     editing the docstring.</p>
   {% else %}
-  <p>This docstring has been merged automatically with SVN.</p>
-  <form action="">
+  <p>This docstring has been merged automatically with SVN.
+  <form action="{% url pydocweb.doc.views.merge name %}" method="post">
+    <input type=hidden name="{{name}}" value="1" />
+    <input type=submit value="Accept" />
   </form>
+  </p>
   {% endifequal %}
 </div>
-
-<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
-<a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
 <div id="merge-info">
   <pre>{{merge_text}}</pre>
@@ -24,6 +24,8 @@
 <div id="docstring">
   {{body}}
 </div>
+<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
+<a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
 {% block discussion %}
 {{block.super}}
