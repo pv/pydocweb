@@ -374,6 +374,12 @@ def cmd_moin_upload_local(args):
 
         valid_pages.append(quoteWikinameFS(page_name))
 
+        # XXX: new request for each edit. Why is this needed?
+        #      Is this a successful work-around around the .formatter missing issue?
+        request = RequestCLI()
+        request.user = User(request=request, auth_username='PyDocMoin')
+        request.form = {}
+
         page = Page(request, page_name)
         if page.exists() and page.isStandardPage():
             ed = PageEditor(request, page_name, trivial=1)
