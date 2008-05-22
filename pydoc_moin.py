@@ -1392,7 +1392,7 @@ class Documentation(object):
             return module_name
 
         try:
-            if module_name is None:
+            if module_name is None and obj.__self__ is not None:
                 if inspect.isclass(obj.__self__):
                     module_name = get_mod_name(obj.__self__.__module__)
                 else:
