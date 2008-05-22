@@ -341,6 +341,8 @@ def cmd_moin_upload_local(args):
                     type="str", default="/",
                     help="Prefix for file source urls. %(file)s is replaced by relative path and %(line)d by line number"
                     ),
+        make_option("--underlay-only", action="store_true", dest="underlay_only", default=False,
+                    help="Replace underlay pages only"),
     ]
     opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, frontpagefile=True, syspath=True, nargs=1)
     dest, = args
@@ -386,7 +388,7 @@ def cmd_moin_upload_local(args):
         request.form = {}
 
         page = Page(request, page_name)
-        if page.exists() and page.isStandardPage():
+        if page.exists() and page.isStandardPage() and not opts.underlay_only:
             ed = PageEditor(request, page_name, trivial=1)
             try:
                 if strip_trailing_whitespace(page.get_raw_body()).strip() \
