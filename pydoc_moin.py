@@ -1281,7 +1281,7 @@ class Documentation(object):
         except AttributeError:
             _all = None
 
-        for name, value in inspect.getmembers(obj):
+        for name, value in self._getmembers(obj):
             child_id = self._visit(value, entry, name)
             if child_id is None: continue
 
@@ -1304,7 +1304,7 @@ class Documentation(object):
             el = etree.SubElement(entry, 'base')
             el.attrib['ref'] = "%s.%s" % (b.__module__, b.__name__)
         
-        for name, value in inspect.getmembers(obj):
+        for name, value in self._getmembers(obj):
             child_id = self._visit(value, entry, name)
             if child_id is None: continue
 
@@ -1344,6 +1344,14 @@ class Documentation(object):
             entry.text = escape_text(repr(obj))
         return entry
 
+    def _getmembers(self, obj):
+        members = inspect.getmembers(obj)
+        members.sort(key=lambda x: (not inspect.ismodule(x[1]),
+                                    not inspect.isclass(x[1]),
+                                    not callable(x[1]),
+                                    x[0]))
+        return members
+    
     def _basic_entry(self, cls, obj, parent, name):
         entry = etree.SubElement(self.root, cls)
         entry.attrib['id'] = self._canonical_name(obj, parent, name)
