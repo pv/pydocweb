@@ -1431,17 +1431,17 @@ class Documentation(object):
             pass
 
         # -- Object name
-
+        
         obj_name = None
-
+        
         try:
             obj_name = obj.__name__
         except (AttributeError, ValueError):
             pass
-
+        
         if obj_name is None:
             obj_name = name
-
+        
         # -- Construct
 
         if (hasattr(obj, 'im_class') and hasattr(obj, 'im_func') and
@@ -1458,7 +1458,9 @@ class Documentation(object):
             name = "%s.%s" % (module_name, obj_name)
         else:
             name = obj_name
-        self._obj_name_cache[self._id(obj)] = name
+        
+        if hasattr(obj, '__name__'):
+            self._obj_name_cache[self._id(obj)] = name
         return name
     
     def _id(self, obj):
