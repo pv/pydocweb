@@ -1380,17 +1380,26 @@ class Documentation(object):
         module_name = None
         cls_name = None
 
+        def get_mod_name(n):
+            if n in sys.modules:
+                return n
+            if parent is not None:
+                n = "%s.%s" % (parent.name, n)
+                if n in sys.modules:
+                    return n
+            return module_name
+
         try:
-            if module_name is None and obj.__self__.__class__.__module__ in sys.modules:
-                module_name = obj.__self__.__class__.__module__
+            if module_name is None:
+                module_name = get_mod_name(obj.__self__.__class__.__module__)
             if cls_name is None:
                 cls_name = obj.__self__.__class__.__name__
         except (AttributeError, ValueError):
             pass
 
         try:
-            if module_name is None and obj.__objclass__.__module__ in sys.modules:
-                module_name = obj.__objclass__.__module__
+            if module_name is None:
+                module_name = get_mod_name(obj.__objclass__.__module__)
             if cls_name is None:
                 cls_name = obj.__objclass__.__name__
         except (AttributeError, ValueError):
@@ -1398,15 +1407,15 @@ class Documentation(object):
 
         try:
             if module_name is None:
-                module_name = obj.im_class.__module__
+                module_name = get_mod_name(obj.im_class.__module__)
             if cls_name is None:
                 cls_name = obj.im_class.__name__
         except (AttributeError, ValueError, OSError):
             pass
 
         try:
-            if module_name is None and obj.__module__ in sys.modules:
-                module_name = obj.__module__
+            if module_name is None:
+                module_name = get_mod_name(obj.__module__)
         except (AttributeError, ValueError):
             pass
 
