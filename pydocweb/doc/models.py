@@ -343,8 +343,8 @@ def update_docstrings():
         cwd = os.getcwd()
         os.chdir(svn_dir)
         try:
-            _exec_cmd(['svn', 'up'])
-            _exec_cmd(['svn', 'revert', '-R', '.'])
+#            _exec_cmd(['svn', 'up'])
+#           _exec_cmd(['svn', 'revert', '-R', '.'])
             _exec_cmd([sys.executable, 'setupegg.py', 'install',
                        '--prefix=%s' % dist_dir])
         finally:
