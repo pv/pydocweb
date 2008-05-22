@@ -7,6 +7,7 @@ MERGEDOC = os.path.join(DIR, "merge_docstrings.py")
 MERGEDXML = os.path.join(DIR, "merged.xml")
 WIKIXML = os.path.join(DIR, "wiki.xml")
 
+
 def main():
     regenerate_base_xml()
     os.chdir(DIR)
@@ -20,10 +21,14 @@ def main():
                           stdout=f)
     f.close()
 
+    if ret != 0:
+        raise RuntimeError("Running %s failed" % MERGEDOC)
+
     # -- Upload
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX,
         '-s', SITE_PTH,
-        '--src-url-fmt=http://scipy.org/scipy/numpy/browser/trunk/%(file)s#L%(line)d', '--underlay-only',
+        '--src-url-fmt=http://scipy.org/scipy/numpy/browser/trunk/%(file)s#L%(line)d',
+        '--message=Merged docstring with SVN',
         '-i', MERGEDXML, WIKI_CONF], echo=True)
 
     shutil.copy(BASEXML, LASTUPLOAD)

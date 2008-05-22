@@ -24,21 +24,32 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
         ids3[el3.attrib['id']] = el3
 
     for el1 in tree1.getroot():
+        if el1.text is None:
+            el1.text = ""
+        else:
+            el1.text = el1.text.strip()
+        
         el2 = ids2.get(el1.attrib['id'])
         el3 = ids3.get(el1.attrib['id'])
-
+        
         if el2 is not None: del ids2[el1.attrib['id']]
         if el3 is not None: del ids3[el1.attrib['id']]
 
         if el2 is None or el3 is None: continue
 
-        if el1.text is None: el1.text = ""
-        if el2.text is None: el2.text = ""
-        if el3.text is None: el3.text = ""
+        if el2.text is None:
+            el2.text = ""
+        else:
+            el2.text = el2.text.strip()
 
-        if el3.text.strip() == el2.text.strip(): continue
-        if el3.text.strip() == el1.text.strip(): continue
-        if el2.text.strip() == el1.text.strip():
+        if el3.text is None:
+            el3.text = ""
+        else:
+            el3.text = el3.text.strip()
+
+        if el3.text == el2.text: continue
+        if el3.text == el1.text: continue
+        if el2.text == el1.text:
             # no-op silent merge
             el1.text = el3.text
             continue
@@ -48,7 +59,7 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
             print >> sys.stderr, "CONFLICT", el1.attrib['id']
         else:
             print >> sys.stderr, "MERGE", el1.attrib['id']
-        el1.text = new_text
+        el1.text = new_text.strip()
 
     if ids3.keys():
         print >> sys.stderr, "LEFTOVERS:", " ".join(ids3.keys())
