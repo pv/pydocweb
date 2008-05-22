@@ -18,6 +18,7 @@ DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
 BASEXML   = os.path.join(REPO_DIR, "base.xml")
 PYDOCMOIN = os.path.join(DIR, "pydoc_moin.py")
+LASTUPLOAD = os.path.join(REPO_DIR, "last-uploaded.xml")
 DIST_DIR  = os.path.join(REPO_DIR, 'dist.%s' % os.getlogin())
 SITE_PTH  = os.path.join(DIST_DIR, "lib/python2.5/site-packages")
 
@@ -34,6 +35,8 @@ def main():
     group_cache = os.path.join(WIKI_CONF, "data/cache/wikidicts/dicts_groups")
     if os.path.isfile(group_cache):
         os.unlink(group_cache)
+
+    shutil.copy(BASEXML, LASTUPLOAD)
 
     # all done
     print "All done."

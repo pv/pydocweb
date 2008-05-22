@@ -38,6 +38,10 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
 
         if el3.text.strip() == el2.text.strip(): continue
         if el3.text.strip() == el1.text.strip(): continue
+        if el2.text.strip() == el1.text.strip():
+            # no-op silent merge
+            el1.text = el3.text
+            continue
 
         new_text, conflict = merge_3way(el1.text, el2.text, el3.text)
         if conflict:
@@ -46,7 +50,8 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
             print >> sys.stderr, "MERGE", el1.attrib['id']
         el1.text = new_text
 
-    print >> sys.stderr, "LEFTOVER", " ".join(ids3.keys())
+    if ids3.keys():
+        print >> sys.stderr, "LEFTOVERS:", " ".join(ids3.keys())
 
     print "<?xml version=\"1.0\"?>"
     tree1.write(sys.stdout)
