@@ -9,6 +9,12 @@ WIKIXML = os.path.join(DIR, "wiki.xml")
 
 
 def main():
+    if os.path.isfile(MERGEDXML):
+        print "%s already exists." % MERGEDXML
+        print "If you want to re-do the merge, remove merged.xml and try again."
+        print "If you want to continue an interrupted merge, upload this file to Moin manually."
+        raise SystemExit(1)
+
     regenerate_base_xml()
     os.chdir(DIR)
 
@@ -24,14 +30,14 @@ def main():
     if ret != 0:
         raise RuntimeError("Running %s failed" % MERGEDOC)
 
+    shutil.copy(BASEXML, LASTUPLOAD)
+
     # -- Upload
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX,
         '-s', SITE_PTH,
         '--src-url-fmt=http://scipy.org/scipy/numpy/browser/trunk/%(file)s#L%(line)d',
         '--message=Merged docstring with SVN',
         '-i', MERGEDXML, WIKI_CONF], echo=True)
-
-    shutil.copy(BASEXML, LASTUPLOAD)
 
     # this is needed to refresh group information in Moin!
     group_cache = os.path.join(WIKI_CONF, "data/cache/wikidicts/dicts_groups")
