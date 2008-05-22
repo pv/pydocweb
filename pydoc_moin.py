@@ -1379,6 +1379,14 @@ class Documentation(object):
         except (AttributeError, ValueError):
             pass
 
+        try:
+            if obj.__self__.__class__.__module__ is not None:
+                return "%s.%s.%s" % (obj.__self__.__class__.__module__,
+                                     obj.__self__.__class__.__name__,
+                                     obj.__name__)
+        except (AttributeError, ValueError):
+            pass
+
         if (hasattr(obj, 'im_class') and hasattr(obj, 'im_func') and
                 hasattr(obj.im_class, '__bases__')):
             # is this inherited from base classes?
