@@ -67,7 +67,7 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
     print "<?xml version=\"1.0\"?>"
     tree1.write(sys.stdout)
 
-def merge_3way(base, file1, file2):
+def merge_3way(file1, file2, file3):
     """
     Perform a 3-way merge, inserting changes between base and file1 to file2.
     
@@ -82,17 +82,17 @@ def merge_3way(base, file1, file2):
     f1 = tempfile.NamedTemporaryFile()
     f2 = tempfile.NamedTemporaryFile()
     f3 = tempfile.NamedTemporaryFile()
-    f1.write(file2)
-    f2.write(base)
-    f3.write(file1)
+    f1.write(file1)
+    f2.write(file2)
+    f3.write(file3)
     f1.flush()
     f2.flush()
     f3.flush()
 
     p = subprocess.Popen(['merge', '-p',
-                          '-L', 'web version',
-                          '-L', 'old svn version',
                           '-L', 'new svn version',
+                          '-L', 'old svn version',
+                          '-L', 'wiki version',
                           f1.name, f2.name, f3.name],
                          stdout=subprocess.PIPE)
     out, err = p.communicate()
