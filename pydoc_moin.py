@@ -1420,8 +1420,11 @@ class Documentation(object):
             pass
 
         try:
-            if module_name is None:
+            if module_name is None and parent.tag == 'module':
                 module_name = parent.attrib['id']
+            if (cls_name is None or module_name is None) and parent.tag == 'class':
+                module_name = parent.attrib['id']
+                cls_name = None
         except (AttributeError, ValueError):
             pass
 
@@ -1447,10 +1450,12 @@ class Documentation(object):
                 if hasattr(obj2, 'im_func') and obj2.im_func is obj.im_func:
                     return self._canonical_name(obj2, parent, name)
 
-        if cls_name:
+        if cls_name and module_name:
             name = "%s.%s.%s" % (module_name, cls_name, obj_name)
-        else:
+        elif module_name:
             name = "%s.%s" % (module_name, obj_name)
+        else:
+            name = obj_name
         self._obj_name_cache[self._id(obj)] = name
         return name
     
