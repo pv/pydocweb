@@ -63,7 +63,8 @@ def render_html(text):
                                   raw_enabled=0,
                                   stylesheet_path='',
                                   template='',
-                                  default_reference_context='view'
+                                  default_reference_context='view',
+                                  link_base='',
                                   )
     )
     return parts['html_body']
