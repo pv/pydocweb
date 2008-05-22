@@ -1393,7 +1393,10 @@ class Documentation(object):
 
         try:
             if module_name is None:
-                module_name = get_mod_name(obj.__self__.__class__.__module__)
+                if inspect.isclass(obj.__self__):
+                    module_name = get_mod_name(obj.__self__.__module__)
+                else:
+                    module_name = get_mod_name(obj.__self__.__class__.__module__)
             if cls_name is None:
                 cls_name = obj.__self__.__class__.__name__
         except (AttributeError, ValueError):
