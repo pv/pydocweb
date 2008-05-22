@@ -1440,6 +1440,8 @@ class Documentation(object):
             pass
         
         if obj_name is None:
+            module_name = parent.attrib['id']
+            cls_name = None
             obj_name = name
         
         # -- Construct
