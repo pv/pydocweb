@@ -16,10 +16,13 @@ Wiki gateway usage
 - Check that wiki paths and module names in 'numpy_towiki.py' are correct.
 
 - Run 'numpy_towiki.py' to collect docstrings from 'numpy' and upload them
-  to the wiki.
+  to the wiki. Try to avoid running this; it will clobber docstrings
+  in the wiki.
 
 - Run 'numpy_checkwiki.py' to create a patch showing the difference between
   the wiki and the bzr branch.
+
+- Run 'numpy_mergewiki.py' to 3-way merge changes from SVN to Wiki.
 
 - Run 'numpy_fromwiki.py' to collect docstrings from the wiki and dump
   them to bzr.

@@ -12,7 +12,7 @@ BZR_MESSAGE = "Updated %s docstring"
 # -----------------------------------------------------------------------------
 
 import subprocess
-import os, shutil
+import os, shutil, sys
 
 DIR       = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR  = os.path.join(DIR, REPO_DIR)
@@ -24,6 +24,16 @@ SITE_PTH  = os.path.join(DIST_DIR, "lib/python2.5/site-packages")
 
 
 def main():
+    print """
+numpy_towiki.py is unsafe in the sense that it will overwrite
+any changes in the Wiki with the docstrings in SVN.
+
+Do you really want to run it. If yes, type "Yes, I do want to run it"
+"""
+    ans = sys.stdin.readline()
+    if ans.strip() != "Yes, I do want to run it":
+        raise SystemExit(1)
+
     regenerate_base_xml()
     os.chdir(DIR)
     exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX,
