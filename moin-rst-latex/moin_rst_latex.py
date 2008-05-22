@@ -144,14 +144,16 @@ import docutils.utils
 import docutils.core, docutils.nodes, docutils.parsers.rst
 
 def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
+    i = rawtext.find('`')
+    latex = rawtext[i+1:-1]
     try:
-        uri, baseline_off = latex_to_uri(ur'$%s$' % text, with_baseline=True)
+        uri, baseline_off = latex_to_uri(ur'$%s$' % latex, with_baseline=True)
         img = docutils.nodes.image("", uri=uri,
-                                   alt=text,
+                                   alt=latex,
                                    classes=["img-offset-%d" % baseline_off])
         return [img], []
     except RuntimeError, e:
-        item = docutils.nodes.literal(text=str(text) + str(e))
+        item = docutils.nodes.literal(text=str(latex) + str(e))
         return [item], []
 
 def math_directive(name, arguments, options, content, lineno,
@@ -188,3 +190,4 @@ math_directive.content = True # whether content is allowed
 
 docutils.parsers.rst.directives.register_directive('math', math_directive)
 docutils.parsers.rst.roles.register_local_role('math', math_role)
+
