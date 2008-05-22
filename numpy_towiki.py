@@ -28,6 +28,8 @@ def main():
 numpy_towiki.py is unsafe in the sense that it will overwrite
 any changes in the Wiki with the docstrings in SVN.
 
+You might want to run numpy_mergewiki.py instead.
+
 Do you really want to run it. If yes, type "Yes, I do want to run it"
 """
     ans = sys.stdin.readline()
