@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import lxml.etree as etree
-import subprocess, optparse, sys
+import subprocess, optparse, sys, tempfile
 
 def main():
     p = optparse.OptionParser(usage="""%prog FILE1.xml FILE2.xml FILE3.xml
@@ -21,23 +21,32 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
         ids2[el2.attrib['id']] = el2
     ids3 = {}
     for el3 in tree3.getroot():
-        ids3[el2.attrib['id']] = el2
+        ids3[el3.attrib['id']] = el3
 
     for el1 in tree1.getroot():
         el2 = ids2.get(el1.attrib['id'])
         el3 = ids3.get(el1.attrib['id'])
+
+        if el2 is not None: del ids2[el1.attrib['id']]
+        if el3 is not None: del ids3[el1.attrib['id']]
+
         if el2 is None or el3 is None: continue
-        if el3.text == el2.text: continue
-        if el3.text == el1.text: continue
 
         if el1.text is None: el1.text = ""
         if el2.text is None: el2.text = ""
         if el3.text is None: el3.text = ""
 
+        if el3.text.strip() == el2.text.strip(): continue
+        if el3.text.strip() == el1.text.strip(): continue
+
         new_text, conflict = merge_3way(el1.text, el2.text, el3.text)
         if conflict:
             print >> sys.stderr, "CONFLICT", el1.attrib['id']
+        else:
+            print >> sys.stderr, "MERGE", el1.attrib['id']
         el1.text = new_text
+
+    print >> sys.stderr, "LEFTOVER", " ".join(ids3.keys())
 
     print "<?xml version=\"1.0\"?>"
     tree1.write(sys.stdout)
