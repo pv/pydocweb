@@ -1140,6 +1140,7 @@ class Documentation(object):
         self._id_cache = {}
         self._inverse_refs = {}
         self._parents = {}
+        self._obj_name_cache = {}
 
     def add_module(self, module_name):
         """Crawl given module for documentation"""
@@ -1368,24 +1369,66 @@ class Documentation(object):
         return entry
 
     def _canonical_name(self, obj, parent, name):
+        try:
+            return self._obj_name_cache[self._id(obj)]
+        except KeyError:
+            pass
+
         if inspect.ismodule(obj):
             return obj.__name__
-        
+
+        module_name = None
+        cls_name = None
+
         try:
-            if obj.__objclass__.__module__ is not None:
-                return "%s.%s.%s" % (obj.__objclass__.__module__, 
-                                     obj.__objclass__.__name__, 
-                                     obj.__name__)
+            if module_name is None and obj.__self__.__class__.__module__ in sys.modules:
+                module_name = obj.__self__.__class__.__module__
+            if cls_name is None:
+                cls_name = obj.__self__.__class__.__name__
         except (AttributeError, ValueError):
             pass
 
         try:
-            if obj.__self__.__class__.__module__ is not None:
-                return "%s.%s.%s" % (obj.__self__.__class__.__module__,
-                                     obj.__self__.__class__.__name__,
-                                     obj.__name__)
+            if module_name is None and obj.__objclass__.__module__ in sys.modules:
+                module_name = obj.__objclass__.__module__
+            if cls_name is None:
+                cls_name = obj.__objclass__.__name__
         except (AttributeError, ValueError):
             pass
+
+        try:
+            if module_name is None:
+                module_name = obj.im_class.__module__
+            if cls_name is None:
+                cls_name = obj.im_class.__name__
+        except (AttributeError, ValueError, OSError):
+            pass
+
+        try:
+            if module_name is None and obj.__module__ in sys.modules:
+                module_name = obj.__module__
+        except (AttributeError, ValueError):
+            pass
+
+        try:
+            if module_name is None:
+                module_name = parent.attrib['id']
+        except (AttributeError, ValueError):
+            pass
+
+        # -- Object name
+
+        obj_name = None
+
+        try:
+            obj_name = obj.__name__
+        except (AttributeError, ValueError):
+            pass
+
+        if obj_name is None:
+            obj_name = name
+
+        # -- Construct
 
         if (hasattr(obj, 'im_class') and hasattr(obj, 'im_func') and
                 hasattr(obj.im_class, '__bases__')):
@@ -1394,28 +1437,13 @@ class Documentation(object):
                 obj2 = getattr(b, obj.im_func.func_name, None)
                 if hasattr(obj2, 'im_func') and obj2.im_func is obj.im_func:
                     return self._canonical_name(obj2, parent, name)
-        
-        try:
-            if obj.im_class.__module__ is not None:
-                return "%s.%s.%s" % (obj.im_class.__module__, 
-                                     obj.im_class.__name__, 
-                                     obj.__name__)
-        except (AttributeError, ValueError, OSError):
-            pass
 
-        try:
-            if obj.__module__ is not None:
-                return "%s.%s" % (obj.__module__, obj.__name__)
-        except (AttributeError, ValueError):
-            pass
-
-        try:
-            if obj.__name__ is not None:
-                return "%s.%s" % (parent.attrib['id'], obj.__name__)
-        except AttributeError:
-            pass
-
-        return "%s.%s" % (parent.attrib['id'], name)
+        if cls_name:
+            name = "%s.%s.%s" % (module_name, cls_name, obj_name)
+        else:
+            name = "%s.%s" % (module_name, obj_name)
+        self._obj_name_cache[self._id(obj)] = name
+        return name
     
     def _id(self, obj):
         try: return id(obj.im_func)
