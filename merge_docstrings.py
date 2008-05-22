@@ -16,9 +16,16 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
     tree2 = etree.parse(open(args[1], 'r'))
     tree3 = etree.parse(open(args[2], 'r'))
 
+    ids2 = {}
+    for el2 in tree2.getroot():
+        ids2[el2.attrib['id']] = el2
+    ids3 = {}
+    for el3 in tree3.getroot():
+        ids3[el2.attrib['id']] = el2
+
     for el1 in tree1.getroot():
-        el2 = tree2.get(el1.attrib['id'])
-        el3 = tree2.get(el1.attrib['id'])
+        el2 = ids2.get(el1.attrib['id'])
+        el3 = ids3.get(el1.attrib['id'])
         if el2 is None or el3 is None: continue
         if el3.text == el2.text: continue
         if el3.text == el1.text: continue
@@ -31,6 +38,9 @@ Output changes between FILE2.xml and FILE3.xml applied to FILE1.xml
         if conflict:
             print >> sys.stderr, "CONFLICT", el1.attrib['id']
         el1.text = new_text
+
+    print "<?xml version=\"1.0\"?>"
+    tree1.write(sys.stdout)
 
 def merge_3way(base, file1, file2):
     """
