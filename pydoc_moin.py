@@ -337,8 +337,12 @@ def cmd_moin_upload_local(args):
         make_option("-m", "--message", action="store", type=str, dest="message",
                     default="Replaced docstring from sources",
                     help="edit message"),
+        make_option("--src-url-fmt", action="store", dest="src_url_fmt",
+                    type="str", default="/",
+                    help="Prefix for file source urls. %(file)s is replaced by relative path and %(line)d by line number"
+                    ),
     ]
-    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, frontpagefile=True, nargs=1)
+    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, frontpagefile=True, syspath=True, nargs=1)
     dest, = args
 
     opts.prefix = os.path.basename(opts.prefix)
@@ -360,7 +364,8 @@ def cmd_moin_upload_local(args):
 
     doc = Documentation.load(opts.infile)
     valid_pages = []
-    moin_formatter = MoinFormatter(opts.prefix, doc)
+    moin_formatter = MoinFormatter(opts.prefix, doc,
+                                   src_url_fmt=opts.src_url_fmt)
 
     for el in doc.root:
         page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
@@ -896,9 +901,10 @@ def strip_sys_path(fn):
 #------------------------------------------------------------------------------
 
 class MoinFormatter(object):
-    def __init__(self, prefix, doc):
+    def __init__(self, prefix, doc, src_url_fmt=None):
         self.prefix = prefix
         self.doc = doc
+        self.src_url_fmt = src_url_fmt
 
     def target(self, name):
         return "%s/%s" % (self.prefix, name.replace('.', '/').replace('_', '-'))
@@ -953,6 +959,15 @@ class MoinFormatter(object):
     
     def additional_docs(self, el):
         t = ""
+        if self.src_url_fmt and 'file' in el.attrib:
+            try:
+                line = int(el.attrib['line'])
+            except (KeyError, ValueError, TypeError):
+                line = 0
+            fn = strip_sys_path(el.attrib['file'])
+            if not fn.startswith('/'):
+                t += "\n[%s Source]\n\n" % (
+                        self.src_url_fmt % dict(file=fn, line=line))
         t += "\n[[Include(%s/Discussion)]]" % self.target(el.attrib['id'])
         return t
     

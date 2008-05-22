@@ -25,8 +25,10 @@ SITE_PTH  = os.path.join(DIST_DIR, "lib/python2.5/site-packages")
 def main():
     regenerate_base_xml()
     os.chdir(DIR)
-    exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX, 
-              '-i', BASEXML, WIKI_CONF], echo=True)
+    exec_cmd([PYDOCMOIN, 'moin-upload-local', '-p', PREFIX,
+        '-s', SITE_PTH,
+        '--src-url-fmt=http://scipy.org/scipy/numpy/browser/trunk/%(file)s#L%(line)d',
+        '-i', BASEXML, WIKI_CONF], echo=True)
 
     # this is needed to refresh group information in Moin!
     group_cache = os.path.join(WIKI_CONF, "data/cache/wikidicts/dicts_groups")
