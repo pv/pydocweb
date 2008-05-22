@@ -1384,7 +1384,7 @@ class Documentation(object):
             if n in sys.modules:
                 return n
             if parent is not None:
-                n = "%s.%s" % (parent.name, n)
+                n = "%s.%s" % (parent.attrib['id'], n)
                 if n in sys.modules:
                     return n
             return module_name
