@@ -11,7 +11,7 @@ WIKIXML = os.path.join(DIR, "wiki.xml")
 def main():
     if os.path.isfile(MERGEDXML):
         print "%s already exists." % MERGEDXML
-        print "If you want to re-do the merge, remove merged.xml and try again."
+        print "If you want to do a new merge, remove merged.xml and try again."
         print "If you want to continue an interrupted merge, upload this file to Moin manually."
         raise SystemExit(1)
 
