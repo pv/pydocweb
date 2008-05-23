@@ -1,0 +1,20 @@
+{% extends "docstring/base.html" %}
+
+{% block content %}
+
+<p>Edit comment:</p>
+
+<form action="{% url pydocweb.doc.views.edit_comment name,comment_id %}" method="post">
+  {{ form.as_p }}
+  <input type="submit" name="button_edit" value="Save" />
+  <input type="submit" name="button_preview" value="Preview" />
+  <input type="submit" name="button_cancel" value="Cancel" />
+</form>
+
+{% if preview %}
+<div id='preview'>
+{{preview}}
+</div>
+{% endif %}
+
+{% endblock %}

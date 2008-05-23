@@ -226,6 +226,7 @@ class WikiPage(models.Model):
     name = models.CharField(maxlength=256, primary_key=True)
     
     def edit(self, new_text, author, comment):
+        new_text = strip_spurious_whitespace(new_text)
         rev = WikiPageRevision(page=self,
                                author=author,
                                text=new_text,
@@ -255,7 +256,8 @@ class WikiPageRevision(models.Model):
 
 class ReviewComment(models.Model):
     docstring = models.ForeignKey(Docstring, related_name="comments")
-    rev       = models.ForeignKey(DocstringRevision, related_name="comments")
+    rev       = models.ForeignKey(DocstringRevision, related_name="comments",
+                                  null=True)
     text      = models.TextField()
     author    = models.CharField(maxlength=256)
     timestamp = models.DateTimeField(default=datetime.datetime.now)

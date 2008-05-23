@@ -29,10 +29,18 @@
   <div class="comment">
     <div class="author">{{comment.author}}</div>
     <div class="text">{{comment.text}}</div>
-    <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_edit name,comment.id %}">Edit</a></div>
+    <div class="editlabel">
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="GET">
+	<input type=submit value="Edit"/>
+      </form>
+      
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
+	<input type=submit name="button_delete" value="Delete" />
+      </form>
+    </div>
   </div>
   {% endfor %}
-  <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_new name %}">New comment</a></div>
+  <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_edit name,"new" %}">New comment</a></div>
 </div>
 {% endblock %}
 

@@ -92,7 +92,6 @@ def edit_wiki(request, name):
                            dict(form=form, name=name, revision=revision))
 
 def log_wiki(request, name):
-    # XXX: diff
     page = get_object_or_404(WikiPage, name=name)
 
     if request.method == "POST":
@@ -174,7 +173,7 @@ def docstring(request, name):
         comments.append(dict(
             id=comment.id,
             author=comment.author,
-            html=rst.render_html(comment.text),
+            text=rst.render_html(comment.text),
         ))
     
     review_form = ReviewForm(dict(status=doc.review))
@@ -258,24 +257,67 @@ def edit(request, name):
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
                                     preview=None))
 
+class CommentEditForm(forms.Form):
+    text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)),
+                           required=False)
+
+    def clean(self):
+        # fix CRLF -> LF
+        self.clean_data['text']="\n".join(self.clean_data['text'].splitlines())
+        return self.clean_data
+
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
     try:
-        comment = ReviewComment.objects.get(docstring=doc, id=comment_id,
-                                            author="XXX") # XXX: author
-    except ReviewComment.DoesNotExist:
+        comment_id = int(comment_id)
+        comment = doc.comments.get(id=comment_id,
+                                   author="XXX") # XXX: author
+    except (ValueError, TypeError, ReviewComment.DoesNotExist):
         comment = None
-
-    # XXX: deletion
-    # XXX: implement
-    pass
-
-def comment_new(request, name):
-    # XXX: implement
-    pass
+    
+    if request.method == 'POST':
+        if request.POST.get('button_cancel'):
+            return HttpResponseRedirect(reverse(docstring, args=[name])
+                                        + "#discussion")
+        
+        form = CommentEditForm(request.POST)
+        if form.is_valid():
+            data = form.clean_data
+            if request.POST.get('button_preview'):
+                preview = rst.render_html(data['text'])
+                return render_template(request, 'docstring/edit_comment.html',
+                                       dict(form=form, name=name,
+                                            comment=comment,
+                                            preview=preview))
+            elif request.POST.get('button_delete') and comment is not None:
+                comment.delete()
+                return HttpResponseRedirect(reverse(docstring, args=[name])
+                                            + "#discussion")
+            else:
+                if comment is None:
+                    comment = ReviewComment(docstring=doc)
+                
+                try:
+                    comment.rev = doc.revisions.all()[0]
+                except IndexError:
+                    comment.rev = None
+                comment.author = "XXX" # XXX: author!
+                comment.text = strip_spurious_whitespace(data['text'])
+                comment.timestamp = datetime.datetime.now()
+                comment.save()
+                return HttpResponseRedirect(reverse(docstring, args=[name])
+                                            + "#discussion")
+    else:
+        if comment:
+            data = dict(text=comment.text)
+        else:
+            data = {}
+        form = CommentEditForm(data)
+    
+    return render_template(request, 'docstring/edit_comment.html',
+                           dict(form=form, name=name, comment=comment))
 
 def log(request, name):
-    # XXX: diff
     doc = get_object_or_404(Docstring, name=name)
     
     if request.method == "POST":
