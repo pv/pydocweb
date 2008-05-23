@@ -100,8 +100,9 @@ class Docstring(models.Model):
         )
     
     def edit(self, new_text, author, comment):
-        if ('<<<<<<' in new_text and '======' in new_text
-            and '>>>>>>' in new_text):
+        new_text = strip_spurious_whitespace(new_text)
+        
+        if ('<<<<<<' in new_text or '>>>>>>' in new_text):
             raise RuntimeError('New text still contains merge conflict markers')
         
         # assume any merge was OK
@@ -153,8 +154,11 @@ class Docstring(models.Model):
             self.save()
             return None
         
-        result, conflicts = merge_3way(self.base_doc, self.source_doc,
-                                       self.text)
+        result, conflicts = merge_3way(
+            strip_spurious_whitespace(self.text),
+            strip_spurious_whitespace(self.base_doc),
+            strip_spurious_whitespace(self.source_doc))
+        result = strip_spurious_whitespace(result)
         if not conflicts:
             self.edit(result, 'Bot', 'Automated merge')
             self.merge_status = MERGE_MERGED
@@ -343,8 +347,8 @@ def update_docstrings():
         cwd = os.getcwd()
         os.chdir(svn_dir)
         try:
-#            _exec_cmd(['svn', 'up'])
-#           _exec_cmd(['svn', 'revert', '-R', '.'])
+            _exec_cmd(['svn', 'up'])
+            _exec_cmd(['svn', 'revert', '-R', '.'])
             _exec_cmd([sys.executable, 'setupegg.py', 'install',
                        '--prefix=%s' % dist_dir])
         finally:
@@ -473,7 +477,7 @@ def get_source_file_content(relative_file_name):
                 f.close()
     return None
 
-def merge_3way(base, file1, file2):
+def merge_3way(mine, base, other):
     """
     Perform a 3-way merge, inserting changes between base and file1 to file2.
     
@@ -485,12 +489,13 @@ def merge_3way(base, file1, file2):
         Whether a conflict occurred in merge.
     
     """
+    
     f1 = tempfile.NamedTemporaryFile()
     f2 = tempfile.NamedTemporaryFile()
     f3 = tempfile.NamedTemporaryFile()
-    f1.write(file2)
+    f1.write(mine)
     f2.write(base)
-    f3.write(file1)
+    f3.write(other)
     f1.flush()
     f2.flush()
     f3.flush()
@@ -502,8 +507,8 @@ def merge_3way(base, file1, file2):
                           f1.name, f2.name, f3.name],
                          stdout=subprocess.PIPE)
     out, err = p.communicate()
-    
     if p.returncode != 0:
         return out, True
-    return out, False
 
+def strip_spurious_whitespace(text):
+    return ("\n".join([x.rstrip() for x in text.split("\n")])).strip()
