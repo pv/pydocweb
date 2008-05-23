@@ -4,7 +4,11 @@ from django.http import (HttpResponseRedirect, HttpResponsePermanentRedirect,
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+
 from django import newforms as forms
+
 
 from pydocweb.doc.models import *
 import rst
@@ -50,6 +54,7 @@ class EditForm(forms.Form):
         self.clean_data['text']="\n".join(self.clean_data['text'].splitlines())
         return self.clean_data
 
+@permission_required('doc.change_wikipage')
 def edit_wiki(request, name):
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
@@ -68,7 +73,7 @@ def edit_wiki(request, name):
             else:
                 page, created = WikiPage.objects.get_or_create(name=name)
                 page.edit(data['text'],
-                          "XXX", # XXX: author!
+                          request.user.username,
                           data['comment'])
                 return HttpResponseRedirect(reverse(wiki, args=[name]))
     else:
@@ -207,6 +212,7 @@ def docstring(request, name):
                                     review_form=review_form,
                                     revision=revision))
 
+@permission_required('doc.change_docstring')
 def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
     
@@ -227,7 +233,7 @@ def edit(request, name):
             else:
                 try:
                     doc.edit(data['text'],
-                             "XXX", # XXX: author!
+                             request.user.username,
                              data['comment'])
                     return HttpResponseRedirect(reverse(docstring, args=[name]))
                 except RuntimeError:
@@ -266,12 +272,12 @@ class CommentEditForm(forms.Form):
         self.clean_data['text']="\n".join(self.clean_data['text'].splitlines())
         return self.clean_data
 
+@permission_required('doc.change_reviewcomment')
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
     try:
         comment_id = int(comment_id)
-        comment = doc.comments.get(id=comment_id,
-                                   author="XXX") # XXX: author
+        comment = doc.comments.get(id=comment_id, author=request.user.username)
     except (ValueError, TypeError, ReviewComment.DoesNotExist):
         comment = None
     
@@ -301,7 +307,7 @@ def comment_edit(request, name, comment_id):
                     comment.rev = doc.revisions.all()[0]
                 except IndexError:
                     comment.rev = None
-                comment.author = "XXX" # XXX: author!
+                comment.author = request.user.username
                 comment.text = strip_spurious_whitespace(data['text'])
                 comment.timestamp = datetime.datetime.now()
                 comment.save()
@@ -363,6 +369,7 @@ def diff(request, name, rev1, rev2):
                            dict(name=name, name1=name1, name2=name2,
                                 diff_text=diff))
 
+@permission_required('doc.change_docstring')
 def review(request, name):
     if request.method == 'POST':
         doc = get_object_or_404(Docstring, name=name)
@@ -411,6 +418,7 @@ def patch(request):
     return render_template(request, "patch.html",
                            dict(changed=docs))
 
+@permission_required('doc.edit_docstring')
 def merge(request):
     """
     Review current merge status
@@ -427,6 +435,7 @@ def merge(request):
     return render_template(request, 'merge.html',
                            dict(conflicts=conflicts, merged=merged))
 
+@permission_required('doc.can_update_from_source')
 def control(request):
     if request.method == 'POST':
         if 'update-docstrings' in request.POST.keys():
@@ -434,3 +443,30 @@ def control(request):
 
     return render_template(request, 'control.html',
                            dict())
+
+class LoginForm(forms.Form):
+    username = forms.CharField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput, required=True)
+
+#------------------------------------------------------------------------------
+# User management
+#------------------------------------------------------------------------------
+
+def login(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            data = form.clean_data
+            user = authenticate(username=data['username'],
+                                password=data['password'])
+            if user is not None and user.is_active:
+                auth_login(request, user)
+                return HttpResponseRedirect(reverse(frontpage))
+            else:
+                message = "Authentication failed"
+    else:
+        form = LoginForm({})
+        message = ""
+
+    return render_template(request, 'registration/login.html',
+                           dict(form=form, message=message))

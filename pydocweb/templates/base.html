@@ -12,9 +12,18 @@
       <ul>
 	<li><a href="/">Wiki</a></li>
 	<li><a href="/doc">Docstrings</a></li>
+{% if perms.doc.change_docstring %}
 	<li><a href="/merge">Merge</a></li>	
+{% endif %}
 	<li><a href="/patch">Patch</a></li>	
+{% if user.is_superuser %}
 	<li><a href="/control">Control</a></li>	
+{% endif %}
+{% if user.is_authenticated %}
+	<li><a href="/accounts/logout">Log out {{user.username}}</a></li>	
+{% else %}
+	<li><a href="/accounts/login">Log in</a></li>	
+{% endif %}
       </ul>
     </div>
     <div id="subnavbar">{% block subnavbar %}{% endblock %}</div>

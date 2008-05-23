@@ -19,4 +19,10 @@ urlpatterns = patterns(
     (r'^patch/$', 'patch'),
     (r'^control/$', 'control'),
     (r'^source/(?P<file_name>.+)$', 'source'),
+    (r'^accounts/login/$', 'login'),
+)
+
+urlpatterns += patterns(
+    '',
+    (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
 )

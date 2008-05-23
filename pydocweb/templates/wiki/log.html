@@ -27,7 +27,9 @@
     </td>
     <td>{{rev.comment}}</td>
     <td>
+      {% if perm.doc.change_wikipage %}
       <a href="{% url pydocweb.doc.views.edit_wiki name %}?revision={{rev.id}}">Revert</a>
+      {% endif %}
     </td>
   </tr>
   {% endfor %}

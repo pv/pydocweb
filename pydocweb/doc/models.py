@@ -65,6 +65,7 @@ class Docstring(models.Model):
     
     class Meta:
         ordering = ['name']
+        permissions = (('can_update_from_source', 'Can update from sources'),)
     
     # --
     

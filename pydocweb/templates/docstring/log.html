@@ -30,7 +30,9 @@
           {% if forloop.first %}checked{% endif %} />
     </td>
     <td>
+      {% if perm.doc.change_docstring %}
       <a href="{% url pydocweb.doc.views.edit name %}?revision={{rev.id}}">Revert</a>
+      {% endif %}
     </td>
   </tr>
   {% endfor %}

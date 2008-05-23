@@ -29,6 +29,8 @@
   <div class="comment">
     <div class="author">{{comment.author}}</div>
     <div class="text">{{comment.text}}</div>
+    {% if perms.doc.change_reviewcomment %}
+    {% ifequal comment.author user.username %}
     <div class="editlabel">
       <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="GET">
 	<input type=submit value="Edit"/>
@@ -38,9 +40,13 @@
 	<input type=submit name="button_delete" value="Delete" />
       </form>
     </div>
+    {% endifequal %}
+    {% endif %}
   </div>
   {% endfor %}
+  {% if perms.doc.change_reviewcomment %}
   <div class="editlabel"><a href="{% url pydocweb.doc.views.comment_edit name,"new" %}">New comment</a></div>
+  {% endif %}
 </div>
 {% endblock %}
 
