@@ -19,8 +19,11 @@
 {% if user.is_superuser %}
 	<li><a href="/control">Control</a></li>	
 {% endif %}
+	&mdash;
 {% if user.is_authenticated %}
-	<li><a href="/accounts/logout">Log out {{user.username}}</a></li>	
+	<li><b>{{user.first_name}} {{user.last_name}}</b>:</li>
+	<li><a href="/accounts/password">Profile</a></li>
+	<li><a href="/accounts/logout">Log out</a></li>	
 {% else %}
 	<li><a href="/accounts/login">Log in</a></li>	
 {% endif %}

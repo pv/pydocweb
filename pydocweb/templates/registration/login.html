@@ -7,6 +7,10 @@
 
 <p>{{message}}</p>
 
+<p>
+  You can also <a href="{% url pydocweb.doc.views.register %}">register a new account</a>.
+</p>
+
 <form action="{% url pydocweb.doc.login %}" method="POST">
   <ul>
     {{form.as_ul}}

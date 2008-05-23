@@ -93,7 +93,7 @@ def edit_wiki(request, name):
         except (WikiPage.DoesNotExist, IndexError):
             data = {}
             revision = None
-        form = EditForm(data)
+        form = EditForm(initial=data)
 
     return render_template(request, 'wiki/edit.html',
                            dict(form=form, name=name, revision=revision))
@@ -251,7 +251,7 @@ def edit(request, name):
         if revision is not None:
             data['comment'] = "Reverted"
 
-        form = EditForm(data)
+        form = EditForm(initial=data)
 
     if revision is None and doc.merge_status == MERGE_CONFLICT:
         if data['text'] == doc.text:
@@ -320,7 +320,7 @@ def comment_edit(request, name, comment_id):
             data = dict(text=comment.text)
         else:
             data = {}
-        form = CommentEditForm(data)
+        form = CommentEditForm(initial=data)
     
     return render_template(request, 'docstring/edit_comment.html',
                            dict(form=form, name=name, comment=comment))
@@ -483,6 +483,7 @@ class RegistrationForm(forms.Form):
         return self.clean_data
 
 def login(request):
+    message = ""
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -495,14 +496,14 @@ def login(request):
             else:
                 message = "Authentication failed"
     else:
-        form = LoginForm({})
-        message = ""
+        form = LoginForm()
 
     return render_template(request, 'registration/login.html',
                            dict(form=form, message=message))
 
 @login_required
 def password_change(request):
+    message = ""
     if request.method == 'POST':
         form = PasswordChangeForm(request.POST)
         if form.is_valid():
@@ -512,20 +513,20 @@ def password_change(request):
             request.user.last_name = data['last_name']
             request.user.email = data['email']
             request.user.save()
-            return HttpResponseRedirect(reverse(password_change))
+            message = "Profile and password updated."
     else:
         form = PasswordChangeForm(
-            dict(first_name=request.user.first_name,
-                 last_name=request.user.last_name,
-                 email=request.user.email,
-                 password="",
-                 password_verify=""))
-        message = ""
+            initial=dict(first_name=request.user.first_name,
+                         last_name=request.user.last_name,
+                         email=request.user.email,
+                         password="",
+                         password_verify=""))
 
     return render_template(request, 'registration/change_password.html',
                            dict(form=form, message=message))
 
 def register(request):
+    message = ""
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -538,14 +539,13 @@ def register(request):
                 user.first_name = data['first_name']
                 user.last_name = data['last_name']
                 user.save()
-                return HttpResponseRedirect(reverse(password_change))
+                return render_template(request,
+                                       'registration/register_done.html',
+                                       dict(username=data['username']))
             else:
                 message = "User name %s is already reserved" % data['username']
-        else:
-            message = ""
     else:
         form = RegistrationForm()
-        message = ""
     
     return render_template(request, 'registration/register.html',
                            dict(form=form, message=message))
