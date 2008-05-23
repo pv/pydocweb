@@ -1,8 +1,6 @@
 {% extends "docstring/page.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
-
 <div id="merge-warning">
   {% ifequal merge_type "conflict" %}
   <p>Merge conflict with SVN.  You need to correct this by 

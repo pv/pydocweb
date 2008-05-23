@@ -1,18 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}
-  {{file_name}}
-{% endblock %}
-
+{% block title %}{{file_name}}{% endblock %}
 
 {% block content %}
-
 <div id='source'>
-<h1>{{file_name}}</h1>
   <pre>
 {% for line in lines %}<a id='{{forloop.counter}}'>{{line}}</a>
 {% endfor %}
   </pre>
 </div>
-
 {% endblock %}

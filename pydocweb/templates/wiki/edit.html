@@ -1,12 +1,6 @@
-{% extends "base.html" %}
-
-{% block title %}
-Edit {{name}}
-{% endblock %}
+{% extends "wiki/base.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
-
 <p>Edit:</p>
 
 <form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">

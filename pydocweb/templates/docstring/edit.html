@@ -1,11 +1,6 @@
-{% extends "base.html" %}
-
-{% block title %}
-{{name}}
-{% endblock %}
+{% extends "docstring/base.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
 
 {% if conflict_warning %}
 <div id='merge-warning'>

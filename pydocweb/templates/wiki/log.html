@@ -1,11 +1,6 @@
-{% extends "base.html" %}
-
-{% block title %}
-{{name}}
-{% endblock %}
+{% extends "wiki/base.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
 {{body}}
 
 <form action="{% url pydocweb.doc.views.log_wiki name %}" method="POST">
@@ -38,4 +33,5 @@
   {% endfor %}
 </table>
 </form>
+
 {% endblock %}

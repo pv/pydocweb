@@ -1,12 +1,6 @@
-{% extends "base.html" %}
-
-{% block title %}
-{{name}}
-{% endblock %}
+{% extends "docstring/base.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
-
 {% if revision %}
 <div id="revision-header">
   Revision {{revision.revno}}.
@@ -28,15 +22,9 @@
   {{body}}
 </div>
 
-{% if not revision %}
-<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
-<a href="{% url pydocweb.doc.views.log name %}">Log</a>
-<a href="{% url pydocweb.doc.views.diff name,"svn","cur" %}">Diff to SVN</a>
-{% endif %}
-
 {% block discussion %}
 <div id="comments">
-  <h1>Discussion</h1>
+  <h1><a id="discussion"/>Discussion</h1>
   {% for comment in comments %}
   <div class="comment">
     <div class="author">{{comment.author}}</div>

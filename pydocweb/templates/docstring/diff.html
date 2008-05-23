@@ -1,20 +1,9 @@
-{% extends "base.html" %}
-
-{% block title %}
-{{name}}
-{% endblock %}
+{% extends "docstring/base.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
-
 Differences between revisions {{name1}} and {{name2}}:
 
 <div id="merge-info">
   <pre>{{diff_text}}</pre>
 </div>
-
-<a href="{% url pydocweb.doc.views.docstring name %}">View</a>
-<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
-<a href="{% url pydocweb.doc.views.log name %}">Log</a>
-
 {% endblock %}

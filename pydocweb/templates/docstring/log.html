@@ -1,13 +1,8 @@
-{% extends "base.html" %}
-
-{% block title %}
-{{name}}
-{% endblock %}
+{% extends "docstring/base.html" %}
 
 {% block content %}
-<h1>{{name}}</h1>
-{{body}}
 
+{{body}}
 
 <form action="{% url pydocweb.doc.views.log name %}" method="POST">
 <table>

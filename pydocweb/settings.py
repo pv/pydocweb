@@ -68,8 +68,10 @@ TEMPLATE_LOADERS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.auth',
-    'pydocweb.doc.context_processors.media_url',
+    "django.core.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "pydocweb.doc.context_processors.media_url",
 )
 
 MIDDLEWARE_CLASSES = (
