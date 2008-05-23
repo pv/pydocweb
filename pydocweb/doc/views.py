@@ -4,8 +4,10 @@ from django.http import (HttpResponseRedirect, HttpResponsePermanentRedirect,
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.models import User
+
 
 from django import newforms as forms
 
@@ -444,13 +446,41 @@ def control(request):
     return render_template(request, 'control.html',
                            dict())
 
-class LoginForm(forms.Form):
-    username = forms.CharField(required=True)
-    password = forms.CharField(widget=forms.PasswordInput, required=True)
-
 #------------------------------------------------------------------------------
 # User management
 #------------------------------------------------------------------------------
+
+class LoginForm(forms.Form):
+    username = forms.CharField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput, required=True,
+                               min_length=7)
+
+class PasswordChangeForm(forms.Form):
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    email = forms.CharField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput, required=True,
+                               min_length=7)
+    password_verify = forms.CharField(widget=forms.PasswordInput, required=True)
+
+    def clean(self):
+        if self.clean_data.get('password') != self.clean_data.get('password_verify'):
+            raise forms.ValidationError("Passwords don't match")
+        return self.clean_data
+
+class RegistrationForm(forms.Form):
+    username = forms.CharField(required=True, min_length=4)
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    email = forms.EmailField(required=True)
+    password = forms.CharField(widget=forms.PasswordInput, required=True,
+                               min_length=7)
+    password_verify = forms.CharField(widget=forms.PasswordInput, required=True)
+
+    def clean(self):
+        if self.clean_data.get('password') != self.clean_data.get('password_verify'):
+            raise forms.ValidationError("Passwords don't match")
+        return self.clean_data
 
 def login(request):
     if request.method == 'POST':
@@ -469,4 +499,53 @@ def login(request):
         message = ""
 
     return render_template(request, 'registration/login.html',
+                           dict(form=form, message=message))
+
+@login_required
+def password_change(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.POST)
+        if form.is_valid():
+            data = form.clean_data
+            request.user.set_password(data['password'])
+            request.user.first_name = data['first_name']
+            request.user.last_name = data['last_name']
+            request.user.email = data['email']
+            request.user.save()
+            return HttpResponseRedirect(reverse(password_change))
+    else:
+        form = PasswordChangeForm(
+            dict(first_name=request.user.first_name,
+                 last_name=request.user.last_name,
+                 email=request.user.email,
+                 password="",
+                 password_verify=""))
+        message = ""
+
+    return render_template(request, 'registration/change_password.html',
+                           dict(form=form, message=message))
+
+def register(request):
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            data = form.clean_data
+            count = User.objects.filter(username=data['username']).count()
+            if count == 0:
+                user = User.objects.create_user(data['username'],
+                                                data['email'],
+                                                data['password'])
+                user.first_name = data['first_name']
+                user.last_name = data['last_name']
+                user.save()
+                return HttpResponseRedirect(reverse(password_change))
+            else:
+                message = "User name %s is already reserved" % data['username']
+        else:
+            message = ""
+    else:
+        form = RegistrationForm()
+        message = ""
+    
+    return render_template(request, 'registration/register.html',
                            dict(form=form, message=message))

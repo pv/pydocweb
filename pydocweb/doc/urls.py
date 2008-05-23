@@ -20,6 +20,9 @@ urlpatterns = patterns(
     (r'^control/$', 'control'),
     (r'^source/(?P<file_name>.+)$', 'source'),
     (r'^accounts/login/$', 'login'),
+    (r'^accounts/password/$', 'password_change'),
+    (r'^accounts/register/$', 'register'),
+    (r'^accounts/forgotten/$', 'forgotten'),
 )
 
 urlpatterns += patterns(

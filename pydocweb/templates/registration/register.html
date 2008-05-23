@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Register account{% endblock %}
+{% block pagetitle %}Register account{% endblock %}
+
+{% block content %}
+
+<p>{{message}}</p>
+
+<form action="{% url pydocweb.doc.views.register %}" method="POST">
+  <ul>{{form.as_ul}}</ul>
+  <input type=submit value="Register" />
+</form>
+
+{% endblock %}
