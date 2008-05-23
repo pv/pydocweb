@@ -176,6 +176,22 @@ class Docstring(models.Model):
         self.merge_status = MERGE_NONE
         self.base_doc = self.source_doc
         self.save()
+
+    def get_rev_text(self, revno):
+        if revno is None or revno == '' or str(revno).lower() == 'cur':
+            try:
+                rev = self.revisions.all()[0]
+                return rev.text, rev
+            except IndexError:
+                return self.source_doc, None
+        elif str(revno).lower() == 'svn':
+            return self.source_doc, None
+        else:
+            try:
+                rev = self.revisions.get(revno=int(revno))
+                return rev.text, rev
+            except (ValueError, TypeError):
+                raise DocstringRevision.DoesNotExist()
     
     @property
     def text(self):
@@ -252,7 +268,7 @@ class ReviewComment(models.Model):
 
 # -----------------------------------------------------------------------------
 import lxml.etree as etree
-import tempfile, os, subprocess, sys, shutil, traceback
+import tempfile, os, subprocess, sys, shutil, traceback, difflib
 
 class MalformedPydocXML(RuntimeError): pass
 
@@ -479,7 +495,7 @@ def get_source_file_content(relative_file_name):
 
 def merge_3way(mine, base, other):
     """
-    Perform a 3-way merge, inserting changes between base and file1 to file2.
+    Perform a 3-way merge, inserting changes between base and other to mine.
     
     Returns
     -------
@@ -509,6 +525,12 @@ def merge_3way(mine, base, other):
     out, err = p.communicate()
     if p.returncode != 0:
         return out, True
+
+def diff_text(text_a, text_b, label_a="previous", label_b="current"):
+    return "".join(difflib.unified_diff(text_a.splitlines(1),
+                                        text_b.splitlines(1),
+                                        fromfile=label_a,
+                                        tofile=label_b))
 
 def strip_spurious_whitespace(text):
     return ("\n".join([x.rstrip() for x in text.split("\n")])).strip()

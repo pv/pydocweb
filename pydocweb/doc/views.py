@@ -95,6 +95,13 @@ def log_wiki(request, name):
     # XXX: diff
     page = get_object_or_404(WikiPage, name=name)
 
+    if request.method == "POST":
+        if request.POST.get('button_diff'):
+            rev1 = str(request.POST.get('rev1'))
+            rev2 = str(request.POST.get('rev2'))
+            return HttpResponseRedirect(reverse(diff_wiki,
+                                                args=[name, rev1, rev2]))
+    
     revisions = []
     for rev in page.revisions.all():
         revisions.append(dict(
@@ -107,9 +114,23 @@ def log_wiki(request, name):
     return render_template(request, 'wiki/log.html',
                            dict(name=name, revisions=revisions))
 
-def diff_wiki(request, name):
+def diff_wiki(request, name, rev1, rev2):
     page = get_object_or_404(WikiPage, name=name)
+    try:
+        rev1 = get_object_or_404(WikiPageRevision, revno=int(rev1))
+        rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2))
+    except (ValueError, TypeError):
+        raise Http404()
+    
+    name1 = str(rev1.revno)
+    name2 = str(rev2.revno)
 
+    diff = diff_text(rev1.text, rev2.text, label_a=name1, label_b=name2)
+
+    return render_template(request, 'wiki/diff.html',
+                           dict(name=name, name1=name1, name2=name2,
+                                diff_text=diff))
+    
 
 #------------------------------------------------------------------------------
 # Docstrings
@@ -142,18 +163,12 @@ class ReviewForm(forms.Form):
 def docstring(request, name):
     doc = get_object_or_404(Docstring, name=name)
 
-    revision = request.GET.get('revision')
-    if revision is None:
-        body = rst.render_html(doc.text)
-    elif revision == 'SVN':
-        body = rst.render_html(doc.source_doc)
-    else:
-        try:
-            revision = int(revision)
-            rev = doc.revisions.get(revno=revision)
-            body = rst.render_html(rev.text)
-        except (TypeError, ValueError, DocstringRevision.DoesNotExist):
-            raise Http404()
+    try:
+        text, revision = doc.get_rev_text(request.GET.get('revision'))
+        if not request.GET.get('revision'): revision = None
+        body = rst.render_html(text)
+    except (TypeError, ValueError, DocstringRevision.DoesNotExist):
+        raise Http404()
     
     comments = []
     for comment in doc.comments.all():
@@ -176,13 +191,8 @@ def docstring(request, name):
                                     doc=doc,
                                     review_form=review_form))
     elif revision is None and doc.merge_status == MERGE_MERGED:
-        import difflib
-        merge_text = "".join(list(difflib.unified_diff(
-            doc.revisions.all()[1].text.splitlines(1),
-            doc.revisions.all()[0].text.splitlines(1),
-            fromfile="previous revision",
-            tofile="current revision"
-            )))
+        merge_text = diff_text(doc.revisions.all()[1].text,
+                               doc.revisions.all()[0].text)
         return render_template(request, 'docstring/merge.html',
                                dict(name=name, body=body,
                                     status=REVIEW_STATUS_NAMES[doc.review],
@@ -225,18 +235,16 @@ def edit(request, name):
                 except RuntimeError:
                     pass
     else:
-        revision = request.GET.get('revision')
-        if revision is None:
-            data = dict(text=doc.text, comment="")
-        elif revision == 'SVN':
-            data = dict(text=doc.source_doc, comment="")
-        else:
-            try:
-                revision = int(revision)
-                rev = doc.revisions.get(revno=revision)
-                data = dict(text=rev.text, comment="Reverted")
-            except (TypeError, ValueError, DocstringRevision.DoesNotExist):
-                raise Http404()
+        try:
+            text, revision = doc.get_rev_text(request.GET.get('revision'))
+            if not request.GET.get('revision'): revision = None
+            data = dict(text=text, comment="")
+        except (TypeError, ValueError, DocstringRevision.DoesNotExist):
+            raise Http404()
+
+        if revision is not None:
+            data['comment'] = "Reverted"
+
         form = EditForm(data)
 
     if revision is None and doc.merge_status == MERGE_CONFLICT:
@@ -270,7 +278,13 @@ def comment_new(request, name):
 def log(request, name):
     # XXX: diff
     doc = get_object_or_404(Docstring, name=name)
-
+    
+    if request.method == "POST":
+        if request.POST.get('button_diff'):
+            rev1 = str(request.POST.get('rev1'))
+            rev2 = str(request.POST.get('rev2'))
+            return HttpResponseRedirect(reverse(diff, args=[name, rev1, rev2]))
+    
     revisions = []
     for rev in doc.revisions.all():
         revisions.append(dict(
@@ -290,10 +304,23 @@ def log(request, name):
     return render_template(request, 'docstring/log.html',
                            dict(name=name, revisions=revisions))
 
-def diff(request, name):
+def diff(request, name, rev1, rev2):
     doc = get_object_or_404(Docstring, name=name)
-    # XXX: implement
-    pass
+
+    try:
+        text1, rev1 = doc.get_rev_text(rev1)
+        text2, rev2 = doc.get_rev_text(rev2)
+    except DocstringRevision.DoesNotExist:
+        raise Http404()
+
+    name1 = str(rev1.revno) if rev1 is not None else "SVN"
+    name2 = str(rev2.revno) if rev2 is not None else "SVN"
+
+    diff = diff_text(text1, text2, label_a=name1, label_b=name2)
+
+    return render_template(request, 'docstring/diff.html',
+                           dict(name=name, name1=name1, name2=name2,
+                                diff_text=diff))
 
 def review(request, name):
     if request.method == 'POST':

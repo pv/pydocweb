@@ -11,7 +11,7 @@ Edit {{name}}
 
 <form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">
   {{ form.as_p }}
-  <input type="submit" value="Edit" />
+  <input type="submit" value="Save" />
   <input type="submit" name="button_preview" value="Preview" />
   <input type="submit" name="button_cancel" value="Cancel" />
 </form>

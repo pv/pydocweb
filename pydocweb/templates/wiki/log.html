@@ -8,10 +8,14 @@
 <h1>{{name}}</h1>
 {{body}}
 
+<form action="{% url pydocweb.doc.views.log_wiki name %}" method="POST">
 <table>
   <tr>
     <th>Time</th>
     <th>Author</th>
+    <th>
+      <input type=submit name="button_diff" value="Differences" />
+    </th>
     <th>Comment</th>
   </tr>
   {% for rev in revisions %}
@@ -20,10 +24,18 @@
       <a href="{% url pydocweb.doc.views.wiki name %}?revision={{rev.id}}">{{rev.timestamp}}</a>
     </td>
     <td>{{rev.author}}</td>
+    <td>
+      <input type="radio" name="rev1" value="{{rev.id}}"
+          {% if forloop.last %}checked{% endif %} />
+      <input type="radio" name="rev2" value="{{rev.id}}" 
+          {% if forloop.first %}checked{% endif %} />
+    </td>
     <td>{{rev.comment}}</td>
     <td>
       <a href="{% url pydocweb.doc.views.edit_wiki name %}?revision={{rev.id}}">Revert</a>
     </td>
   </tr>
   {% endfor %}
+</table>
+</form>
 {% endblock %}

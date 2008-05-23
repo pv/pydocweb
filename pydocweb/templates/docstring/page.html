@@ -9,7 +9,7 @@
 
 {% if revision %}
 <div id="revision-header">
-  Revision {{revision}}.
+  Revision {{revision.revno}}.
   <a href="{% url pydocweb.doc.views.docstring name %}">Back to current revision.</a>
   <a href="{% url pydocweb.doc.views.log name %}">Back to log.</a>
 </div>
@@ -31,6 +31,7 @@
 {% if not revision %}
 <a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
 <a href="{% url pydocweb.doc.views.log name %}">Log</a>
+<a href="{% url pydocweb.doc.views.diff name,"svn","cur" %}">Diff to SVN</a>
 {% endif %}
 
 {% block discussion %}
