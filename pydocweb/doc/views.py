@@ -130,7 +130,6 @@ def diff_wiki(request, name, rev1, rev2):
     return render_template(request, 'wiki/diff.html',
                            dict(name=name, name1=name1, name2=name2,
                                 diff_text=diff))
-    
 
 #------------------------------------------------------------------------------
 # Docstrings

@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{% load docstring %}
 
 {% block title %}{{name}}{% endblock %}
+{% block pagetitle %}
+  {% docstring_name_link name %}
+{% endblock %}
 
 {% block actions %}
 <a href="{% url pydocweb.doc.views.docstring name %}">View</a>
