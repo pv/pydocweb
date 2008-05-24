@@ -42,6 +42,7 @@
 
 
 {% block extra_headers %}
+{{block.super}}
 <script>
 function check_none() {
     $("#patch-select input:checkbox").removeAttr('checked');

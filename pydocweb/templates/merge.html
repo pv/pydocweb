@@ -13,12 +13,27 @@
 
 <h2>Merged</h2>
 <form action="{% url pydocweb.doc.views.merge %}" method="post">
+<input type="submit" value="Accept merges" />
+<a href="" onclick="check_all(); return false;">Select all</a>
+<a href="" onclick="check_none(); return false;">Unselect all</a>
 <ul>
   {% for entry in merged %}
   <li>
     <input type="checkbox" name="{{entry.name}}" checked /> <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a></li>
   {% endfor %}
 </ul>
-<input type="submit" value="Accept merges" />
 </form>
+{% endblock %}
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+function check_none() {
+    $("input:checkbox").removeAttr('checked');
+}
+function check_all() {
+    $("input:checkbox").attr('checked', 1);
+}
+</script>
 {% endblock %}
