@@ -71,9 +71,17 @@ def edit_wiki(request, name):
             data = form.clean_data
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
+                try:
+                    prev_text = WikiPage.objects.get(name=name).text
+                except WikiPage.DoesNotExist:
+                    prev_text = ""
+                diff_html = html_diff_text(prev_text, data['text'],
+                                           'previous revision',
+                                           'current text')
                 return render_template(request, 'wiki/edit.html',
                                        dict(form=form, name=name,
                                             revision=revision,
+                                            diff_html=diff_html,
                                             preview_html=preview))
             else:
                 page, created = WikiPage.objects.get_or_create(name=name)
@@ -271,9 +279,13 @@ def edit(request, name):
             data = form.clean_data
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
+                diff_html = html_diff_text(doc.text, data['text'],
+                                           'previous revision',
+                                           'current text')
                 return render_template(request, 'docstring/edit.html',
                                        dict(form=form, name=name,
                                             revision=revision,
+                                            diff_html=diff_html,
                                             preview_html=preview))
             else:
                 try:
