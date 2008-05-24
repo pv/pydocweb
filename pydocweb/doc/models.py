@@ -313,6 +313,7 @@ def _update_docstrings_from_xml(stream):
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
         
         bases = []
+        # XXX: this doesn't work for some reason?
         for b in el.findall('base'):
             bases.append(b.attrib['ref'])
         bases = " ".join(bases)
@@ -320,13 +321,13 @@ def _update_docstrings_from_xml(stream):
             bases = None
         
         if el.text:
-            docstring = el.text.decode('string-escape')
+            docstring = strip_spurious_whitespace(el.text.decode('string-escape'))
         else:
             docstring = ""
         
         repr_ = None
         if el.get('is-repr') == '1' and el.text:
-            repr_ = el.text.decode('string-escape')
+            repr_ = strip_spurious_whitespace(el.text.decode('string-escape'))
             docstring = ""
         
         try:
@@ -367,6 +368,35 @@ def _update_docstrings_from_xml(stream):
             alias.parent = doc
             alias.alias = ref.attrib['name']
             alias.save()
+
+@transaction.commit_on_success
+def import_docstring_revisions_from_xml(stream):
+    """
+    Read XML from stream and update database accordingly.
+    
+    """
+    try:
+        _import_docstring_revisions_from_xml(stream)
+    except (TypeError, ValueError, AttributeError, KeyError), e:
+        msg = traceback.format_exc()
+        raise MalformedPydocXML(str(e) + "\n\n" +  msg)
+
+def _import_docstring_revisions_from_xml(stream):
+    tree = etree.parse(stream)
+    root = tree.getroot()
+    for el in root:
+        if el.tag not in ('module', 'class', 'callable', 'object'): continue
+
+        try:
+            doc = Docstring.objects.get(name=el.attrib['id'])
+        except Docstring.DoesNotExist:
+            print "DOES-NOT-EXIST", el.attrib['id']
+            continue
+
+        if el.text:
+            doc.edit(strip_spurious_whitespace(el.text.decode('string-escape')),
+                     "xml-import",
+                     comment="Imported")
 
 def update_docstrings():
     for svn_dir in settings.SVN_DIRS:
@@ -543,8 +573,11 @@ def merge_3way(mine, base, other):
         return out, True
 
 def diff_text(text_a, text_b, label_a="previous", label_b="current"):
-    return "".join(difflib.unified_diff(text_a.splitlines(1),
-                                        text_b.splitlines(1),
+    lines_a = text_a.splitlines(1)
+    lines_b = text_b.splitlines(1)
+    if not lines_a[-1].endswith('\n'): lines_a[-1] += "\n"
+    if not lines_b[-1].endswith('\n'): lines_b[-1] += "\n"
+    return "".join(difflib.unified_diff(lines_a, lines_b,
                                         fromfile=label_a,
                                         tofile=label_b))
 
