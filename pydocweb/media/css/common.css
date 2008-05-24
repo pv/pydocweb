@@ -471,3 +471,28 @@ form ul.errorlist li {
 input[type=text], textarea { 
   min-width: 20em;
 }
+
+/*
+ * Footnotes
+ */
+table.footnote { 
+  border: none;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+table.footnote td { 
+  border: none;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+table.footnote tr { 
+  border: none;
+}
+
+/*
+ * Preview
+ */
+#preview { 
+  margin-left: 2em;
+  border: solid thin #ccc;
+}

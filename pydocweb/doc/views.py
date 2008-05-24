@@ -125,8 +125,14 @@ def log_wiki(request, name):
 def diff_wiki(request, name, rev1, rev2):
     page = get_object_or_404(WikiPage, name=name)
     try:
-        rev1 = get_object_or_404(WikiPageRevision, revno=int(rev1))
-        rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2))
+        if str(rev1).lower() == "cur":
+            rev1 = page.revisions.all()[0]
+        else:
+            rev1 = get_object_or_404(WikiPageRevision, revno=int(rev1))
+        if str(rev2).lower() == "cur":
+            rev2 = page.revisions.all()[0]
+        else:
+            rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2))
     except (ValueError, TypeError):
         raise Http404()
     
@@ -142,15 +148,16 @@ def diff_wiki(request, name, rev1, rev2):
 def diff_wiki_prev(request, name, rev2):
     page = get_object_or_404(WikiPage, name=name)
     try:
-        rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2))
+        rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2)).revno
     except (ValueError, TypeError):
         raise Http404()
 
     try:
         rev1 = WikiPageRevision.objects.filter(page=page, revno__lt=rev2.revno).order_by('-revno')[0].revno
-    except IndexError:
+    except (IndexError, AttributeError):
         rev1 = "cur"
-    return HttpResponseRedirect(reverse(diff_wiki, args=[name,rev1,rev2]))
+
+    return diff_wiki(request, name, rev1, rev2)
 
 
 #------------------------------------------------------------------------------
@@ -192,12 +199,7 @@ def docstring(request, name):
     except (TypeError, ValueError, DocstringRevision.DoesNotExist):
         raise Http404()
 
-    author_map = {}
-    for user in User.objects.all():
-        if user.first_name and user.last_name:
-            author_map[user.username] = "%s %s" % (user.first_name,
-                                                   user.last_name)
-    
+    author_map = _get_author_map()
     comments = []
     for comment in doc.comments.all():
         comments.append(dict(
@@ -210,38 +212,46 @@ def docstring(request, name):
     
     review_form = ReviewForm(dict(status=doc.review))
 
+    if doc.bases:
+        bases = doc.bases.split()
+    else:
+        bases = []
+    
+    params = dict(name=name,
+                  basename=name.split('.')[-1],
+                  argspec=doc.argspec,
+                  objclass=doc.objclass,
+                  bases=bases,
+                  repr_=doc.repr_,
+                  doc=doc,
+                  review_form=review_form,
+                  status=REVIEW_STATUS_NAMES[doc.review],
+                  status_code=REVIEW_STATUS_CODES[doc.review],
+                  comments=comments,
+                  body=body,
+                  )
+    
     if revision is None and doc.merge_status == MERGE_CONFLICT:
         conflict = doc.merge()
-        return render_template(request, 'docstring/merge.html',
-                               dict(name=name,
-                                    status=REVIEW_STATUS_NAMES[doc.review],
-                                    status_code=REVIEW_STATUS_CODES[doc.review],
-                                    merge_text=conflict,
-                                    comments=comments,
-                                    merge_type='conflict',
-                                    doc=doc,
-                                    review_form=review_form))
+        params['merge_type'] = 'conflict'
+        params['merge_text'] = conflict
+        return render_template(request, 'docstring/merge.html', params)
     elif revision is None and doc.merge_status == MERGE_MERGED:
         merge_text = diff_text(doc.revisions.all()[1].text,
                                doc.revisions.all()[0].text)
-        return render_template(request, 'docstring/merge.html',
-                               dict(name=name, body=body,
-                                    status=REVIEW_STATUS_NAMES[doc.review],
-                                    status_code=REVIEW_STATUS_CODES[doc.review],
-                                    comments=comments,
-                                    doc=doc,
-                                    merge_text=merge_text,
-                                    review_form=review_form))
+        params['merge_text'] = merge_text
+        return render_template(request, 'docstring/merge.html', params)
     else:
-        return render_template(request, 'docstring/page.html',
-                               dict(name=name, body=body,
-                                    status=REVIEW_STATUS_NAMES[doc.review],
-                                    status_code=REVIEW_STATUS_CODES[doc.review],
-                                    comments=comments,
-                                    doc=doc,
-                                    review_form=review_form,
-                                    revision=revision))
+        return render_template(request, 'docstring/page.html', params)
 
+def _get_author_map():
+    author_map = {}
+    for user in User.objects.all():
+        if user.first_name and user.last_name:
+            author_map[user.username] = "%s %s" % (user.first_name,
+                                                   user.last_name)
+    return author_map
+    
 @permission_required('doc.change_docstring')
 def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
@@ -314,7 +324,7 @@ def comment_edit(request, name, comment_id):
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(docstring, args=[name])
-                                        + "#discussion")
+                                        + "#discussion-sec")
         
         form = CommentEditForm(request.POST)
         if form.is_valid():
@@ -328,7 +338,7 @@ def comment_edit(request, name, comment_id):
             elif request.POST.get('button_delete') and comment is not None:
                 comment.delete()
                 return HttpResponseRedirect(reverse(docstring, args=[name])
-                                            + "#discussion")
+                                            + "#discussion-sec")
             else:
                 if comment is None:
                     comment = ReviewComment(docstring=doc)
@@ -342,7 +352,7 @@ def comment_edit(request, name, comment_id):
                 comment.timestamp = datetime.datetime.now()
                 comment.save()
                 return HttpResponseRedirect(reverse(docstring, args=[name])
-                                            + "#discussion")
+                                            + "#discussion-sec")
     else:
         if comment:
             data = dict(text=comment.text)
@@ -414,7 +424,8 @@ def diff_prev(request, name, rev2):
         rev1 = DocstringRevision.objects.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
         rev1 = "svn"
-    return HttpResponseRedirect(reverse(diff, args=[name,rev1,rev2]))
+
+    return diff(request, name, rev1, rev2)
 
 @permission_required('doc.can_review')
 def review(request, name):
@@ -453,10 +464,11 @@ def patch(request):
         return HttpResponse(patch, mimetype="text/plain")
     
     docs = Docstring.objects.filter(dirty=True)
-    docs.order_by('-merge_status', '-review', 'name')
+    docs = docs.order_by('merge_status', '-review', 'name')
     
     docs = [
-        dict(merged=(entry.merge_status == MERGE_NONE),
+        dict(included=(entry.merge_status == MERGE_NONE and
+                       entry.review >= REVIEW_REVIEWED),
              merge_status=MERGE_STATUS_NAMES[entry.merge_status],
              merge_status_code=MERGE_STATUS_CODES[entry.merge_status],
              status=REVIEW_STATUS_NAMES[entry.review],
@@ -602,6 +614,29 @@ def changes(request):
     docrevs = DocstringRevision.objects.order_by('-timestamp')
     pagerevs = WikiPageRevision.objects.order_by('-timestamp')
     comments = ReviewComment.objects.order_by('-timestamp')
+
+    author_map = _get_author_map()
+    docstring_changes = [
+        dict(timestamp=r.timestamp,
+             author=author_map.get(r.author, r.author),
+             comment=r.comment[:80],
+             name=r.docstring.name,
+             revno=r.revno)
+        for r in docrevs]
+    wiki_changes = [
+        dict(timestamp=r.timestamp,
+             author=author_map.get(r.author, r.author),
+             comment=r.comment[:80],
+             name=r.page.name,
+             revno=r.revno)
+        for r in pagerevs]
+    comment_changes = [
+        dict(timestamp=r.timestamp,
+             author=author_map.get(r.author, r.author),
+             comment=r.text[:80],
+             name=r.docstring.name,
+             revno=r.id)
+        for r in comments]
 
     return render_template(request, 'changes.html',
                            dict(docstring_changes=docstring_changes,

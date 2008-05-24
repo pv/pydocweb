@@ -4,26 +4,31 @@
 <p>Edit:</p>
 
 <form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">
+  <ul>
   {{ form.as_ul }}
-  <li>
+  <li><label></label>
     <input type="submit" value="Save" />
     <input type="submit" name="button_preview" value="Preview" />
     <input type="submit" name="button_cancel" value="Cancel" /></li>
+  </ul>
 </form>
 
 {% if not revision %}
 <form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">
+  <ul>
   <li><label></label>
     <input type="hidden" name="text" value="" />
     <input type="hidden" name="comment" value="Deleted" />
     <input type="submit" value="Delete" />
   </li>
+  </ul>
 </form>
 {% endif %}
 
 {{help}}
 
 {% if preview %}
+<h2>Preview</h2>
 <div id='preview'>
 {{preview}}
 </div>

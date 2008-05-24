@@ -5,6 +5,8 @@
 
 {% block content %}
 <form action="{% url pydocweb.doc.views.patch %}" method="post">
+<input type="submit" value="Generate patch" />
+
 <table id="patch-select">
   <tr>
     <th></th>
@@ -16,20 +18,34 @@
   <tr>
     <td>
       <input type="checkbox" name="{{entry.name}}" 
-      {% if entry.merged %}
+      {% if entry.included %}
 	     checked/>
       {% else %}
              />
       {% endif %}
     </td>
     <td>
-      <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a>
+      <a href="{% url pydocweb.doc.views.diff entry.name,"svn","cur" %}">{{entry.name}}</a>
     </td>
     <td class="{{entry.status_code}}">{{entry.status}}</td>
     <td class="{{entry.merge_status_code}}">{{entry.merge_status}}</td>
   </tr>
   {% endfor %}
 </table>
-<input type="submit" value="Generate patch" />
 </form>
+{% endblock %}
+
+
+
+{% block extra_headers %}
+<script>
+function check_all_ok() {
+}
+
+function check_all() {
+}
+
+function check_none() {
+}
+</script>
 {% endblock %}

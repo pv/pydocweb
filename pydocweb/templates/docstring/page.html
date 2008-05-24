@@ -28,12 +28,23 @@
 
 {% block content %}
 <div id="document">
+  {% if bases %}
+  <p>
+  Derived from: {% for base in bases %}
+  {% docstring_name_link base %}{% if forloop.last %}{% else %}, {% endif %}
+  {% endfor %}
+  </p>
+  {% endif %}
+
+  {% if argspec %}
+  <p>{{basename}}{{argspec}}</p>
+  {% endif %}
   {{body}}
 </div>
 
 {% block discussion %}
 <div id="comments">
-  <h1><a id="discussion"/>Discussion</h1>
+  <h1><a id="discussion-sec"/>Discussion</h1>
   {% for comment in comments %}
   <div class="comment">
     <div class="author">

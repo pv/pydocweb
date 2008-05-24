@@ -7,11 +7,12 @@
 <form action="{% url pydocweb.doc.views.edit_comment name,comment_id %}" method="post">
   <ul>
     {{ form.as_ul }}
-  <li><label></label>
-    <input type="submit" name="button_edit" value="Save" />
-    <input type="submit" name="button_preview" value="Preview" />
-    <input type="submit" name="button_cancel" value="Cancel" />
-  </li>
+    <li><label></label>
+      <input type="submit" name="button_edit" value="Save" />
+      <input type="submit" name="button_preview" value="Preview" />
+      <input type="submit" name="button_cancel" value="Cancel" />
+    </li>
+  </ul>
 </form>
 
 {% if help %}
@@ -19,6 +20,7 @@
 {% endif %}
 
 {% if preview %}
+<h2>Preview</h2>
 <div id='preview'>
 {{preview}}
 </div>

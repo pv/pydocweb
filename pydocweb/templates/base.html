@@ -6,12 +6,14 @@
     <link rel="stylesheet" href="{{MEDIA_URL}}/css/common.css" type="text/css"/>
     <link rel="stylesheet" href="{{MEDIA_URL}}/css/screen.css" type="text/css" media="screen"/>
     <link rel="stylesheet" href="{{MEDIA_URL}}/css/print.css" type="text/css" media="print"/>
+    {% block extra_headers %}{% endblock %}
   </head>
   <body><div id="header"><h1>Scipy Documentation Editor</h1></div>
     <div id="navbar">
       <ul>
 	<li class="button"><a href="/">Wiki</a></li>
 	<li class="button"><a href="/doc">Docstrings</a></li>
+	<li class="button"><a href="/changes">Changes</a></li>
 {% if perms.doc.change_docstring %}
 	<li class="button"><a href="/merge">Merge</a></li>	
 {% endif %}

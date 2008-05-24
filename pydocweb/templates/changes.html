@@ -10,7 +10,7 @@
   {% for c in docstring_changes %}
   <tr>
     <td>{{c.timestamp}}</td>
-    <td><a href="{% url pydocweb.doc.views.diff c.name,c.rev1,c.rev2 %}">{{c.name}}</a></td>
+    <td><a href="{% url pydocweb.doc.views.diff_prev c.name,c.revno %}">{{c.name}}</a></td>
     <td>{{c.author}}</td>
     <td>{{c.comment}}</td>
   </tr>
@@ -34,7 +34,7 @@
   {% for c in wiki_changes %}
   <tr>
     <td>{{c.timestamp}}</td>
-    <td><a href="{% url pydocweb.doc.views.diff_wiki c.name,c.rev1,c.rev2 %}">{{c.name}}</a></td>
+    <td><a href="{% url pydocweb.doc.views.diff_wiki_prev c.name,c.revno %}">{{c.name}}</a></td>
     <td>{{c.author}}</td>
     <td>{{c.comment}}</td>
   </tr>
