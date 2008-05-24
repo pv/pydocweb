@@ -10,6 +10,7 @@ import pydocweb.doc.models as models
 #------------------------------------------------------------------------------
 import docutils.core
 import docutils.writers.html4css1
+import docutils.parsers.rst.roles
 
 class RstWriter(docutils.writers.html4css1.Writer):
     config_section = 'Rst Writer'
@@ -54,6 +55,8 @@ class RstWriter(docutils.writers.html4css1.Writer):
     resolver.priority = 001
 
 def render_html(text):
+    # Fix Django clobbering
+    docutils.parsers.rst.roles.DEFAULT_INTERPRETED_ROLE = 'title-reference'
     parts = docutils.core.publish_parts(
         text,
         writer=RstWriter(),
@@ -63,7 +66,7 @@ def render_html(text):
                                   raw_enabled=0,
                                   stylesheet_path='',
                                   template='',
-                                  default_reference_context='view',
+                                  default_reference_context='title-reference',
                                   link_base='',
                                   )
     )
