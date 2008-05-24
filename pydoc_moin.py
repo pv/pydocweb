@@ -530,7 +530,7 @@ def cmd_patch(args):
 
     # -- Output patches
 
-    for file in replacer.old_sources.iterkeys():
+    for file in sorted(replacer.old_sources.iterkeys()):
         old_src = "".join(replacer.old_sources[file]).splitlines(1)
         new_src = "".join(replacer.new_sources[file]).splitlines(1)
 
@@ -666,7 +666,7 @@ class SourceReplacer(object):
         if 'file' not in el.attrib or 'line' not in el.attrib:
             file = "unknown-source-location/%s.py" % new_id
             line = 1
-            src = "# Source file for %s not known" % new_id
+            src = "# %s: Source location for docstring not known" % new_id
             basename = new_id.split('.')[-1]
             if el.tag == 'callable':
                 src += "\ndef %s():\n    pass\n" % basename
@@ -678,7 +678,7 @@ class SourceReplacer(object):
                 src += "\n"
             self.old_sources[file] = src.splitlines(1)
             self.new_sources[file] = list(self.old_sources[file])
-            print >> sys.stderr, "ERROR: Source location for %s is not known" % new_id
+            print >> sys.stderr, "ERROR: %s: source location for docstring is not known" % new_id
         else:
             file, line = el.get('file'), int(el.get('line'))
             line = max(line-1, 0) # numbering starts from line 1
