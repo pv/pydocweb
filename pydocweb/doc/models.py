@@ -313,7 +313,6 @@ def _update_docstrings_from_xml(stream):
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
         
         bases = []
-        # XXX: this doesn't work for some reason?
         for b in el.findall('base'):
             bases.append(b.attrib['ref'])
         bases = " ".join(bases)
@@ -340,9 +339,9 @@ def _update_docstrings_from_xml(stream):
         doc.type_name = el.get('type')
         doc.argspec = el.get('argspec')
         doc.objclass = el.get('objclass')
-        doc.bases = el.get('bases')
+        doc.bases = bases
         doc.repr_ = repr_
-        doc.file_ = el.get('file')
+        doc.file_name = el.get('file')
         doc.line_number = line
         
         if created:
@@ -519,6 +518,8 @@ def _exec_cmd(cmd, ok_return_value=0, **kw):
     return out + err
 
 def strip_svn_dir_prefix(file_name):
+    if not file_name:
+        return None
     for svn_dir in settings.SVN_DIRS:
         fn_1 = os.path.realpath(os.path.join(svn_dir, file_name))
         fn_2 = os.path.realpath(svn_dir)
