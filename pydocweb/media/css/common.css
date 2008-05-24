@@ -494,5 +494,19 @@ table.footnote tr {
  */
 #preview { 
   margin-left: 2em;
-  border: solid thin #ccc;
+}
+
+/*
+ * Diff
+ */
+.diff-del { 
+  background: #fcc;
+  width:100%;
+}
+.diff-add { 
+  background: #cfc;
+  width:100%;
+}
+.diff-nop { 
+  background: none;
 }

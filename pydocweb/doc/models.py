@@ -1,4 +1,4 @@
-import datetime
+import datetime, cgi
 
 from django.db import models
 from django.db import transaction
@@ -581,6 +581,33 @@ def diff_text(text_a, text_b, label_a="previous", label_b="current"):
     return "".join(difflib.unified_diff(lines_a, lines_b,
                                         fromfile=label_a,
                                         tofile=label_b))
+
+
+def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
+    lines_a = text_a.splitlines(1)
+    lines_b = text_b.splitlines(1)
+    if not lines_a[-1].endswith('\n'): lines_a[-1] += "\n"
+    if not lines_b[-1].endswith('\n'): lines_b[-1] += "\n"
+
+    out = []
+    for line in difflib.unified_diff(lines_a, lines_b,
+                                     fromfile=label_a,
+                                     tofile=label_b):
+        if line.startswith('@'):
+            out.append('<hr/>')
+        elif line.startswith('+++'):
+            out.append('<span class="diff-add">%s</span>'%cgi.escape(line))
+        elif line.startswith('---'):
+            out.append('<span class="diff-del">%s</span>'%cgi.escape(line))
+        elif line.startswith('+'):
+            out.append('<span class="diff-add">%s</span>'%cgi.escape(line[1:]))
+        elif line.startswith('-'):
+            out.append('<span class="diff-del">%s</span>'%cgi.escape(line[1:]))
+        else:
+            out.append('<span class="diff-nop">%s</span>'%cgi.escape(line[1:]))
+    if out:
+        out.append('<hr/>')
+    return "".join(out)
 
 def strip_spurious_whitespace(text):
     return ("\n".join([x.rstrip() for x in text.split("\n")])).strip()

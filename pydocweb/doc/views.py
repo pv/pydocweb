@@ -139,7 +139,7 @@ def diff_wiki(request, name, rev1, rev2):
     name1 = str(rev1.revno)
     name2 = str(rev2.revno)
 
-    diff = diff_text(rev1.text, rev2.text, label_a=name1, label_b=name2)
+    diff = html_diff_text(rev1.text, rev2.text, label_a=name1, label_b=name2)
 
     return render_template(request, 'wiki/diff.html',
                            dict(name=name, name1=name1, name2=name2,
@@ -239,8 +239,8 @@ def docstring(request, name):
         params['merge_text'] = conflict
         return render_template(request, 'docstring/merge.html', params)
     elif revision is None and doc.merge_status == MERGE_MERGED:
-        merge_text = diff_text(doc.revisions.all()[1].text,
-                               doc.revisions.all()[0].text)
+        merge_text = html_diff_text(doc.revisions.all()[1].text,
+                                    doc.revisions.all()[0].text)
         params['merge_text'] = merge_text
         return render_template(request, 'docstring/merge.html', params)
     else:
@@ -405,7 +405,7 @@ def diff(request, name, rev1, rev2):
     name1 = str(rev1.revno) if rev1 is not None else "SVN"
     name2 = str(rev2.revno) if rev2 is not None else "SVN"
 
-    diff = diff_text(text1, text2, label_a=name1, label_b=name2)
+    diff = html_diff_text(text1, text2, label_a=name1, label_b=name2)
 
     return render_template(request, 'docstring/diff.html',
                            dict(name=name, name1=name1, name2=name2,
@@ -441,6 +441,7 @@ def review(request, name):
     else:
         raise Http404()
 
+    
 #------------------------------------------------------------------------------
 # Sources
 #------------------------------------------------------------------------------
