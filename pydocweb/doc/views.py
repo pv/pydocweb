@@ -109,12 +109,14 @@ def log_wiki(request, name):
             rev2 = str(request.POST.get('rev2'))
             return HttpResponseRedirect(reverse(diff_wiki,
                                                 args=[name, rev1, rev2]))
-    
+
+    author_map = _get_author_map()
+        
     revisions = []
     for rev in page.revisions.all():
         revisions.append(dict(
             id=rev.revno,
-            author=rev.author,
+            author=author_map.get(rev.author, rev.author),
             comment=rev.comment,
             timestamp=rev.timestamp,
         ))
@@ -373,12 +375,14 @@ def log(request, name):
             rev1 = str(request.POST.get('rev1'))
             rev2 = str(request.POST.get('rev2'))
             return HttpResponseRedirect(reverse(diff, args=[name, rev1, rev2]))
-    
+
+    author_map = _get_author_map()
+        
     revisions = []
     for rev in doc.revisions.all():
         revisions.append(dict(
             id=rev.revno,
-            author=rev.author,
+            author=author_map.get(rev.author, rev.author),
             comment=rev.comment,
             timestamp=rev.timestamp
         ))
