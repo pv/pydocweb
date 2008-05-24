@@ -13,7 +13,7 @@
   </ul>
 </form>
 
-{% if not revision %}
+{% if revision %}{% else %}
 <form action="{% url pydocweb.doc.views.edit_wiki name=name %}" method="post">
   <ul>
   <li><label></label>

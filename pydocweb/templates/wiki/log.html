@@ -11,6 +11,7 @@
     <th>
       <input type=submit name="button_diff" value="Differences" />
     </th>
+    <th></th>
     <th>Comment</th>
   </tr>
   {% for rev in revisions %}
@@ -25,12 +26,12 @@
       <input type="radio" name="rev2" value="{{rev.id|escape}}" 
           {% if forloop.first %}checked{% endif %} />
     </td>
-    <td>{{rev.comment|escape}}</td>
     <td>
-      {% if perm.doc.change_wikipage %}
+      {% if perms.doc.change_wikipage %}
       <a href="{% url pydocweb.doc.views.edit_wiki name %}?revision={{rev.id|escape}}">Revert</a>
       {% endif %}
     </td>
+    <td>{{rev.comment|escape}}</td>
   </tr>
   {% endfor %}
 </table>
