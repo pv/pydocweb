@@ -598,17 +598,17 @@ def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
                                      fromfile=label_a,
                                      tofile=label_b):
         if line.startswith('@'):
-            out.append('<hr/>')
+            out.append('<hr/>%s' % cgi.escape(line))
         elif line.startswith('+++'):
             out.append('<span class="diff-add">%s</span>'%cgi.escape(line))
         elif line.startswith('---'):
             out.append('<span class="diff-del">%s</span>'%cgi.escape(line))
         elif line.startswith('+'):
-            out.append('<span class="diff-add">%s</span>'%cgi.escape(line[1:]))
+            out.append('<span class="diff-add">%s</span>'%cgi.escape(line))
         elif line.startswith('-'):
-            out.append('<span class="diff-del">%s</span>'%cgi.escape(line[1:]))
+            out.append('<span class="diff-del">%s</span>'%cgi.escape(line))
         else:
-            out.append('<span class="diff-nop">%s</span>'%cgi.escape(line[1:]))
+            out.append('<span class="diff-nop">%s</span>'%cgi.escape(line))
     if out:
         out.append('<hr/>')
     return "".join(out)
