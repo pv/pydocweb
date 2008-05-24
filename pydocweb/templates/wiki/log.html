@@ -22,7 +22,7 @@
     <td>{{rev.author|escape}}</td>
     <td>
       <input type="radio" name="rev1" value="{{rev.id|escape}}"
-          {% if forloop.last %}checked{% endif %} />
+          {% ifequal forloop.counter0 1 %}checked{% endifequal %} />
       <input type="radio" name="rev2" value="{{rev.id|escape}}" 
           {% if forloop.first %}checked{% endif %} />
     </td>
