@@ -649,7 +649,7 @@ class SourceReplacer(object):
         if new_el is None:
             raise ValueError("No new object for canonical name %s" % new_id)
         
-        if el is None or el.tag not in ('callable', 'class', 'module'):
+        if el is None:
             return None
         
         if el.text is None:
@@ -663,9 +663,22 @@ class SourceReplacer(object):
             return None
 
         # -- Get source code
-        
         if 'file' not in el.attrib or 'line' not in el.attrib:
-            raise ValueError("Source location for %s is not known" % new_id)
+            file = "unknown-source-location/%s.py" % new_id
+            line = 1
+            src = "# Source file for %s not known" % new_id
+            basename = new_id.split('.')[-1]
+            if el.tag == 'callable':
+                src += "\ndef %s():\n    pass\n" % basename
+            elif el.tag == 'class':
+                src += "\nclass %s:\n    pass\n" % basename
+            elif el.tag == 'object':
+                src += "\ndef %s_object():\n    pass\n" % basename
+            elif el.tag == 'module':
+                src += "\n"
+            self.old_sources[file] = src.splitlines(1)
+            self.new_sources[file] = list(self.old_sources[file])
+            print >> sys.stderr, "ERROR: Source location for %s is not known" % new_id
         else:
             file, line = el.get('file'), int(el.get('line'))
             line = max(line-1, 0) # numbering starts from line 1
