@@ -4,6 +4,7 @@
 {% block pagetitle %}Generate patch{% endblock %}
 
 {% block content %}
+{% if changed %}
 <form action="{% url pydocweb.doc.views.patch %}" method="post">
 <input type="submit" value="Generate patch" />
 <a href="" onclick="check_all_proofed(); return false;">Select proofed</a>
@@ -37,6 +38,9 @@
   {% endfor %}
 </table>
 </form>
+{% else %}
+<p>No changes to SVN</p>
+{% endif %}
 {% endblock %}
 
 

@@ -5,13 +5,18 @@
 
 {% block content %}
 <h2>Conflicts</h2>
+{% if conflicts %}
 <ul>
   {% for entry in conflicts %}
   <li><a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a></li>
   {% endfor %}
 </ul>
+{% else %}
+<p>No conflicts</p>
+{% endif %}
 
 <h2>Merged</h2>
+{% if merged %}
 <form action="{% url pydocweb.doc.views.merge %}" method="post">
 <input type="submit" value="Accept merges" />
 <a href="" onclick="check_all(); return false;">Select all</a>
@@ -23,6 +28,9 @@
   {% endfor %}
 </ul>
 </form>
+{% else %}
+<p>Nothing merged</p>
+{% endif %}
 {% endblock %}
 
 
