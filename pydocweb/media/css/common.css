@@ -460,6 +460,7 @@ form ul.errorlist {
   padding-right:2em;
   border: none;
   float:right;
+  color:#800;
 }
 form ul.errorlist li { 
   list-style: none;

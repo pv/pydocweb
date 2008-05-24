@@ -1,3 +1,5 @@
+import time
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import (HttpResponseRedirect, HttpResponsePermanentRedirect,
                          HttpResponse, Http404)
@@ -530,6 +532,7 @@ class RegistrationForm(forms.Form):
 def login(request):
     message = ""
     if request.method == 'POST':
+        time.sleep(2) # thwart password cracking
         form = LoginForm(request.POST)
         if form.is_valid():
             data = form.clean_data
