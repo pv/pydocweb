@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<p>{{message}}</p>
+<p>{{message|escape}}</p>
 
 <p>
   You can also <a href="{% url pydocweb.doc.views.register %}">register a new account</a>.

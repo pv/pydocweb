@@ -8,7 +8,7 @@
 {% if conflicts %}
 <ul>
   {% for entry in conflicts %}
-  <li><a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a></li>
+  <li><a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name|escape}}</a></li>
   {% endfor %}
 </ul>
 {% else %}
@@ -24,7 +24,7 @@
 <ul>
   {% for entry in merged %}
   <li>
-    <input type="checkbox" name="{{entry.name}}" checked /> <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a></li>
+    <input type="checkbox" name="{{entry.name|escape}}" checked /> <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name|escape}}</a></li>
   {% endfor %}
 </ul>
 </form>

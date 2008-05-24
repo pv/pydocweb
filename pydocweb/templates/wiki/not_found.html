@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}{{name}}{% endblock %}
-{% block pagetitle %}{{name}}{% endblock %}
+{% block title %}{{name|escape}}{% endblock %}
+{% block pagetitle %}{{name|escape}}{% endblock %}
 
 {% block content %}
-<p>This page "{{name}}" does not yet exist.</p>
+<p>This page "{{name|escape}}" does not yet exist.</p>
 <p>
   <a href="{% url pydocweb.doc.views.edit_wiki name=name %}">Create new wiki page</a>
 </p>

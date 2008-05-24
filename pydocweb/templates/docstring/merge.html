@@ -8,7 +8,7 @@
   {% else %}
   <p>This docstring has been merged automatically with SVN.
   <form action="{% url pydocweb.doc.views.merge name %}" method="post">
-    <input type=hidden name="{{name}}" value="1" />
+    <input type=hidden name="{{name|escape}}" value="1" />
     <input type=submit value="Accept" />
   </form>
   </p>
@@ -16,17 +16,17 @@
 </div>
 
 <div id="merge-info">
-  <pre>{{merge_text}}</pre>
+  <pre>{{merge_html}}</pre>
 </div>
 
 <div id="docstring">
-  {{body}}
+  {{body_html}}
 </div>
 <a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
 <a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
 {% if help %}
-<div id='help'>{{help}}</div>
+<div id='help'>{{help_html}}</div>
 {% endif %}
 
 {% block discussion %}

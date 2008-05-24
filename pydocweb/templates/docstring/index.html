@@ -8,10 +8,10 @@
 {% regroup entries by status as status_list %}
 
 {% for status in status_list %}
-<h3>{{status.grouper}}</h3>
+<h3>{{status.grouper|escape}}</h3>
 <ul class="content-list">
   {% for doc in status.list %}
-  <li class="{{doc.statuscode}}"><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></li>
+  <li class="{{doc.statuscode|escape}}"><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name|escape}}</a></li>
   {% endfor %}
 </ul>
 {% endfor %}

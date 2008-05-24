@@ -9,10 +9,10 @@
 <table>
   {% for c in docstring_changes %}
   <tr>
-    <td>{{c.timestamp}}</td>
-    <td><a href="{% url pydocweb.doc.views.diff_prev c.name,c.revno %}">{{c.name}}</a></td>
-    <td>{{c.author}}</td>
-    <td>{{c.comment}}</td>
+    <td>{{c.timestamp|escape}}</td>
+    <td><a href="{% url pydocweb.doc.views.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
+    <td>{{c.author|escape}}</td>
+    <td>{{c.comment|escape}}</td>
   </tr>
   {% endfor %}
 </table>
@@ -21,10 +21,10 @@
 <table>
   {% for c in comment_changes %}
   <tr>
-    <td>{{c.timestamp}}</td>
-    <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion">{{c.name}}</a></td>
-    <td>{{c.author}}</td>
-    <td>{{c.comment}}</td>
+    <td>{{c.timestamp|escape}}</td>
+    <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion">{{c.name|escape}}</a></td>
+    <td>{{c.author|escape}}</td>
+    <td>{{c.comment|escape}}</td>
   </tr>
   {% endfor %}
 </table>
@@ -33,10 +33,10 @@
 <table>
   {% for c in wiki_changes %}
   <tr>
-    <td>{{c.timestamp}}</td>
-    <td><a href="{% url pydocweb.doc.views.diff_wiki_prev c.name,c.revno %}">{{c.name}}</a></td>
-    <td>{{c.author}}</td>
-    <td>{{c.comment}}</td>
+    <td>{{c.timestamp|escape}}</td>
+    <td><a href="{% url pydocweb.doc.views.diff_wiki_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
+    <td>{{c.author|escape}}</td>
+    <td>{{c.comment|escape}}</td>
   </tr>
   {% endfor %}
 </table>

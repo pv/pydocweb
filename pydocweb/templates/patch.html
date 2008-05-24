@@ -21,8 +21,8 @@
   {% for entry in changed %}
   <tr>
     <td>
-      <input class="{{entry.status_code}} {{entry.merge_status_code}}" 
-             type="checkbox" name="{{entry.name}}"
+      <input class="{{entry.status_code|escape}} {{entry.merge_status_code|escape}}" 
+             type="checkbox" name="{{entry.name|escape}}"
       {% if entry.included %}
 	     checked/>
       {% else %}
@@ -30,10 +30,10 @@
       {% endif %}
     </td>
     <td>
-      <a href="{% url pydocweb.doc.views.diff entry.name,"svn","cur" %}">{{entry.name}}</a>
+      <a href="{% url pydocweb.doc.views.diff entry.name,"svn","cur" %}">{{entry.name|escape}}</a>
     </td>
-    <td class="{{entry.status_code}}">{{entry.status}}</td>
-    <td class="{{entry.merge_status_code}}">{{entry.merge_status}}</td>
+    <td class="{{entry.status_code|escape}}">{{entry.status|escape}}</td>
+    <td class="{{entry.merge_status_code|escape}}">{{entry.merge_status|escape}}</td>
   </tr>
   {% endfor %}
 </table>

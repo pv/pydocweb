@@ -3,14 +3,14 @@
 {% block content %}
 {% if revision %}
 <div id="revision-header">
-  Revision {{revision}}.
+  Revision {{revision|escape}}.
   <a href="{% url pydocweb.doc.views.wiki name %}">Back to current revision.</a>
   <a href="{% url pydocweb.doc.views.log_wiki name %}">Back to log.</a>
 </div>
 {% endif %}
 
 <div id="document">
-  {{body}}
+  {{body_html}}
 </div>
 
 {% endblock %}

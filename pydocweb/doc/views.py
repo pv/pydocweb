@@ -43,7 +43,8 @@ def wiki(request, name):
         if body is None:
             raise WikiPage.DoesNotExist()
         return render_template(request, 'wiki/page.html',
-                               dict(name=name, body=body, revision=revision))
+                               dict(name=name, body_html=body,
+                                    revision=revision))
     except WikiPage.DoesNotExist:
         return render_template(request, 'wiki/not_found.html',
                                dict(name=name))
@@ -73,7 +74,7 @@ def edit_wiki(request, name):
                 return render_template(request, 'wiki/edit.html',
                                        dict(form=form, name=name,
                                             revision=revision,
-                                            preview=preview))
+                                            preview_html=preview))
             else:
                 page, created = WikiPage.objects.get_or_create(name=name)
                 page.edit(data['text'],
@@ -145,7 +146,7 @@ def diff_wiki(request, name, rev1, rev2):
 
     return render_template(request, 'wiki/diff.html',
                            dict(name=name, name1=name1, name2=name2,
-                                diff_text=diff))
+                                diff_html=diff))
 
 def diff_wiki_prev(request, name, rev2):
     page = get_object_or_404(WikiPage, name=name)
@@ -209,7 +210,7 @@ def docstring(request, name):
             author=author_map.get(comment.author, comment.author),
             author_username=comment.author,
             timestamp=comment.timestamp,
-            text=rst.render_html(comment.text),
+            html=rst.render_html(comment.text),
         ))
     
     review_form = ReviewForm(dict(status=doc.review))
@@ -230,7 +231,7 @@ def docstring(request, name):
                   status=REVIEW_STATUS_NAMES[doc.review],
                   status_code=REVIEW_STATUS_CODES[doc.review],
                   comments=comments,
-                  body=body,
+                  body_html=body,
                   file_name=strip_svn_dir_prefix(doc.file_name),
                   line_number=doc.line_number,
                   )
@@ -273,7 +274,7 @@ def edit(request, name):
                 return render_template(request, 'docstring/edit.html',
                                        dict(form=form, name=name,
                                             revision=revision,
-                                            preview=preview))
+                                            preview_html=preview))
             else:
                 try:
                     doc.edit(data['text'],
@@ -300,12 +301,12 @@ def edit(request, name):
             data['text'] = doc.merge()
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
-                                    conflict_warning=True, preview=None))
+                                    conflict_warning=True, preview_html=None))
     else:
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
-                                    preview=None))
+                                    preview_html=None))
 
 class CommentEditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)),
@@ -338,7 +339,7 @@ def comment_edit(request, name, comment_id):
                 return render_template(request, 'docstring/edit_comment.html',
                                        dict(form=form, name=name,
                                             comment=comment,
-                                            preview=preview))
+                                            preview_html=preview))
             elif request.POST.get('button_delete') and comment is not None:
                 comment.delete()
                 return HttpResponseRedirect(reverse(docstring, args=[name])
@@ -413,7 +414,7 @@ def diff(request, name, rev1, rev2):
 
     return render_template(request, 'docstring/diff.html',
                            dict(name=name, name1=name1, name2=name2,
-                                diff_text=diff))
+                                diff_html=diff))
 
 def diff_prev(request, name, rev2):
     doc = get_object_or_404(Docstring, name=name)

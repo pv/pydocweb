@@ -24,7 +24,7 @@
 {% endif %}
 	<li>&mdash;</li>
 {% if user.is_authenticated %}
-	<li><b>{{user.first_name}} {{user.last_name}}</b>:</li>
+	<li><b>{{user.first_name|escape}} {{user.last_name|escape}}</b>:</li>
 	<li class="button"><a href="/accounts/password">Profile</a></li>
 	<li class="button"><a href="/accounts/logout">Log out</a></li>	
 {% else %}

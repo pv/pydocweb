@@ -1,9 +1,9 @@
 {% extends "wiki/base.html" %}
 
 {% block content %}
-Differences between revisions {{name1}} and {{name2}}:
+Differences between revisions {{name1|escape}} and {{name2|escape}}:
 
 <div id="merge-info">
-  <pre>{{diff_text}}</pre>
+  <pre>{{diff_html}}</pre>
 </div>
 {% endblock %}

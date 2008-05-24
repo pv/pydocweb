@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}{{file_name}}{% endblock %}
-{% block pagetitle %}{{file_name}}{% endblock %}
+{% block title %}{{file_name|escape}}{% endblock %}
+{% block pagetitle %}{{file_name|escape}}{% endblock %}
 
 {% block content %}
 <div id='source'>
   <pre>
-{% for line in lines %}<a id='{{forloop.counter}}'>{{line}}</a>
+{% for line in lines %}<a id='{{forloop.counter}}'>{{line|escape}}</a>
 {% endfor %}
   </pre>
 </div>

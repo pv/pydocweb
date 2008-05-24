@@ -2,8 +2,6 @@
 
 {% block content %}
 
-{{body}}
-
 <form action="{% url pydocweb.doc.views.log name %}" method="POST">
 <table>
   <tr>
@@ -18,23 +16,23 @@
   </tr>
   {% for rev in revisions %}
   <tr>
-    <td>{{rev.id}}</td>
+    <td>{{rev.id|escape}}</td>
     <td>
-      <a href="{% url pydocweb.doc.views.docstring name %}?revision={{rev.id}}">{{rev.timestamp}}</a>
+      <a href="{% url pydocweb.doc.views.docstring name %}?revision={{rev.id|escape}}">{{rev.timestamp|escape}}</a>
     </td>
-    <td>{{rev.author}}</td>
+    <td>{{rev.author|escape}}</td>
     <td>
-      <input type="radio" name="rev1" value="{{rev.id}}"
+      <input type="radio" name="rev1" value="{{rev.id|escape}}"
           {% if forloop.last %}checked{% endif %} />
-      <input type="radio" name="rev2" value="{{rev.id}}" 
+      <input type="radio" name="rev2" value="{{rev.id|escape}}" 
           {% if forloop.first %}checked{% endif %} />
     </td>
     <td>
       {% if perm.doc.change_docstring %}
-      <a href="{% url pydocweb.doc.views.edit name %}?revision={{rev.id}}">Revert</a>
+      <a href="{% url pydocweb.doc.views.edit name %}?revision={{rev.id|escape}}">Revert</a>
       {% endif %}
     </td>
-    <td>{{rev.comment}}</td>
+    <td>{{rev.comment|escape}}</td>
   </tr>
   {% endfor %}
 </table>

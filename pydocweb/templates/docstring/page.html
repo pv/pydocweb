@@ -5,13 +5,13 @@
 {% block actions_items %}
 {{block.super}}
 {% if file_name %}
-<a href="{% url pydocweb.doc.views.source file_name %}#{{line_number}}">Source</a>
+<a href="{% url pydocweb.doc.views.source file_name %}#{{line_number|escape}}">Source</a>
 {% endif %}
 {% if revision %}
 <a href="{% url pydocweb.doc.views.docstring name %}">Current revision</a>
-<span id="revision-header">Revision {{revision.revno}}</span>
+<span id="revision-header">Revision {{revision.revno|escape}}</span>
 {% else %}
-<span id="review-status" class="{{status_code}}">
+<span id="review-status" class="{{status_code|escape}}">
   {% if perms.doc.can_review %}
   <form action="{% url pydocweb.doc.views.review name %}" method="post">
     <ul>
@@ -21,7 +21,7 @@
   </form>
   {% else %}
     <ul>
-      <li>Review status: {{status}}</li>
+      <li>Review status: {{status|escape}}</li>
     </ul>
   {% endif %}
 </span>
@@ -40,9 +40,9 @@
   {% endif %}
 
   {% if argspec %}
-  <p>{{basename}}{{argspec}}</p>
+  <p>{{basename|escape}}{{argspec|escape}}</p>
   {% endif %}
-  {{body}}
+  {{body_html}}
 </div>
 
 {% block discussion %}
@@ -51,8 +51,8 @@
   {% for comment in comments %}
   <div class="comment">
     <div class="author">
-      <span class="timestamp">{{comment.timestamp}}</span>
-      <span class="author">{{comment.author}}</span>
+      <span class="timestamp">{{comment.timestamp|escape}}</span>
+      <span class="author">{{comment.author|escape}}</span>
     </div>
     {% if perms.doc.change_reviewcomment %}
     {% ifequal comment.author_username user.username %}
@@ -67,7 +67,7 @@
     </div>
     {% endifequal %}
     {% endif %}
-    <div class="text">{{comment.text}}</div>
+    <div class="text">{{comment.html}}</div>
   </div>
   {% endfor %}
   {% if perms.doc.change_reviewcomment %}
@@ -86,28 +86,28 @@
   <h1>Modules</h1>
   <ul class="content-list">
     {% for alias in doc.child_modules %}
-    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias}}</a></li>
+    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias|escape}}</a></li>
     {% endfor %}
   </ul>
 
   <h1>Classes</h1>
   <ul class="content-list">
     {% for alias in doc.child_classes %}
-    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias}}</a></li>
+    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias|escape}}</a></li>
     {% endfor %}
   </ul>
 
   <h1>Functions</h1>
   <ul class="content-list">
     {% for alias in doc.child_callables %}
-    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias}}</a></li>
+    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias|escape}}</a></li>
     {% endfor %}
   </ul>
 
   <h1>Objects</h1>
   <ul class="content-list">
     {% for alias in doc.child_objects %}
-    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias}}</a></li>
+    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias|escape}}</a></li>
     {% endfor %}
   </ul>
 </div>
@@ -118,14 +118,14 @@
   <h1>Methods</h1>
   <ul class="content-list">
     {% for alias in doc.child_callables %}
-    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias}}</a></li>
+    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias|escape}}</a></li>
     {% endfor %}
   </ul>
 
   <h1>Properties</h1>
   <ul class="content-list">
     {% for alias in doc.child_objects %}
-    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias}}</a></li>
+    <li class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.doc.views.docstring alias.target %}">{{alias.alias|escape}}</a></li>
     {% endfor %}
   </ul>
 </div>

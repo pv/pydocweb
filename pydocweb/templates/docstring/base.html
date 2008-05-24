@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load docstring %}
 
-{% block title %}{{name}}{% endblock %}
+{% block title %}{{name|escape}}{% endblock %}
 {% block pagetitle %}
   {% docstring_name_link name %}
 {% endblock %}
