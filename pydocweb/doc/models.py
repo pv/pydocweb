@@ -576,6 +576,8 @@ def merge_3way(mine, base, other):
 def diff_text(text_a, text_b, label_a="previous", label_b="current"):
     lines_a = text_a.splitlines(1)
     lines_b = text_b.splitlines(1)
+    if not lines_a: lines_a = [""]
+    if not lines_b: lines_b = [""]
     if not lines_a[-1].endswith('\n'): lines_a[-1] += "\n"
     if not lines_b[-1].endswith('\n'): lines_b[-1] += "\n"
     return "".join(difflib.unified_diff(lines_a, lines_b,
@@ -586,6 +588,8 @@ def diff_text(text_a, text_b, label_a="previous", label_b="current"):
 def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
     lines_a = text_a.splitlines(1)
     lines_b = text_b.splitlines(1)
+    if not lines_a: lines_a = [""]
+    if not lines_b: lines_b = [""]
     if not lines_a[-1].endswith('\n'): lines_a[-1] += "\n"
     if not lines_b[-1].endswith('\n'): lines_b[-1] += "\n"
 
@@ -611,3 +615,4 @@ def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
 
 def strip_spurious_whitespace(text):
     return ("\n".join([x.rstrip() for x in text.split("\n")])).strip()
+
