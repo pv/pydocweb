@@ -9,21 +9,32 @@ MAX_NAME_LEN = 256
 # -- Editing Docstrings
 
 REVIEW_NONE = 0
-REVIEW_REVIEWED_OLD = 1
-REVIEW_REVIEWED = 2
-REVIEW_PROOFED_OLD = 3
-REVIEW_PROOFED = 4
+REVIEW_NEEDS_WORK = 1
+REVIEW_REVIEWED_OLD = 2
+REVIEW_REVIEWED = 3
+REVIEW_PROOFED_OLD = 4
+REVIEW_PROOFED = 5
 
 MERGE_NONE = 0
 MERGE_MERGED = 1
 MERGE_CONFLICT = 2
 
 REVIEW_STATUS_NAMES = ['Not reviewed',
+                       'Needs work',
                        'Old revision reviewed',
                        'Reviewed',
                        'Old revision proofed',
                        'Proofed']
+REVIEW_STATUS_CODES = [
+    'none',
+    'needs-work',
+    'old-reviewed',
+    'reviewed',
+    'old-proofed',
+    'proofed',
+]
 MERGE_STATUS_NAMES = ['OK', 'Merged', 'Conflict']
+MERGE_STATUS_CODES = ['ok', 'merged', 'conflict']
 
 class Docstring(models.Model):
     name        = models.CharField(maxlength=MAX_NAME_LEN, primary_key=True,
@@ -65,7 +76,9 @@ class Docstring(models.Model):
     
     class Meta:
         ordering = ['name']
-        permissions = (('can_update_from_source', 'Can update from sources'),)
+        permissions = (
+            ('can_review', 'Can review and proofread'),
+        )
     
     # --
     

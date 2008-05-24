@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}All entries{% endblock %}
+{% block title %}All docstrings{% endblock %}
+{% block pagetitle %}All docstrings{% endblock %}
 
 {% block content %}
 
 {% regroup entries by status as status_list %}
 
 {% for status in status_list %}
-<h2>{{status.grouper}}</h2>
+<h3>{{status.grouper}}</h3>
 <ul class="content-list">
   {% for doc in status.list %}
-  <li><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></li>
+  <li class="{{doc.statuscode}}"><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name}}</a></li>
   {% endfor %}
 </ul>
 {% endfor %}

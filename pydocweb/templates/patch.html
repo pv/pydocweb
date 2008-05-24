@@ -5,7 +5,7 @@
 
 {% block content %}
 <form action="{% url pydocweb.doc.views.patch %}" method="post">
-<table>
+<table id="patch-select">
   <tr>
     <th></th>
     <th>Name</th>
@@ -25,8 +25,8 @@
     <td>
       <a href="{% url pydocweb.doc.views.docstring entry.name %}">{{entry.name}}</a>
     </td>
-    <td>{{entry.status}}</td>
-    <td>{{entry.merge_status}}</td>
+    <td class="{{entry.status_code}}">{{entry.status}}</td>
+    <td class="{{entry.merge_status_code}}">{{entry.merge_status}}</td>
   </tr>
   {% endfor %}
 </table>

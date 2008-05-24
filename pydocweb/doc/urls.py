@@ -7,12 +7,14 @@ urlpatterns = patterns(
     (r'^wiki/(?P<name>.+)/edit/$', 'edit_wiki'),
     (r'^wiki/(?P<name>.+)/log/$', 'log_wiki'),
     (r'^wiki/(?P<name>.+)/diff/(?P<rev1>\d+)/(?P<rev2>\d+)/$', 'diff_wiki'),
+    (r'^wiki/(?P<name>.+)/diff/(?P<rev2>\d+)/$', 'diff_wiki_prev'),
     (r'^wiki/(?P<name>.+)/$', 'wiki'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/edit/$', 'edit'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/comment/(?P<comment_id>\w+)/$', 'comment_edit'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/review/$', 'review'), 
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/log/$', 'log'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/diff/(?P<rev1>\w+)/(?P<rev2>\w+)/$', 'diff'),
+    (r'^doc/(?P<name>[a-zA-Z0-9._]+)/diff/(?P<rev2>\w+)/$', 'diff_prev'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/$', 'docstring'),
     (r'^doc/$', 'docstring_index'),
     (r'^merge/$', 'merge'),
@@ -22,7 +24,7 @@ urlpatterns = patterns(
     (r'^accounts/login/$', 'login'),
     (r'^accounts/password/$', 'password_change'),
     (r'^accounts/register/$', 'register'),
-    (r'^accounts/forgotten/$', 'forgotten'),
+    (r'^changes/$', 'changes'),
 )
 
 urlpatterns += patterns(

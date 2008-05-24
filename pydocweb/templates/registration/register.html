@@ -8,8 +8,9 @@
 <p>{{message}}</p>
 
 <form action="{% url pydocweb.doc.views.register %}" method="POST">
-  <ul>{{form.as_ul}}</ul>
-  <input type=submit value="Register" />
+  <ul>{{form.as_ul}}
+  <li><label></label><input type=submit value="Register" /></li>
+  </ul>
 </form>
 
 {% endblock %}

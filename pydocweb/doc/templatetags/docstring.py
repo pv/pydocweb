@@ -1,6 +1,8 @@
 import urllib, cgi
 from django import template
 
+from pydocweb.doc.models import Docstring, REVIEW_STATUS_CODES
+
 register = template.Library()
 
 @register.simple_tag
@@ -17,3 +19,12 @@ def docstring_name_link(name):
         else:
             namelinks.append("%s" % cgi.escape(parts[j-1]))
     return '.'.join(namelinks)
+
+
+@register.simple_tag
+def docstring_status_code(name):
+    try:
+        doc = Docstring.objects.get(name=name)
+    except Docstring.DoesNotExist:
+        return "none"
+    return REVIEW_STATUS_CODES[doc.review]

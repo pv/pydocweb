@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Recent changes{% endblock %}
+{% block pagetitle %}Recent changes{% endblock %}
+
+{% block content %}
+
+<h2>Docstrings</h2>
+<table>
+  {% for c in docstring_changes %}
+  <tr>
+    <td>{{c.timestamp}}</td>
+    <td><a href="{% url pydocweb.doc.views.diff c.name,c.rev1,c.rev2 %}">{{c.name}}</a></td>
+    <td>{{c.author}}</td>
+    <td>{{c.comment}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Comments</h2>
+<table>
+  {% for c in comment_changes %}
+  <tr>
+    <td>{{c.timestamp}}</td>
+    <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion">{{c.name}}</a></td>
+    <td>{{c.author}}</td>
+    <td>{{c.comment}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Wiki</h2>
+<table>
+  {% for c in wiki_changes %}
+  <tr>
+    <td>{{c.timestamp}}</td>
+    <td><a href="{% url pydocweb.doc.views.diff_wiki c.name,c.rev1,c.rev2 %}">{{c.name}}</a></td>
+    <td>{{c.author}}</td>
+    <td>{{c.comment}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

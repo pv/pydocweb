@@ -25,6 +25,10 @@
 <a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
 <a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
+{% if help %}
+<div id='help'>{{help}}</div>
+{% endif %}
+
 {% block discussion %}
 {{block.super}}
 {% endblock %}

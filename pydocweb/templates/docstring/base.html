@@ -7,11 +7,15 @@
 {% endblock %}
 
 {% block actions %}
-<a href="{% url pydocweb.doc.views.docstring name %}">View</a>
-{% if perms.doc.change_docstring %}
-<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
-{% endif %}
-<a href="{% url pydocweb.doc.views.log name %}">Log</a>
-<a href="{% url pydocweb.doc.views.diff name,"svn","cur" %}">Diff to SVN</a>
-<a href="{% url pydocweb.doc.views.docstring name %}#discussion">Discussion</a>
+<div id="actions">
+  {% block actions_items %}
+  <a href="{% url pydocweb.doc.views.docstring name %}">View</a>
+  {% if perms.doc.change_docstring %}
+  <a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
+  {% endif %}
+  <a href="{% url pydocweb.doc.views.log name %}">Log</a>
+  <a href="{% url pydocweb.doc.views.diff name,"svn","cur" %}">Diff to SVN</a>
+  <a href="{% url pydocweb.doc.views.docstring name %}#discussion">Discussion</a>
+  {% endblock %}
+</div>
 {% endblock %}

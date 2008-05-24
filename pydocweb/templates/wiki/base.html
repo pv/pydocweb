@@ -4,9 +4,11 @@
 {% block pagetitle %}{{name}}{% endblock %}
 
 {% block actions %}
-<a href="{% url pydocweb.doc.views.wiki name %}">View</a>
-{% if perms.doc.change_wikipage %}
-<a href="{% url pydocweb.doc.views.edit_wiki name %}">Edit</a>
-{% endif %}
-<a href="{% url pydocweb.doc.views.log_wiki name %}">Log</a>
+<div id="actions">
+  <a href="{% url pydocweb.doc.views.wiki name %}">View</a>
+  {% if perms.doc.change_wikipage %}
+  <a href="{% url pydocweb.doc.views.edit_wiki name %}">Edit</a>
+  {% endif %}
+  <a href="{% url pydocweb.doc.views.log_wiki name %}">Log</a>
+</div>
 {% endblock %}

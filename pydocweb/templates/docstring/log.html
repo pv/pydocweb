@@ -10,10 +10,11 @@
     <th>Revision</th>
     <th>Time</th>
     <th>Author</th>
-    <th>Comment</th>
     <th>
       <input type=submit name="button_diff" value="Differences" />
     </th>
+    <th></th>
+    <th>Comment</th>
   </tr>
   {% for rev in revisions %}
   <tr>
@@ -22,7 +23,6 @@
       <a href="{% url pydocweb.doc.views.docstring name %}?revision={{rev.id}}">{{rev.timestamp}}</a>
     </td>
     <td>{{rev.author}}</td>
-    <td>{{rev.comment}}</td>
     <td>
       <input type="radio" name="rev1" value="{{rev.id}}"
           {% if forloop.last %}checked{% endif %} />
@@ -34,6 +34,7 @@
       <a href="{% url pydocweb.doc.views.edit name %}?revision={{rev.id}}">Revert</a>
       {% endif %}
     </td>
+    <td>{{rev.comment}}</td>
   </tr>
   {% endfor %}
 </table>

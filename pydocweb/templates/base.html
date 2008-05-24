@@ -7,31 +7,32 @@
     <link rel="stylesheet" href="{{MEDIA_URL}}/css/screen.css" type="text/css" media="screen"/>
     <link rel="stylesheet" href="{{MEDIA_URL}}/css/print.css" type="text/css" media="print"/>
   </head>
-  <body>
+  <body><div id="header"><h1>Scipy Documentation Editor</h1></div>
     <div id="navbar">
       <ul>
-	<li><a href="/">Wiki</a></li>
-	<li><a href="/doc">Docstrings</a></li>
+	<li class="button"><a href="/">Wiki</a></li>
+	<li class="button"><a href="/doc">Docstrings</a></li>
 {% if perms.doc.change_docstring %}
-	<li><a href="/merge">Merge</a></li>	
+	<li class="button"><a href="/merge">Merge</a></li>	
 {% endif %}
-	<li><a href="/patch">Patch</a></li>	
+	<li class="button"><a href="/patch">Patch</a></li>	
 {% if user.is_superuser %}
-	<li><a href="/control">Control</a></li>	
+	<li class="button"><a href="/control">Control</a></li>	
 {% endif %}
-	&mdash;
+	<li>&mdash;</li>
 {% if user.is_authenticated %}
 	<li><b>{{user.first_name}} {{user.last_name}}</b>:</li>
-	<li><a href="/accounts/password">Profile</a></li>
-	<li><a href="/accounts/logout">Log out</a></li>	
+	<li class="button"><a href="/accounts/password">Profile</a></li>
+	<li class="button"><a href="/accounts/logout">Log out</a></li>	
 {% else %}
-	<li><a href="/accounts/login">Log in</a></li>	
+	<li class="button"><a href="/accounts/login">Log in</a></li>	
 {% endif %}
       </ul>
     </div>
-    <div id="subnavbar">{% block subnavbar %}{% endblock %}</div>
-    <div id="title"><h1>{% block pagetitle %}{% endblock %}</h1></div>
-    <div id="actions">{% block actions %}{% endblock %}</div>
-    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="container">
+      <div id="title"><h1>{% block pagetitle %}{% endblock %}</h1></div>
+      {% block actions %}{% endblock %}
+      <div id="content">{% block content %}{% endblock %}</div>
+    </container>
   </body>
 </html>

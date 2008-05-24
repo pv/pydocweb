@@ -137,6 +137,20 @@ def diff_wiki(request, name, rev1, rev2):
                            dict(name=name, name1=name1, name2=name2,
                                 diff_text=diff))
 
+def diff_wiki_prev(request, name, rev2):
+    page = get_object_or_404(WikiPage, name=name)
+    try:
+        rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2))
+    except (ValueError, TypeError):
+        raise Http404()
+
+    try:
+        rev1 = WikiPageRevision.objects.filter(page=page, revno__lt=rev2.revno).order_by('-revno')[0].revno
+    except IndexError:
+        rev1 = "cur"
+    return HttpResponseRedirect(reverse(diff_wiki, args=[name,rev1,rev2]))
+
+
 #------------------------------------------------------------------------------
 # Docstrings
 #------------------------------------------------------------------------------
@@ -149,6 +163,7 @@ def docstring_index(request):
                     merge_status=c.merge_status,
                     review=c.review,
                     dirty=c.dirty,
+                    statuscode=REVIEW_STATUS_CODES[c.review],
                     status="%s, %s, %s" % (CHANGE_NAMES[int(c.dirty)],
                                            MERGE_STATUS_NAMES[c.merge_status],
                                            REVIEW_STATUS_NAMES[c.review]),
@@ -174,12 +189,20 @@ def docstring(request, name):
         body = rst.render_html(text)
     except (TypeError, ValueError, DocstringRevision.DoesNotExist):
         raise Http404()
+
+    author_map = {}
+    for user in User.objects.all():
+        if user.first_name and user.last_name:
+            author_map[user.username] = "%s %s" % (user.first_name,
+                                                   user.last_name)
     
     comments = []
     for comment in doc.comments.all():
         comments.append(dict(
             id=comment.id,
-            author=comment.author,
+            author=author_map.get(comment.author, comment.author),
+            author_username=comment.author,
+            timestamp=comment.timestamp,
             text=rst.render_html(comment.text),
         ))
     
@@ -190,6 +213,7 @@ def docstring(request, name):
         return render_template(request, 'docstring/merge.html',
                                dict(name=name,
                                     status=REVIEW_STATUS_NAMES[doc.review],
+                                    status_code=REVIEW_STATUS_CODES[doc.review],
                                     merge_text=conflict,
                                     comments=comments,
                                     merge_type='conflict',
@@ -201,6 +225,7 @@ def docstring(request, name):
         return render_template(request, 'docstring/merge.html',
                                dict(name=name, body=body,
                                     status=REVIEW_STATUS_NAMES[doc.review],
+                                    status_code=REVIEW_STATUS_CODES[doc.review],
                                     comments=comments,
                                     doc=doc,
                                     merge_text=merge_text,
@@ -209,6 +234,7 @@ def docstring(request, name):
         return render_template(request, 'docstring/page.html',
                                dict(name=name, body=body,
                                     status=REVIEW_STATUS_NAMES[doc.review],
+                                    status_code=REVIEW_STATUS_CODES[doc.review],
                                     comments=comments,
                                     doc=doc,
                                     review_form=review_form,
@@ -371,7 +397,24 @@ def diff(request, name, rev1, rev2):
                            dict(name=name, name1=name1, name2=name2,
                                 diff_text=diff))
 
-@permission_required('doc.change_docstring')
+def diff_prev(request, name, rev2):
+    doc = get_object_or_404(Docstring, name=name)
+    try:
+        text2, rev2 = doc.get_rev_text(rev2)
+        if rev2 is None:
+            rev2 = 'svn'
+        else:
+            rev2 = rev2.revno
+    except (DocstringRevision.DoesNotExist, IndexError):
+        raise Http404()
+    
+    try:
+        rev1 = DocstringRevision.objects.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
+    except (IndexError, AttributeError):
+        rev1 = "svn"
+    return HttpResponseRedirect(reverse(diff, args=[name,rev1,rev2]))
+
+@permission_required('doc.can_review')
 def review(request, name):
     if request.method == 'POST':
         doc = get_object_or_404(Docstring, name=name)
@@ -413,7 +456,9 @@ def patch(request):
     docs = [
         dict(merged=(entry.merge_status == MERGE_NONE),
              merge_status=MERGE_STATUS_NAMES[entry.merge_status],
+             merge_status_code=MERGE_STATUS_CODES[entry.merge_status],
              status=REVIEW_STATUS_NAMES[entry.review],
+             status_code=REVIEW_STATUS_CODES[entry.review],
              name=entry.name)
         for entry in docs
     ]
@@ -549,3 +594,13 @@ def register(request):
     
     return render_template(request, 'registration/register.html',
                            dict(form=form, message=message))
+
+def changes(request):
+    docrevs = DocstringRevision.objects.order_by('-timestamp')
+    pagerevs = WikiPageRevision.objects.order_by('-timestamp')
+    comments = ReviewComment.objects.order_by('-timestamp')
+
+    return render_template(request, 'changes.html',
+                           dict(docstring_changes=docstring_changes,
+                                wiki_changes=wiki_changes,
+                                comment_changes=comment_changes))
