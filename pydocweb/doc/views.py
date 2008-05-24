@@ -164,7 +164,7 @@ def diff_wiki_prev(request, name, rev2):
         raise Http404()
 
     try:
-        rev1 = WikiPageRevision.objects.filter(page=page, revno__lt=rev2.revno).order_by('-revno')[0].revno
+        rev1 = WikiPageRevision.objects.filter(page=page, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
         rev1 = "cur"
 
