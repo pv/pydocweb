@@ -4,6 +4,9 @@
 
 {% block actions_items %}
 {{block.super}}
+{% if file_name %}
+<a href="{% url pydocweb.doc.views.source file_name %}#{{line_number}}">Source</a>
+{% endif %}
 {% if revision %}
 <a href="{% url pydocweb.doc.views.docstring name %}">Current revision</a>
 <span id="revision-header">Revision {{revision.revno}}</span>

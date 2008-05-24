@@ -229,6 +229,8 @@ def docstring(request, name):
                   status_code=REVIEW_STATUS_CODES[doc.review],
                   comments=comments,
                   body=body,
+                  file_name=strip_svn_dir_prefix(doc.file_name),
+                  line_number=doc.line_number,
                   )
     
     if revision is None and doc.merge_status == MERGE_CONFLICT:
