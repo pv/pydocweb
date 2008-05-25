@@ -81,6 +81,8 @@ class Docstring(models.Model):
         )
     
     # --
+
+    class MergeConflict(RuntimeError): pass
     
     @property
     def reviewed(self):
@@ -114,6 +116,18 @@ class Docstring(models.Model):
         )
     
     def edit(self, new_text, author, comment):
+        """
+        Create a new revision of the docstring with given content.
+        
+        Also resolves merge conflicts. Does not create a new revision
+        if there are no changes in the text.
+        
+        Raises
+        ------
+        Docstring.MergeConflict
+            If the new text still contains conflict markers.
+        
+        """
         new_text = strip_spurious_whitespace(new_text)
         
         if ('<<<<<<' in new_text or '>>>>>>' in new_text):
@@ -192,6 +206,22 @@ class Docstring(models.Model):
         self.save()
 
     def get_rev_text(self, revno):
+        """Get text in given revision of the docstring.
+
+        Parameters
+        ----------
+        revno : int or {'svn', 'cur'}
+            Revision of the text to fetch. 'svn' means revision in SVN
+            and 'cur' the latest revision.
+
+        Returns
+        -------
+        text : str
+            Current page text
+        rev : DocstringRevision or None
+            Docstring revision containing the text, or None if SVN revision.
+
+        """
         if revno is None or revno == '' or str(revno).lower() == 'cur':
             try:
                 rev = self.revisions.all()[0]
@@ -209,11 +239,11 @@ class Docstring(models.Model):
     
     @property
     def text(self):
+        """Return the current text in the docstring, latest revision or SVN"""
         try:
             return self.revisions.all()[0].text
         except IndexError:
             return self.source_doc
-
 
 class DocstringRevision(models.Model):
     revno     = models.AutoField(primary_key=True)
@@ -240,6 +270,7 @@ class WikiPage(models.Model):
     name = models.CharField(maxlength=256, primary_key=True)
     
     def edit(self, new_text, author, comment):
+        """Create a new revision of the page"""
         new_text = strip_spurious_whitespace(new_text)
         rev = WikiPageRevision(page=self,
                                author=author,
@@ -249,10 +280,21 @@ class WikiPage(models.Model):
     
     @property
     def text(self):
+        """Return the current text in the page, or None if there is no text"""
         try:
             return self.revisions.all()[0].text
         except IndexError:
             return None
+
+    @classmethod
+    def fetch_text(cls, page_name):
+        """Return text contained in a page, or empty string if didn't exist"""
+        try:
+            text = cls.objects.get(name=page_name).text
+            if text is None: return ""
+            return text
+        except cls.DoesNotExist:
+            return ""
 
 class WikiPageRevision(models.Model):
     revno = models.AutoField(primary_key=True)
@@ -371,7 +413,7 @@ def _update_docstrings_from_xml(stream):
 @transaction.commit_on_success
 def import_docstring_revisions_from_xml(stream):
     """
-    Read XML from stream and update database accordingly.
+    Read XML from stream and import new Docstring revisions from it.
     
     """
     try:
@@ -398,6 +440,12 @@ def _import_docstring_revisions_from_xml(stream):
                      comment="Imported")
 
 def update_docstrings():
+    """
+    Update docstrings from SVN sources.
+
+    Fetches new revisions from SVN, builds the module, and introspects the
+    result.
+    """
     for svn_dir in settings.SVN_DIRS:
         svn_dir = os.path.realpath(svn_dir)
         dist_dir = os.path.join(svn_dir, 'dist')
@@ -426,8 +474,8 @@ def update_docstrings():
 def patch_against_source(revs):
     """
     Generate a patch against source files, for the given docstrings.
+    
     """
-
     # -- Generate new.xml
     new_root = etree.Element('pydoc')
     new_xml = etree.ElementTree(new_root)
@@ -458,6 +506,10 @@ def patch_against_source(revs):
     return err.read() + "\n" + patch
 
 def regenerate_base_xml():
+    """
+    Re-generates base.xml containing SVN source docstrings
+    
+    """
     cmds = []
     cmds.append(
         [settings.PYDOCMOIN, 'collect', '-s', _site_path()]

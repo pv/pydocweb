@@ -17,6 +17,13 @@ from django import newforms as forms
 from pydocweb.doc.models import *
 import rst
 
+HELP_PAGES = {
+    'edit_wiki': 'Help Wiki Edit',
+    'edit': 'Help Docstring Edit',
+    'comment_edit': 'Help Comment Edit',
+    'merge': 'Help Merge'
+}
+
 def render_template(request, template, vardict):
     return render_to_response(template, vardict, RequestContext(request))
 
@@ -61,6 +68,7 @@ class EditForm(forms.Form):
 
 @permission_required('doc.change_wikipage')
 def edit_wiki(request, name):
+    help_html = _get_wiki_html(HELP_PAGES['edit_wiki'])
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(wiki, args=[name]))
@@ -78,11 +86,13 @@ def edit_wiki(request, name):
                 diff_html = html_diff_text(prev_text, data['text'],
                                            'previous revision',
                                            'current text')
-                return render_template(request, 'wiki/edit.html',
-                                       dict(form=form, name=name,
-                                            revision=revision,
-                                            diff_html=diff_html,
-                                            preview_html=preview))
+                return render_template(
+                    request, 'wiki/edit.html',
+                    dict(form=form, name=name,
+                         revision=revision,
+                         diff_html=diff_html,
+                         help_html=help_html,
+                         preview_html=preview))
             else:
                 page, created = WikiPage.objects.get_or_create(name=name)
                 page.edit(data['text'],
@@ -107,7 +117,8 @@ def edit_wiki(request, name):
         form = EditForm(initial=data)
 
     return render_template(request, 'wiki/edit.html',
-                           dict(form=form, name=name, revision=revision))
+                           dict(form=form, name=name, revision=revision,
+                                help_html=help_html))
 
 def log_wiki(request, name):
     page = get_object_or_404(WikiPage, name=name)
@@ -170,6 +181,8 @@ def diff_wiki_prev(request, name, rev2):
 
     return diff_wiki(request, name, rev1, rev2)
 
+def _get_wiki_html(page_name):
+    return rst.render_html(WikiPage.fetch_text(page_name))
 
 #------------------------------------------------------------------------------
 # Docstrings
@@ -269,6 +282,8 @@ def _get_author_map():
 def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
     
+    help_html = _get_wiki_html(HELP_PAGES['edit'])
+
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(docstring, args=[name]))
@@ -286,6 +301,7 @@ def edit(request, name):
                                        dict(form=form, name=name,
                                             revision=revision,
                                             diff_html=diff_html,
+                                            help_html=help_html,
                                             preview_html=preview))
             else:
                 try:
@@ -313,12 +329,14 @@ def edit(request, name):
             data['text'] = doc.merge()
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
-                                    conflict_warning=True, preview_html=None))
+                                    conflict_warning=True, preview_html=None,
+                                    help_html=help_html))
     else:
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
-                                    preview_html=None))
+                                    preview_html=None,
+                                    help_html=help_html))
 
 class CommentEditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)),
@@ -332,6 +350,7 @@ class CommentEditForm(forms.Form):
 @permission_required('doc.change_reviewcomment')
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
+    help_html = _get_wiki_html(HELP_PAGES['comment_edit'])
     try:
         comment_id = int(comment_id)
         comment = doc.comments.get(id=comment_id, author=request.user.username)
@@ -351,6 +370,7 @@ def comment_edit(request, name, comment_id):
                 return render_template(request, 'docstring/edit_comment.html',
                                        dict(form=form, name=name,
                                             comment=comment,
+                                            help_html=help_html,
                                             preview_html=preview))
             elif request.POST.get('button_delete') and comment is not None:
                 comment.delete()
@@ -378,7 +398,8 @@ def comment_edit(request, name, comment_id):
         form = CommentEditForm(initial=data)
     
     return render_template(request, 'docstring/edit_comment.html',
-                           dict(form=form, name=name, comment=comment))
+                           dict(form=form, name=name, comment=comment,
+                                help_html=help_html))
 
 def log(request, name):
     doc = get_object_or_404(Docstring, name=name)
@@ -504,6 +525,7 @@ def merge(request):
     """
     Review current merge status
     """
+    help_html = _get_wiki_html(HELP_PAGES['merge'])
     if request.method == 'POST':
         ok = request.POST.keys()
         for obj in Docstring.objects.filter(merge_status=MERGE_MERGED,
@@ -514,7 +536,8 @@ def merge(request):
     merged = Docstring.objects.filter(merge_status=MERGE_MERGED)
 
     return render_template(request, 'merge.html',
-                           dict(conflicts=conflicts, merged=merged))
+                           dict(conflicts=conflicts, merged=merged,
+                                help_html=help_html))
 
 @permission_required('doc.can_update_from_source')
 def control(request):
@@ -572,7 +595,9 @@ def login(request):
                                 password=data['password'])
             if user is not None and user.is_active:
                 auth_login(request, user)
-                return HttpResponseRedirect(reverse(frontpage))
+                target = request.POST.get('next')
+                if target is None: target = reverse(frontpage)
+                return HttpResponseRedirect(target)
             else:
                 message = "Authentication failed"
     else:
