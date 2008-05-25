@@ -309,6 +309,7 @@ class NumpyDocString(object):
         return out
 
     def _str_see_also(self):
+        if not self['See Also']: return []
         out = []
         out += self._str_header("See Also")
         for func, desc in self['See Also']:
@@ -336,9 +337,9 @@ class NumpyDocString(object):
         out += self._str_extended_summary()
         for param_list in ('Parameters','Returns','Raises'):
             out += self._str_param_list(param_list)
+        out += self._str_see_also()
         for s in ('Notes','References','Examples'):
             out += self._str_section(s)
-        out += self._str_see_also()
         out += self._str_index()
         return '\n'.join(out)
 
