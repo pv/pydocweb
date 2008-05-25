@@ -294,6 +294,10 @@ def edit(request, name):
             data = form.clean_data
             if request.POST.get('button_preview'):
                 preview = rst.render_docstring_html(name, data['text'])
+                if doc.bases:
+                    bases = doc.bases.split()
+                else:
+                    bases = []
                 diff_html = html_diff_text(doc.text, data['text'],
                                            'previous revision',
                                            'current text')
@@ -302,7 +306,13 @@ def edit(request, name):
                                             revision=revision,
                                             diff_html=diff_html,
                                             help_html=help_html,
-                                            preview_html=preview))
+                                            preview_html=preview,
+                                            basename=name.split('.')[-1],
+                                            argspec=doc.argspec,
+                                            objclass=doc.objclass,
+                                            bases=bases,
+                                            repr_=doc.repr_,
+                                            ))
             else:
                 try:
                     doc.edit(data['text'],

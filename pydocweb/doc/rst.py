@@ -105,7 +105,6 @@ def render_docstring_html(name, text):
     prefixes = []
     if len(parts) >= 2:
         prefixes.append('.'.join(parts[:-1]) + '.')
-    print "PREFIXES:", prefixes
     return render_html(doc_text,
                        resolve_to_wiki=False,
                        resolve_prefixes=prefixes)
