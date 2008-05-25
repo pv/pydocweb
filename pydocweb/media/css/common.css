@@ -314,6 +314,27 @@ dl dt {
 #document div.system-message p { 
   margin:0
 }
+#document div.note { 
+  border: 2px solid black;
+  margin: 2em;
+  padding: 1em;
+}
+#document div.warning { 
+  border: 2px solid red;
+  margin: 2em;
+  padding: 1em;
+}
+#document div.error { 
+  border: 5px solid red;
+  margin: 2em;
+  padding: 1em;
+}
+#document .admonition-title { 
+  font-weight: bold;
+}
+#document div.error .admonition-title { 
+  color: red;
+}
 
 /*
  * Comments
