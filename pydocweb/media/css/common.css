@@ -300,6 +300,14 @@ dl dt {
   color:red;
   clear:both;
 }
+#document div.system-messages { 
+  float:right;
+  padding-bottom: 2em;
+  padding-right: 2em;
+}
+#document div.system-messages h1 { 
+  color: red;
+}
 #document .system-message-title { 
   font-weight: bold;
 }

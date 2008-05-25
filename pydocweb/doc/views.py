@@ -219,8 +219,8 @@ def docstring(request, name):
     try:
         text, revision = doc.get_rev_text(request.GET.get('revision'))
         if not request.GET.get('revision'): revision = None
-        body = rst.render_html(text)
-    except (TypeError, ValueError, DocstringRevision.DoesNotExist):
+        body = rst.render_docstring_html(name, text)
+    except DocstringRevision.DoesNotExist:
         raise Http404()
 
     author_map = _get_author_map()
@@ -293,7 +293,7 @@ def edit(request, name):
         if form.is_valid():
             data = form.clean_data
             if request.POST.get('button_preview'):
-                preview = rst.render_html(data['text'])
+                preview = rst.render_docstring_html(name, data['text'])
                 diff_html = html_diff_text(doc.text, data['text'],
                                            'previous revision',
                                            'current text')

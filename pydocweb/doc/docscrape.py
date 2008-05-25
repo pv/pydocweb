@@ -189,6 +189,40 @@ class NumpyDocString(object):
 
         return params
 
+    def _parse_see_also(self, content):
+        """
+        func_name : Descriptive text
+            continued text
+        another_func_name : Descriptive text
+        func_name1, func_name2, func_name3
+        
+        """
+        functions = []
+        current_func = None
+        rest = []
+        for line in content:
+            if not line.strip(): continue
+            if ':' in line:
+                if current_func:
+                    functions.append((current_func, rest))
+                r = line.split(':', 1)
+                current_func = r[0].strip()
+                r[1] = r[1].strip()
+                if r[1]:
+                    rest = [r[1]]
+                else:
+                    rest = []
+            elif ',' in line and current_func is None:
+                for func in line.split(','):
+                    func = func.strip()
+                    if func:
+                        functions.append((func, []))
+            else:
+                rest.append(line.strip())
+        if current_func:
+            functions.append((current_func, rest))
+        return functions
+    
     def _parse_index(self, section, content):
         """
         .. index: default
@@ -231,6 +265,8 @@ class NumpyDocString(object):
                 self[section] = self._parse_param_list(content)
             elif section.startswith('.. index::'):
                 self['index'] = self._parse_index(section, content)
+            elif section.lower() == 'see also':
+                self['See Also'] = self._parse_see_also(content)
             else:
                 self[section] = content
 
@@ -272,6 +308,17 @@ class NumpyDocString(object):
             out += ['']
         return out
 
+    def _str_see_also(self):
+        out = []
+        out += self._str_header("See Also")
+        for func, desc in self['See Also']:
+            out += ["`%s`_" % func]
+            if desc:
+                out += self._str_indent(desc)
+            else:
+                out += ["    "]
+        return out
+    
     def _str_index(self):
         idx = self['index']
         out = []
@@ -291,6 +338,7 @@ class NumpyDocString(object):
             out += self._str_param_list(param_list)
         for s in ('Notes','References','Examples'):
             out += self._str_section(s)
+        out += self._str_see_also()
         out += self._str_index()
         return '\n'.join(out)
 

@@ -245,6 +245,49 @@ class Docstring(models.Model):
         except IndexError:
             return self.source_doc
 
+    @classmethod
+    def resolve(cls, name):
+        """Resolve a docstring reference. `name` needs not be a canonical name.
+        
+        Returns
+        -------
+        doc : Docstring
+        
+        Raises
+        ------
+        Docstring.DoesNotExist
+            If not found
+        
+        """
+        def _get(name):
+            try: return cls.objects.get(name=name)
+            except cls.DoesNotExist: return None
+        
+        doc = _get(name)
+        if doc is not None: return doc
+        
+        parts = name.split('.')
+        parent = None
+        j = 0
+        while j < len(parts):
+            try_name = '.'.join(parts[:j+1])
+            doc = _get(try_name)
+            if doc is not None:
+                parent = doc
+            elif parent is not None:
+                try:
+                    ref = parent.contents.get(alias=parts[j])
+                    parent_parts = ref.target.split('.')
+                    j = len(parent_parts)
+                    parts = parent_parts + parts[j:]
+                except DocstringAlias.DoesNotExist:
+                    pass
+            j += 1
+        return cls.objects.get(name='.'.join(parts))
+
+    def __str__(self):
+        return "<Docstring '%s'>" % self.name
+
 class DocstringRevision(models.Model):
     revno     = models.AutoField(primary_key=True)
     docstring = models.ForeignKey(Docstring, related_name="revisions")
