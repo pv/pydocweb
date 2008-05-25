@@ -22,7 +22,7 @@
   {% for c in comment_changes %}
   <tr>
     <td>{{c.timestamp|escape}}</td>
-    <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion">{{c.name|escape}}</a></td>
+    <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion-sec">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
   </tr>
