@@ -299,11 +299,13 @@ dl dt {
   padding-left: 1em;
   color:red;
   clear:both;
+  margin: 0.5em;
 }
 #document div.system-messages { 
   float:right;
   padding-bottom: 2em;
   padding-right: 2em;
+  margin: 0.5em;
 }
 #document div.system-messages h1 { 
   color: red;
@@ -334,6 +336,9 @@ dl dt {
 }
 #document div.error .admonition-title { 
   color: red;
+}
+#document .func-signature { 
+  font-style: italic;
 }
 
 /*

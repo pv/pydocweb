@@ -6,7 +6,6 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 
-
 import pydocweb.doc.models as models
 
 #------------------------------------------------------------------------------
@@ -101,7 +100,12 @@ def render_docstring_html(doc, text):
         docstring =  RSTDocString(text)
         if docstring['Signature'] and doc.argspec:
             raise ValueError('Docstring has a spurious function signature '
-                             'description.')
+                             'description at the beginning.')
+        for j, line in enumerate(text.splitlines()):
+            if len(line) > settings.MAX_DOCSTRING_WIDTH:
+                raise ValueError("Docstring line %d is longer than %d "
+                                 "characters: %s" % (
+                    j+1, settings.MAX_DOCSTRING_WIDTH, cgi.escape(line)))
     except ValueError, e:
         err_msg = ("<div class=\"system-message\">"
                    "<span class=\"system-message-title\">"

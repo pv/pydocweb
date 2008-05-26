@@ -13,6 +13,8 @@ MODULES = ("numpy",)# "scipy")
 ADDNEWDOCS_MODULES = ("numpy.add_newdocs",)
 PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
 
+MAX_DOCSTRING_WIDTH = 79
+
 #------------------------------------------------------------------------------
 
 MANAGERS = ADMINS
