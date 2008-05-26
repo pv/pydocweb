@@ -174,9 +174,6 @@ def diff_wiki_prev(request, name, rev2):
 
     return diff_wiki(request, name, rev1, rev2)
 
-def _get_wiki_html(page_name):
-    return rst.render_html(WikiPage.fetch_text(page_name))
-
 #------------------------------------------------------------------------------
 # Docstrings
 #------------------------------------------------------------------------------
