@@ -498,6 +498,8 @@ def source(request, file_name):
     src = get_source_file_content(file_name)
     if src is None:
         raise Http404()
+    if not (file_name.endswith('.py')):
+        raise Http404()
     lines = src.splitlines()
     return render_template(request, 'source.html',
                            dict(lines=lines, file_name=file_name))
