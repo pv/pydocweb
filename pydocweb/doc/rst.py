@@ -3,6 +3,9 @@ import cgi
 
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.template import Context
+from django.template.loader import get_template
+
 
 import pydocweb.doc.models as models
 
@@ -90,24 +93,52 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
 from docscrape import NumpyDocString
 
 class RSTDocString(NumpyDocString):
-    pass
+    def _str_signature(self):
+        return []
 
-def render_docstring_html(name, text):
+def render_docstring_html(doc, text):
     try:
-        doc_text =  str(RSTDocString(text))
+        docstring =  RSTDocString(text)
+        if docstring['Signature'] and doc.argspec:
+            raise ValueError('Docstring has a spurious function signature '
+                             'description.')
     except ValueError, e:
         err_msg = ("<div class=\"system-message\">"
                    "<span class=\"system-message-title\">"
                    "Docstring does not conform to Numpy documentation "
                    "standard</span><p>%s</p></div>" % cgi.escape(str(e)))
         return err_msg + render_html(text)
-    parts = name.split('.')
+
+    # Determine link namespace
+    parts = doc.name.split('.')
     prefixes = []
     if len(parts) >= 2:
         prefixes.append('.'.join(parts[:-1]) + '.')
-    return render_html(doc_text,
-                       resolve_to_wiki=False,
-                       resolve_prefixes=prefixes)
+
+    # Base classes
+    if doc.bases:
+        bases = doc.bases.split()
+    else:
+        bases = []
+
+    # Argspec
+    if doc.argspec:
+        argspec = doc.argspec
+    else:
+        argspec = docstring['Signature']
+
+    # Docstring body
+    body_html = render_html(str(docstring),
+                            resolve_to_wiki=False,
+                            resolve_prefixes=prefixes)
+
+    # Full HTML output
+    t = get_template('docstring/body.html')
+    return t.render(Context(dict(name=doc.name,
+                                 bases=bases,
+                                 argspec=argspec,
+                                 basename=doc.name.split('.')[-1],
+                                 body_html=body_html)))
 
 #------------------------------------------------------------------------------
 # Index

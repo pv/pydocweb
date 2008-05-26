@@ -42,16 +42,6 @@
 <h2>Preview</h2>
 <div id='preview'>
   <div id='document'>
-    {% if bases %}
-    <p>
-      Derived from: {% for base in bases %}
-      {% docstring_name_link base %}{% if forloop.last %}{% else %}, {% endif %}
-      {% endfor %}
-    </p>
-    {% endif %}
-    {% if argspec %}
-    <p>{{basename|escape}}{{argspec|escape}}</p>
-    {% endif %}
     {{preview_html}}
   </div>
 </div>

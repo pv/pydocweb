@@ -219,7 +219,7 @@ def docstring(request, name):
     try:
         text, revision = doc.get_rev_text(request.GET.get('revision'))
         if not request.GET.get('revision'): revision = None
-        body = rst.render_docstring_html(name, text)
+        body = rst.render_docstring_html(doc, text)
     except DocstringRevision.DoesNotExist:
         raise Http404()
 
@@ -235,18 +235,8 @@ def docstring(request, name):
         ))
     
     review_form = ReviewForm(dict(status=doc.review))
-
-    if doc.bases:
-        bases = doc.bases.split()
-    else:
-        bases = []
     
     params = dict(name=name,
-                  basename=name.split('.')[-1],
-                  argspec=doc.argspec,
-                  objclass=doc.objclass,
-                  bases=bases,
-                  repr_=doc.repr_,
                   doc=doc,
                   review_form=review_form,
                   status=REVIEW_STATUS_NAMES[doc.review],
@@ -293,11 +283,7 @@ def edit(request, name):
         if form.is_valid():
             data = form.clean_data
             if request.POST.get('button_preview'):
-                preview = rst.render_docstring_html(name, data['text'])
-                if doc.bases:
-                    bases = doc.bases.split()
-                else:
-                    bases = []
+                preview_html = rst.render_docstring_html(doc, data['text'])
                 diff_html = html_diff_text(doc.text, data['text'],
                                            'previous revision',
                                            'current text')
@@ -306,12 +292,7 @@ def edit(request, name):
                                             revision=revision,
                                             diff_html=diff_html,
                                             help_html=help_html,
-                                            preview_html=preview,
-                                            basename=name.split('.')[-1],
-                                            argspec=doc.argspec,
-                                            objclass=doc.objclass,
-                                            bases=bases,
-                                            repr_=doc.repr_,
+                                            preview_html=preview_html,
                                             ))
             else:
                 try:
