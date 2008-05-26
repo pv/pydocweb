@@ -1,4 +1,5 @@
 {% extends "docstring/base.html" %}
+{% load docstring %}
 
 {% block content %}
 
@@ -15,9 +16,10 @@
   </ul>
 </form>
 
-{% if help_html %}
-<div id='help'>{{help_html}}</div>
-{% endif %}
+<div id='help'>
+  <h2>Help</h2>
+  {% help_page "Help Edit Comment" %}
+</div>
 
 {% if preview_html %}
 <h2>Preview</h2>

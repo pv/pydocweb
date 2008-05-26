@@ -1,7 +1,9 @@
 import urllib, cgi
 from django import template
 
-from pydocweb.doc.models import Docstring, REVIEW_STATUS_CODES
+from pydocweb.doc.models import Docstring, WikiPage, REVIEW_STATUS_CODES
+import pydocweb.doc.rst as rst
+from django.core.urlresolvers import reverse
 
 register = template.Library()
 
@@ -28,3 +30,9 @@ def docstring_status_code(name):
     except Docstring.DoesNotExist:
         return "none"
     return REVIEW_STATUS_CODES[doc.review]
+
+@register.simple_tag
+def help_page(page_name):
+    html = rst.render_html(WikiPage.fetch_text(page_name))
+    html += "<p><a href=\"%s\">Edit help</a></p>" % reverse('pydocweb.doc.views.wiki', args=[page_name])
+    return html

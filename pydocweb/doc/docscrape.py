@@ -312,12 +312,18 @@ class NumpyDocString(object):
         if not self['See Also']: return []
         out = []
         out += self._str_header("See Also")
+        last_had_desc = False
         for func, desc in self['See Also']:
-            out += ["`%s`_" % func]
+            if last_had_desc or desc or not len(out) <= 1:
+                out += ["`%s`_" % func]
+            else:
+                out[-1] += ", `%s`_" % func
             if desc:
                 out += self._str_indent(desc)
+                last_had_desc = True
             else:
-                out += ["    "]
+                last_had_desc = False
+        out += ['']
         return out
     
     def _str_index(self):

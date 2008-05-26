@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load docstring %}
 
 {% block title %}Merge{% endblock %}
 {% block pagetitle %}Merge{% endblock %}
@@ -31,6 +32,12 @@
 {% else %}
 <p>Nothing merged</p>
 {% endif %}
+
+<div id='help'>
+  <h2>Help</h2>
+  {% help_page "Help Merge" %}
+</div>
+
 {% endblock %}
 
 

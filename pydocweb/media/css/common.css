@@ -545,3 +545,13 @@ table.footnote tr {
 .diff-nop { 
   background: none;
 }
+
+/*
+ * Help
+ */
+#help { 
+  padding: 1em;
+  margin-top: 3em;
+  margin-left: 10em;
+  border: solid 1px #cdc;
+}

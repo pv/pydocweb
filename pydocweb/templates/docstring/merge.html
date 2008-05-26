@@ -1,4 +1,5 @@
 {% extends "docstring/page.html" %}
+{% load comment %}
 
 {% block content %}
 <div id="merge-warning">
@@ -25,9 +26,10 @@
 <a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
 <a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
-{% if help_html %}
-<div id='help'>{{help_html}}</div>
-{% endif %}
+<div id='help'>
+  <h2>Help</h2>
+  {% help_page "Help Merge Docstring" %}
+</div>
 
 {% block discussion %}
 {{block.super}}
