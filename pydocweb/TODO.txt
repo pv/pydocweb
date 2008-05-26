@@ -1,0 +1,3 @@
+  * ..image:: directive
+  * Support running plot scripts & capturing output images.
+  * Lock the wiki
