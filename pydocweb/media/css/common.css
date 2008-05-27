@@ -388,33 +388,24 @@ dl dt {
  * Content list
  */
 #content-list { 
-  border-top: solid 1px #ccc;
+  border-collapse: collapse;
   margin-top: 3ex;
 }
-.content-list ul { 
-  margin-left: 0;
-  padding-left: 0;
-  border-right: solid 1px #ccc;
-  border-bottom: solid 1px #ccc;
+.content-list table { 
 }
-.content-list li { 
-  list-style: none;
-  display: inline-block;
-  min-width: 15em;
-  border-top: solid 1px #ccc;
-  border-left: solid 1px #ccc;
-  padding-left: 0.2em;
-  padding-top: 0.1ex;
-  padding-bottom: 0.1ex;
-  margin: 0;
+.content-list tr { 
+  border: solid 1px #ccc;
+}
+.content-list td { 
+  border: solid 1px #ccc;
 }
 
-.content-list li.none { background: #fff; }
-.content-list li.needs-work { background: #fcc; }
-.content-list li.old-reviewed { background: #dda; }
-.content-list li.reviewed { background: #ffc; }
-.content-list li.old-proofed { background: #ada; }
-.content-list li.proofed { background: #cfc; }
+.content-list td.none { background: #fff; }
+.content-list td.needs-work { background: #fcc; }
+.content-list td.old-reviewed { background: #dda; }
+.content-list td.reviewed { background: #ffc; }
+.content-list td.old-proofed { background: #ada; }
+.content-list td.proofed { background: #cfc; }
 
 /*
  * Merge info

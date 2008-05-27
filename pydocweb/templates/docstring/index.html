@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load docstring %}
 
 {% block title %}All docstrings{% endblock %}
 {% block pagetitle %}All docstrings{% endblock %}
@@ -9,11 +10,16 @@
 
 {% for status in status_list %}
 <h3>{{status.grouper|escape}}</h3>
-<ul class="content-list">
-  {% for doc in status.list %}
-  <li class="{{doc.statuscode|escape}}"><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name|escape}}</a></li>
+{% as_table_rows 3 status.list as rows %}
+<table class="content-list">
+  {% for row in rows %}
+  <tr>
+    {% for doc in row %}
+    <td class="{{doc.statuscode|escape}}"><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name|escape}}</a></td>
+    {% endfor %}
+  </tr>
   {% endfor %}
-</ul>
+</table>
 {% endfor %}
 
 {% endblock %}
