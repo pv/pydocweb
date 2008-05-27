@@ -2,3 +2,4 @@ pydocweb/data.db
 pydocweb/media/math
 numpy
 scipy
+pydocweb/access.log
