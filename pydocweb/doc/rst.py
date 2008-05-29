@@ -14,6 +14,7 @@ import pydocweb.doc.models as models
 import docutils.core
 import docutils.writers.html4css1
 import docutils.parsers.rst.roles
+import re
 
 class RstWriter(docutils.writers.html4css1.Writer):
     config_section = 'Rst Writer'
@@ -129,7 +130,7 @@ def render_docstring_html(doc, text):
     if doc.argspec:
         argspec = doc.argspec
     else:
-        argspec = docstring['Signature']
+        argspec = re.sub(r'^[^(]*', '', docstring['Signature'])
 
     # Docstring body
     body_html = render_html(str(docstring),
