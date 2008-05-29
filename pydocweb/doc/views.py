@@ -660,3 +660,30 @@ def changes(request):
                            dict(docstring_changes=docstring_changes,
                                 wiki_changes=wiki_changes,
                                 comment_changes=comment_changes))
+
+#------------------------------------------------------------------------------
+# Search
+#------------------------------------------------------------------------------
+
+class SearchForm(forms.Form):
+    fulltext = forms.CharField(required=False)
+    invert = forms.BooleanField()
+
+def search(request):
+    docstring_results = []
+    wiki_results = []
+    
+    if request.method == 'POST':
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            data = form.clean_data
+            docstring_results = Docstring.fulltext_search(data['fulltext'],
+                                                          data['invert'])
+            wiki_results = []
+    else:
+        form = SearchForm()
+    
+    return render_template(request, 'search.html',
+                           dict(form=form,
+                                docstring_results=docstring_results,
+                                wiki_results=wiki_results))

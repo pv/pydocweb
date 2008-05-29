@@ -25,6 +25,7 @@ urlpatterns = patterns(
     (r'^accounts/password/$', 'password_change'),
     (r'^accounts/register/$', 'register'),
     (r'^changes/$', 'changes'),
+    (r'^search/$', 'search'),
 )
 
 urlpatterns += patterns(

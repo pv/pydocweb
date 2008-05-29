@@ -288,6 +288,36 @@ class Docstring(models.Model):
     def __str__(self):
         return "<Docstring '%s'>" % self.name
 
+    @classmethod
+    def fulltext_search(cls, s, invert=False):
+        """
+        Fulltext search using an SQL LIKE clause
+        
+        Returns
+        -------
+        it : iterator
+            Iterator of matching docstring names
+        
+        """
+        if invert:
+            not_ = "NOT"
+        else:
+            not_ = ""
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""\
+        SELECT d.name FROM doc_docstring AS d
+        LEFT JOIN doc_docstringrevision AS r WHERE d.name = r.docstring_id
+        GROUP BY d.name HAVING %s (d.name LIKE %%s OR r.text LIKE %%s)
+        """ % (not_,), [s, s])
+        res =  cursor.fetchall()
+        cursor.execute("""\
+        SELECT name FROM doc_docstring
+        WHERE name NOT IN (SELECT docstring_id FROM doc_docstringrevision)
+        AND %s (name LIKE %%s OR source_doc LIKE %%s)
+        """ % (not_,), [s, s])
+        return res + cursor.fetchall()
+
 class DocstringRevision(models.Model):
     revno     = models.AutoField(primary_key=True)
     docstring = models.ForeignKey(Docstring, related_name="revisions")

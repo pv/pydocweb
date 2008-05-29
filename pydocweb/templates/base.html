@@ -10,12 +10,14 @@
     <script type="text/javascript" src="{{MEDIA_URL}}/js/jquery.js"></script>
     {% block extra_headers %}{% endblock %}
   </head>
-  <body><div id="header"><h1>Scipy Documentation Editor</h1></div>
+  <body>
+    <div id="header"><h1><a href="{% url pydocweb.doc.views.frontpage %}">Scipy Documentation Editor</a></h1></div>
     <div id="navbar">
       <ul>
 	<li class="button"><a href="{% url pydocweb.doc.views.frontpage %}">Wiki</a></li>
 	<li class="button"><a href="{% url pydocweb.doc.views.docstring_index %}">Docstrings</a></li>
 	<li class="button"><a href="{% url pydocweb.doc.views.changes %}">Changes</a></li>
+	<li class="button"><a href="{% url pydocweb.doc.views.search %}">Search</a></li>
 {% if perms.doc.change_docstring %}
 	<li class="button"><a href="{% url pydocweb.doc.views.merge %}">Merge</a></li>	
 {% endif %}

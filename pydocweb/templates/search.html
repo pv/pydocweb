@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load docstring %}
+
+{% block title %}Search{% endblock %}
+{% block pagetitle %}Search{% endblock %}
+
+{% block content %}
+
+<form action="{% url pydocweb.doc.views.search %}" 
+      method="post">
+  <ul>
+    {{ form.as_ul }}
+    <li><label></label>
+      <input type="submit" name="button_search" id="id_search" value="Search" />
+      <span style='width: 2em' />
+      <a href="" onclick="submit_no_examples(); return false;">No examples</a>
+      <a href="" onclick="submit_no_docs(); return false;">No documentation</a>
+  </ul>
+</form>
+
+{% if docstring_results %}
+<h2>Docstrings</h2>
+{% as_table_rows 3 docstring_results as rows %}
+<table class="content-list">
+  {% for row in rows %}
+  <tr>
+    {% for item in row %}
+    <td><a href="{% url pydocweb.doc.views.docstring item.0 %}">{{item.0|escape}}</a></td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% if wiki_results %}
+<h2>Wiki pages</h2>
+{% as_table_rows 3 wiki_results as rows %}
+<table class="content-list">
+  {% for row in rows %}
+  <tr>
+    {% for name in row %}
+    <td><a href="{% url pydocweb.doc.views.wiki name %}">{{name|escape}}</a></td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+{% endblock %}
+
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+function submit_no_examples() {
+    $("#id_fulltext").attr("value", "%Examples%");
+    $("#id_invert").attr("checked", 1);
+    $("#id_search").click()
+}
+function check_all() {
+    $("#id_fulltext").attr("value", "");
+    $("#id_invert").removeAttr("checked");
+    $("#id_search").click()
+}
+</script>
+{% endblock %}

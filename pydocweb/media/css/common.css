@@ -104,7 +104,6 @@ dl dt {
   border-bottom: solid 2px #ccc;
   padding-left: 1em;
   margin-bottom: 0em;
-  color: #445;
 }
 
 #header h1 { 
@@ -113,6 +112,10 @@ dl dt {
   padding-top: 0.5em;
   padding-bottom: 0.5em;
   font-size: 12pt;
+}
+#header h1 a { 
+  color: #445;
+  text-decoration: none;
 }
 
 /*
