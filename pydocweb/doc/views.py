@@ -667,8 +667,9 @@ def changes(request):
 
 class SearchForm(forms.Form):
     fulltext = forms.CharField(required=False,
-            help_text="Use % as wild character; as in SQL LIKE statement.")
-    invert = forms.BooleanField(required=False)
+            help_text="Use % as a wild characted; as in an SQL LIKE search")
+    invert = forms.BooleanField(required=False,
+            help_text="Find non-matching items")
 
 def search(request):
     docstring_results = []
@@ -678,6 +679,8 @@ def search(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             data = form.clean_data
+            if data['fulltext'] != '':
+                data['fulltext'] = '%%%s%%' % data['fulltext']
             docstring_results = Docstring.fulltext_search(data['fulltext'],
                                                           data['invert'])
             wiki_results = WikiPage.fulltext_search(data['fulltext'],

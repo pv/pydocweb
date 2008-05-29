@@ -19,7 +19,7 @@
 </form>
 
 {% if docstring_results %}
-<h2>Docstrings</h2>
+<h2>Results: docstrings</h2>
 {% as_table_rows 3 docstring_results as rows %}
 <table class="content-list">
   {% for row in rows %}
@@ -33,7 +33,7 @@
 {% endif %}
 
 {% if wiki_results %}
-<h2>Wiki pages</h2>
+<h2>Results: wiki pages</h2>
 {% as_table_rows 3 wiki_results as rows %}
 <table class="content-list">
   {% for row in rows %}
