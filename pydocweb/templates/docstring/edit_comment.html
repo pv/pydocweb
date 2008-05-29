@@ -16,16 +16,16 @@
   </ul>
 </form>
 
-<div id='help'>
-  <h2>Help</h2>
-  {% help_page "Help Edit Comment" %}
-</div>
-
 {% if preview_html %}
 <h2>Preview</h2>
 <div id='preview'>
 {{preview_html}}
 </div>
 {% endif %}
+
+<div id='help'>
+  <h2>Help</h2>
+  {% help_page "Help Edit Comment" %}
+</div>
 
 {% endblock %}

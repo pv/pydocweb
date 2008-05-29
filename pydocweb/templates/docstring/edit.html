@@ -30,22 +30,23 @@
   </ul>
 </form>
 
-<div id='help'>
-  <h2>Help</h2>
-  {% help_page "Help Edit Docstring" %}
-</div>
-
 {% if preview_html %}
-<h2>Changes</h2>
-<div id='merge-info'>
-  <pre>{{diff_html}}</pre>
-</div>
 <h2>Preview</h2>
 <div id='preview'>
   <div id='document'>
     {{preview_html}}
   </div>
 </div>
+
+<h2>Changes</h2>
+<div id='merge-info'>
+  <pre>{{diff_html}}</pre>
+</div>
 {% endif %}
+
+<div id='help'>
+  <h2>Help</h2>
+  {% help_page "Help Edit Docstring" %}
+</div>
 
 {% endblock %}
