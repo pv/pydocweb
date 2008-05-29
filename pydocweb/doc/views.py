@@ -666,7 +666,8 @@ def changes(request):
 #------------------------------------------------------------------------------
 
 class SearchForm(forms.Form):
-    fulltext = forms.CharField(required=False)
+    fulltext = forms.CharField(required=False,
+            help_text="Use % as wild character; as in SQL LIKE statement.")
     invert = forms.BooleanField(required=False)
 
 def search(request):
