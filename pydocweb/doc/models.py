@@ -482,7 +482,7 @@ def _import_docstring_revisions_from_xml(stream):
                      "xml-import",
                      comment="Imported")
 
-def update_docstrings():
+def update_docstrings(update_svn=True):
     """
     Update docstrings from SVN sources.
 
@@ -499,8 +499,9 @@ def update_docstrings():
         cwd = os.getcwd()
         os.chdir(svn_dir)
         try:
-            _exec_cmd(['svn', 'up'])
-            _exec_cmd(['svn', 'revert', '-R', '.'])
+            if update_svn:
+                _exec_cmd(['svn', 'up'])
+                _exec_cmd(['svn', 'revert', '-R', '.'])
             _exec_cmd([sys.executable, 'setupegg.py', 'install',
                        '--prefix=%s' % dist_dir])
         finally:
