@@ -679,7 +679,8 @@ def search(request):
             data = form.clean_data
             docstring_results = Docstring.fulltext_search(data['fulltext'],
                                                           data['invert'])
-            wiki_results = []
+            wiki_results = WikiPage.fulltext_search(data['fulltext'],
+                                                    data['invert'])
     else:
         form = SearchForm()
     

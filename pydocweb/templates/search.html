@@ -38,8 +38,8 @@
 <table class="content-list">
   {% for row in rows %}
   <tr>
-    {% for name in row %}
-    <td><a href="{% url pydocweb.doc.views.wiki name %}">{{name|escape}}</a></td>
+    {% for item in row %}
+    <td><a href="{% url pydocweb.doc.views.wiki item.0 %}">{{item.0|escape}}</a></td>
     {% endfor %}
   </tr>
   {% endfor %}

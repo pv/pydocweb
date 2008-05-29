@@ -369,6 +369,29 @@ class WikiPage(models.Model):
         except cls.DoesNotExist:
             return ""
 
+    @classmethod
+    def fulltext_search(cls, s, invert=False):
+        """
+        Fulltext search using an SQL LIKE clause
+        
+        Returns
+        -------
+        it : iterator
+            Iterator of matching docstring names
+        
+        """
+        if invert:
+            not_ = "NOT"
+        else:
+            not_ = ""
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""\
+        SELECT page_id FROM doc_wikipagerevision
+        GROUP BY page_id HAVING %s (page_id LIKE %%s OR text LIKE %%s)
+        """ % (not_,), [s, s])
+        return cursor.fetchall()
+
 class WikiPageRevision(models.Model):
     revno = models.AutoField(primary_key=True)
     page = models.ForeignKey(WikiPage, related_name="revisions")
