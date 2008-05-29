@@ -667,7 +667,7 @@ def changes(request):
 
 class SearchForm(forms.Form):
     fulltext = forms.CharField(required=False)
-    invert = forms.BooleanField()
+    invert = forms.BooleanField(required=False)
 
 def search(request):
     docstring_results = []
