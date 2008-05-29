@@ -27,7 +27,7 @@
 {% if user.is_authenticated %}
 	<li><b>{{user.first_name|escape}} {{user.last_name|escape}}</b>:</li>
 	<li class="button"><a href="{% url pydocweb.doc.views.password_change %}">Profile</a></li>
-	<li class="button"><a href="{% url pydocweb.doc.views.logout %}">Log out</a></li>	
+	<li class="button"><a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>	
 {% else %}
 	<li class="button"><a href="{% url pydocweb.doc.views.login %}">Log in</a></li>	
 {% endif %}
