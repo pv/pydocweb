@@ -13,23 +13,23 @@
   <body><div id="header"><h1>Scipy Documentation Editor</h1></div>
     <div id="navbar">
       <ul>
-	<li class="button"><a href="/">Wiki</a></li>
-	<li class="button"><a href="/doc">Docstrings</a></li>
-	<li class="button"><a href="/changes">Changes</a></li>
+	<li class="button"><a href="{% url pydocweb.doc.views.frontpage %}">Wiki</a></li>
+	<li class="button"><a href="{% url pydocweb.doc.views.docstring_index %}">Docstrings</a></li>
+	<li class="button"><a href="{% url pydocweb.doc.views.changes %}">Changes</a></li>
 {% if perms.doc.change_docstring %}
-	<li class="button"><a href="/merge">Merge</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.merge %}">Merge</a></li>	
 {% endif %}
-	<li class="button"><a href="/patch">Patch</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.patch %}">Patch</a></li>	
 {% if user.is_superuser %}
-	<li class="button"><a href="/control">Control</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.control %}">Control</a></li>	
 {% endif %}
 	<li>&mdash;</li>
 {% if user.is_authenticated %}
 	<li><b>{{user.first_name|escape}} {{user.last_name|escape}}</b>:</li>
-	<li class="button"><a href="/accounts/password">Profile</a></li>
-	<li class="button"><a href="/accounts/logout">Log out</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.change_password %}">Profile</a></li>
+	<li class="button"><a href="{% url pydocweb.doc.views.logout %}">Log out</a></li>	
 {% else %}
-	<li class="button"><a href="/accounts/login">Log in</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.login %}">Log in</a></li>	
 {% endif %}
       </ul>
     </div>
