@@ -329,7 +329,11 @@ def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
     try:
         comment_id = int(comment_id)
-        comment = doc.comments.get(id=comment_id, author=request.user.username)
+        if request.user.has_perm('doc.can_review'):
+            comment = doc.comments.get(id=comment_id)
+        else:
+            comment = doc.comments.get(id=comment_id,
+                                       author=request.user.username)
     except (ValueError, TypeError, ReviewComment.DoesNotExist):
         comment = None
     

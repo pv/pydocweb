@@ -54,7 +54,13 @@
 	<input type=submit name="button_delete" value="Delete" />
       </form>
     </div>
-    {% endifequal %}
+    {% else %}{% if perms.doc.can_review %}
+    <div class="edit-tools">
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
+	<input type=submit name="button_delete" value="Delete" />
+      </form>
+    </div>
+    {% endif %}{% endifequal %}
     {% endif %}
     <div class="text">{{comment.html}}</div>
   </div>
