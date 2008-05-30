@@ -683,10 +683,18 @@ def changes(request):
 #------------------------------------------------------------------------------
 
 class SearchForm(forms.Form):
+    _choices = [('any', 'Anything'),
+                ('wiki', 'Wiki page'),
+                ('module', 'Module'),
+                ('class', 'Class'),
+                ('callable', 'Callable'),
+                ('object', 'Object')]
     fulltext = forms.CharField(required=False,
             help_text="Use % as a wild characted; as in an SQL LIKE search")
     invert = forms.BooleanField(required=False,
             help_text="Find non-matching items")
+    type_ = forms.CharField(widget=forms.Select(choices=_choices),
+                            label="Item type")
 
 def search(request):
     docstring_results = []
@@ -698,10 +706,12 @@ def search(request):
             data = form.clean_data
             if data['fulltext'] != '':
                 data['fulltext'] = '%%%s%%' % data['fulltext']
-            docstring_results = Docstring.fulltext_search(data['fulltext'],
-                                                          data['invert'])
-            wiki_results = WikiPage.fulltext_search(data['fulltext'],
-                                                    data['invert'])
+            if data['type_'] != 'wiki':
+                docstring_results = Docstring.fulltext_search(
+                    data['fulltext'], data['invert'], data['type_'])
+            if data['type_'] in ('any', 'wiki'):
+                wiki_results = WikiPage.fulltext_search(data['fulltext'],
+                                                        data['invert'])
     else:
         form = SearchForm()
     

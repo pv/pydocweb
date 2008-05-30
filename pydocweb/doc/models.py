@@ -289,7 +289,7 @@ class Docstring(models.Model):
         return "<Docstring '%s'>" % self.name
 
     @classmethod
-    def fulltext_search(cls, s, invert=False):
+    def fulltext_search(cls, s, invert=False, obj_type=None):
         """
         Fulltext search using an SQL LIKE clause
         
@@ -303,19 +303,23 @@ class Docstring(models.Model):
             not_ = "NOT"
         else:
             not_ = ""
+        if obj_type in ('module', 'class', 'callable', 'object'):
+            where_ = "type_ = '%s' AND" % obj_type
+        else:
+            where_ = ""
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
         SELECT d.name FROM doc_docstring AS d
         LEFT JOIN doc_docstringrevision AS r WHERE d.name = r.docstring_id
-        GROUP BY d.name HAVING %s (d.name LIKE %%s OR r.text LIKE %%s)
-        """ % (not_,), [s, s])
+        GROUP BY d.name HAVING %s %s (d.name LIKE %%s OR r.text LIKE %%s)
+        """ % (where_, not_,), [s, s])
         res =  cursor.fetchall()
         cursor.execute("""\
         SELECT name FROM doc_docstring
         WHERE name NOT IN (SELECT docstring_id FROM doc_docstringrevision)
-        AND %s (name LIKE %%s OR source_doc LIKE %%s)
-        """ % (not_,), [s, s])
+        AND %s %s (name LIKE %%s OR source_doc LIKE %%s)
+        """ % (where_, not_,), [s, s])
         return res + cursor.fetchall()
 
 class DocstringRevision(models.Model):
