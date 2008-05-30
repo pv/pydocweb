@@ -495,7 +495,7 @@ def patch(request):
     return render_template(request, "patch.html",
                            dict(changed=docs))
 
-@permission_required('doc.edit_docstring')
+@permission_required('doc.change_docstring')
 def merge(request):
     """
     Review current merge status
