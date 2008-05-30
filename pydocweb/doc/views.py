@@ -219,6 +219,7 @@ def docstring(request, name):
     for comment in doc.comments.all():
         comments.append(dict(
             id=comment.id,
+            resolved=comment.resolved,
             author=author_map.get(comment.author, comment.author),
             author_username=comment.author,
             timestamp=comment.timestamp,
@@ -353,6 +354,16 @@ def comment_edit(request, name, comment_id):
                                             preview_html=preview))
             elif request.POST.get('button_delete') and comment is not None:
                 comment.delete()
+                return HttpResponseRedirect(reverse(docstring, args=[name])
+                                            + "#discussion-sec")
+            elif request.POST.get('button_resolved') and comment is not None:
+                comment.resolved = True
+                comment.save()
+                return HttpResponseRedirect(reverse(docstring, args=[name])
+                                            + "#discussion-sec")
+            elif request.POST.get('button_not_resolved') and comment is not None:
+                comment.resolved = False
+                comment.save()
                 return HttpResponseRedirect(reverse(docstring, args=[name])
                                             + "#discussion-sec")
             else:
@@ -634,8 +645,8 @@ def register(request):
                            dict(form=form, message=message))
 
 def changes(request):
-    docrevs = DocstringRevision.objects.order_by('-timestamp')
-    pagerevs = WikiPageRevision.objects.order_by('-timestamp')
+    docrevs = DocstringRevision.objects.order_by('-timestamp')[:100]
+    pagerevs = WikiPageRevision.objects.order_by('-timestamp')[:100]
     comments = ReviewComment.objects.order_by('-timestamp')
 
     author_map = _get_author_map()
@@ -658,6 +669,7 @@ def changes(request):
              author=author_map.get(r.author, r.author),
              comment=r.text[:80],
              name=r.docstring.name,
+             resolved=r.resolved,
              revno=r.id)
         for r in comments]
 

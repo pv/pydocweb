@@ -5,10 +5,11 @@
 
 {% block content %}
 
-<h2>Comments</h2>
-<table>
+<h2>Comments (all)</h2>
+<a href="" id="show-resolved" onclick="toggle_resolved(); return false;">Show resolved</a>
+<table id='comments'>
   {% for c in comment_changes %}
-  <tr>
+  <tr class="{% if c.resolved %}resolved{% endif %}">
     <td>{{c.timestamp|escape}}</td>
     <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion-sec">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
@@ -17,7 +18,7 @@
   {% endfor %}
 </table>
 
-<h2>Docstrings</h2>
+<h2>Docstrings (100 most recent)</h2>
 <table>
   {% for c in docstring_changes %}
   <tr>
@@ -29,7 +30,7 @@
   {% endfor %}
 </table>
 
-<h2>Wiki</h2>
+<h2>Wiki (100 most recent)</h2>
 <table>
   {% for c in wiki_changes %}
   <tr>
@@ -41,4 +42,23 @@
   {% endfor %}
 </table>
 
+{% endblock %}
+
+
+
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+function toggle_resolved() {
+    var el = $("#show-resolved");
+    if (el.length > 0) {
+        $("#show-resolved").attr('id', 'hide-resolved').text('Hide resolved');
+    } else {
+        $("#hide-resolved").attr('id', 'show-resolved').text('Show resolved');
+    }
+    $(".resolved").toggle();
+}
+</script>
 {% endblock %}

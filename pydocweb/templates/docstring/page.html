@@ -37,8 +37,9 @@
 {% block discussion %}
 <div id="comments">
   <h1><a id="discussion-sec"/>Discussion</h1>
+  <a href="" id="show-resolved" onclick="toggle_resolved(); return false;">Show resolved</a>
   {% for comment in comments %}
-  <div class="comment">
+  <div class="comment{% if comment.resolved %} resolved{% endif %}">
     <div class="author">
       <span class="timestamp">{{comment.timestamp|escape}}</span>
       <span class="author">{{comment.author|escape}}</span>
@@ -49,13 +50,30 @@
       <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="GET">
 	<input type=submit value="Edit"/>
       </form>
-      
+      {% if comment.resolved %}
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
+	<input type=submit name="button_not_resolved" value="Not resolved" />
+      </form>
+      {% else %}
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
+	<input type=submit name="button_resolved" value="Resolved" />
+      </form>
+      {% endif %}
       <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
 	<input type=submit name="button_delete" value="Delete" />
       </form>
     </div>
     {% else %}{% if perms.doc.can_review %}
     <div class="edit-tools">
+      {% if comment.resolved %}
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
+	<input type=submit name="button_not_resolved" value="Not resolved" />
+      </form>
+      {% else %}
+      <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
+	<input type=submit name="button_resolved" value="Resolved" />
+      </form>
+      {% endif %}
       <form action="{% url pydocweb.doc.views.comment_edit name,comment.id %}" method="POST">
 	<input type=submit name="button_delete" value="Delete" />
       </form>
@@ -158,4 +176,22 @@
 
 {% endblock %}
 
+{% endblock %}
+
+
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+function toggle_resolved() {
+    var el = $("#show-resolved");
+    if (el.length > 0) {
+        $("#show-resolved").attr('id', 'hide-resolved').text('Hide resolved');
+    } else {
+        $("#hide-resolved").attr('id', 'show-resolved').text('Show resolved');
+    }
+    $(".resolved").toggle();
+}
+</script>
 {% endblock %}

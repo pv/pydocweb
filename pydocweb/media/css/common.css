@@ -351,6 +351,15 @@ dl dt {
   padding: 0;
   margin-bottom: 1ex;
 }
+#comments #show-resolved { 
+  float: right;
+}
+#comments #hide-resolved { 
+  float: right;
+}
+#comments .resolved { 
+  display: none;
+}
 .comment div.author { 
   margin: 0;
   border-bottom: dashed thin #ccc;

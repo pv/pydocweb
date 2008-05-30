@@ -413,7 +413,9 @@ class ReviewComment(models.Model):
     text      = models.TextField()
     author    = models.CharField(maxlength=256)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
-
+    
+    resolved  = models.BooleanField(default=False)
+    
     class Meta:
         get_latest_by = "timestamp"
         ordering = ['timestamp']
