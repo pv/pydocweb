@@ -7,7 +7,7 @@
 
 <h2>Comments (all)</h2>
 <a href="" id="show-resolved" onclick="toggle_resolved(); return false;">Show resolved</a>
-<table id='comments'>
+<table id="comments" class="changes">
   {% for c in comment_changes %}
   <tr class="{% if c.resolved %}resolved{% endif %}">
     <td>{{c.timestamp|escape}}</td>
@@ -19,7 +19,7 @@
 </table>
 
 <h2>Docstrings (100 most recent)</h2>
-<table>
+<table class="changes">
   {% for c in docstring_changes %}
   <tr>
     <td>{{c.timestamp|escape}}</td>
@@ -31,7 +31,7 @@
 </table>
 
 <h2>Wiki (100 most recent)</h2>
-<table>
+<table class="changes">
   {% for c in wiki_changes %}
   <tr>
     <td>{{c.timestamp|escape}}</td>

@@ -558,3 +558,11 @@ table.footnote tr {
   margin-left: 10em;
   border: solid 1px #cdc;
 }
+
+/*
+ * Changes
+ */
+.changes td {
+    white-space: nowrap;
+}
+
