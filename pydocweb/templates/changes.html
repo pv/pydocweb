@@ -5,24 +5,24 @@
 
 {% block content %}
 
-<h2>Docstrings</h2>
-<table>
-  {% for c in docstring_changes %}
-  <tr>
-    <td>{{c.timestamp|escape}}</td>
-    <td><a href="{% url pydocweb.doc.views.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
-    <td>{{c.author|escape}}</td>
-    <td>{{c.comment|escape}}</td>
-  </tr>
-  {% endfor %}
-</table>
-
 <h2>Comments</h2>
 <table>
   {% for c in comment_changes %}
   <tr>
     <td>{{c.timestamp|escape}}</td>
     <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion-sec">{{c.name|escape}}</a></td>
+    <td>{{c.author|escape}}</td>
+    <td>{{c.comment|escape}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Docstrings</h2>
+<table>
+  {% for c in docstring_changes %}
+  <tr>
+    <td>{{c.timestamp|escape}}</td>
+    <td><a href="{% url pydocweb.doc.views.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
   </tr>
