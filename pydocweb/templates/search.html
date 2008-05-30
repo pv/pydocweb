@@ -56,12 +56,12 @@
 function submit_no_examples() {
     $("#id_fulltext").attr("value", "%Examples%");
     $("#id_invert").attr("checked", 1);
-    $("#id_search").click()
+    $("#id_search").click();
 }
-function check_all() {
+function submit_no_docs() {
     $("#id_fulltext").attr("value", "");
     $("#id_invert").removeAttr("checked");
-    $("#id_search").click()
+    $("#id_search").click();
 }
 </script>
 {% endblock %}
