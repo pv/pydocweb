@@ -8,13 +8,44 @@
 <a href="{% url django.contrib.admin.views.main.index %}">Enter the admin site</a>
 
 <h2>Update docstrings</h2>
-
-<p>
-<b>Warning:</b> updating docstrings can take several minutes.
-</p>
-
+<p><b>Warning:</b> updating docstrings can take several minutes.</p>
 <form action="{% url pydocweb.doc.views.control %}" method="post">
 <input type="submit" name="update-docstrings" value="Update docstrings" />
 </form>
+
+<h2>User summary</h2>
+<table>
+  <tr>
+    <th>Username</th>
+    <th>Real name</th>
+    <th>Email</th>
+    <th>Groups</th>
+    <th>Registration date</th>
+  </tr>
+  {% for usr in users %}
+  <tr>
+    <td>
+      {{usr.username|escape}}
+      {% if not usr.is_active %}
+        (inactive)
+      {% endif %}
+      {% if usr.is_superuser %}
+        (superuser)
+      {% endif %}
+      {% if usr.is_staff %}
+        (staff)
+      {% endif %}
+    </td>
+    <td>{{usr.get_full_name|escape}}</td>
+    <td>{{usr.email|escape}}</td>
+    <td>
+      {% for group in usr.groups.all %}
+        {{group.name|escape}}{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    </td>
+    <td>{{usr.date_joined|escape}}</td>
+  </tr>
+  {% endfor %}
+</table>
 
 {% endblock %}

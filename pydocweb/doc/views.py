@@ -519,7 +519,7 @@ def control(request):
             update_docstrings()
 
     return render_template(request, 'control.html',
-                           dict())
+                           dict(users=User.objects.all()))
 
 #------------------------------------------------------------------------------
 # User management
