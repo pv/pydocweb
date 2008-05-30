@@ -51,7 +51,7 @@ def wiki(request, name):
 
 class EditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30,
-                                                            wrap='hard')),
+                                                            wrap='off')),
                            required=False)
     comment = forms.CharField(required=False)
 
