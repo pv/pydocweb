@@ -414,7 +414,7 @@ def log(request, name):
         id="SVN",
         author="",
         comment="",
-        timestamp="SVN",
+        timestamp=None,
     ))
 
     return render_template(request, 'docstring/log.html',

@@ -10,7 +10,7 @@
 <table id="comments" class="changes">
   {% for c in comment_changes %}
   <tr class="{% if c.resolved %}resolved{% endif %}">
-    <td>{{c.timestamp|escape}}</td>
+    <td>{{c.timestamp|date:"Y-m-d H:i:s"}}</td>
     <td><a href="{% url pydocweb.doc.views.docstring c.name %}#discussion-sec">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
@@ -22,7 +22,7 @@
 <table class="changes">
   {% for c in docstring_changes %}
   <tr>
-    <td>{{c.timestamp|escape}}</td>
+    <td>{{c.timestamp|date:"Y-m-d H:i:s"}}</td>
     <td><a href="{% url pydocweb.doc.views.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
@@ -34,7 +34,7 @@
 <table class="changes">
   {% for c in wiki_changes %}
   <tr>
-    <td>{{c.timestamp|escape}}</td>
+    <td>{{c.timestamp|date:"Y-m-d H:i:s"}}</td>
     <td><a href="{% url pydocweb.doc.views.diff_wiki_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
