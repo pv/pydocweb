@@ -237,6 +237,7 @@ def docstring(request, name):
                   body_html=body,
                   file_name=strip_svn_dir_prefix(doc.file_name),
                   line_number=doc.line_number,
+                  revision=revision,
                   )
     
     if revision is None and doc.merge_status == MERGE_CONFLICT:
