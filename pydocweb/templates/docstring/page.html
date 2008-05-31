@@ -41,7 +41,7 @@
   {% for comment in comments %}
   <div class="comment{% if comment.resolved %} resolved{% endif %}">
     <div class="author">
-      <span class="timestamp">{{comment.timestamp|escape}}</span>
+      <span class="timestamp">{{comment.timestamp|date:"Y-m-d H:i:s"}}</span>
       <span class="author">{{comment.author|escape}}</span>
     </div>
     {% if perms.doc.change_reviewcomment %}
