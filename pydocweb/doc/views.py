@@ -246,8 +246,8 @@ def docstring(request, name):
         params['merge_html'] = cgi.escape(conflict)
         return render_template(request, 'docstring/merge.html', params)
     elif revision is None and doc.merge_status == MERGE_MERGE:
-        merge_html = html_diff_text(doc.revisions.all()[1].text,
-                                    doc.revisions.all()[0].text)
+        merged = doc.get_merge()
+        merge_html = html_diff_text(doc.revisions.all()[0].text, merged)
         params['merge_html'] = merge_html
         return render_template(request, 'docstring/merge.html', params)
     else:
@@ -302,12 +302,13 @@ def edit(request, name):
 
         if revision is not None:
             data['comment'] = "Reverted"
-
+        if revision is None and doc.merge_status != MERGE_NONE:
+            data['text'] = doc.get_merge()
+            data['comment'] = "Merged"
+        
         form = EditForm(initial=data)
 
     if revision is None and doc.merge_status != MERGE_NONE:
-        if data['text'] == doc.text:
-            data['text'] = doc.get_merge()
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
                                     merge_warning=(doc.merge_status==MERGE_MERGE),

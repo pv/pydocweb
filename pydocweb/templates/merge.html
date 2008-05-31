@@ -16,7 +16,7 @@
 <p>No conflicts</p>
 {% endif %}
 
-<h2>Merged</h2>
+<h2>Merges</h2>
 {% if merged %}
 <form action="{% url pydocweb.doc.views.merge %}" method="post">
 <input type="submit" value="Accept merges" />
@@ -30,7 +30,7 @@
 </ul>
 </form>
 {% else %}
-<p>Nothing merged</p>
+<p>Nothing to merge</p>
 {% endif %}
 
 <div id='help'>

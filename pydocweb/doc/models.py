@@ -183,7 +183,7 @@ class Docstring(models.Model):
             self.base_doc = self.source_doc
             self.save()
             return None
-        
+
         result, conflicts = merge_3way(
             strip_spurious_whitespace(self.text) + "\n",
             strip_spurious_whitespace(self.base_doc) + "\n",
@@ -731,6 +731,8 @@ def merge_3way(mine, base, other):
     out, err = p.communicate()
     if p.returncode != 0:
         return out, True
+    else:
+        return out, False
 
 def diff_text(text_a, text_b, label_a="previous", label_b="current"):
     lines_a = text_a.splitlines(1)
