@@ -15,6 +15,7 @@
       <span style='width: 2em' />
       <a href="" onclick="submit_no_examples(); return false;">No examples</a>
       <a href="" onclick="submit_no_docs(); return false;">No documentation</a>
+      <a href="" onclick="submit_all_wiki_pages(); return false;">All wiki pages</a>
   </ul>
 </form>
 
@@ -53,14 +54,29 @@
 {% block extra_headers %}
 {{block.super}}
 <script>
+function select_type(value) {
+    $("#id_type_ option").removeAttr('selected');
+    $("#id_type_ option[value=" + value + "]").attr('selected', 1);
+}
+function get_type() {
+    return $("#id_type_ option[selected]").attr('value');
+}
 function submit_no_examples() {
     $("#id_fulltext").attr("value", "%Examples%");
     $("#id_invert").attr("checked", 1);
+    if (get_type() == 'wiki') { select_type('any'); }
     $("#id_search").click();
 }
 function submit_no_docs() {
     $("#id_fulltext").attr("value", "");
     $("#id_invert").removeAttr("checked");
+    if (get_type() == 'wiki') { select_type('any'); }
+    $("#id_search").click();
+}
+function submit_all_wiki_pages() {
+    $("#id_fulltext").attr("value", "%");
+    $("#id_invert").removeAttr("checked");
+    select_type('wiki');
     $("#id_search").click();
 }
 </script>
