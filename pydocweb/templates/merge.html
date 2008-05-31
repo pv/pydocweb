@@ -5,6 +5,16 @@
 {% block pagetitle %}Merge{% endblock %}
 
 {% block content %}
+
+{% if errors %}
+<h2>Errors:</h2>
+<ul>
+  {% for err in errors %}
+  <li><pre>{{err|escape}}</pre></li>
+  {% endfor %}
+</ul>
+{% endif %}
+
 <h2>Conflicts</h2>
 {% if conflicts %}
 <ul>

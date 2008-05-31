@@ -13,6 +13,8 @@
   revisions. You must go to the
   <a href="{% url pydocweb.doc.views.merge %}">merge page</a>
   and check the merges listed there manually after pulling.</p>
+<p><b>Note 2:</b> Pulling docstrings from SVN is idempotent. 
+  You don't need to resolve merges before pulling again.</p>
 <form action="{% url pydocweb.doc.views.control %}" method="post">
 <input type="submit" name="update-docstrings" value="Pull from SVN" />
 </form>

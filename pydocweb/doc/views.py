@@ -290,7 +290,7 @@ def edit(request, name):
                              request.user.username,
                              data['comment'])
                     return HttpResponseRedirect(reverse(docstring, args=[name]))
-                except RuntimeError:
+                except RuntimeError, e:
                     pass
     else:
         try:
@@ -520,17 +520,22 @@ def merge(request):
     """
     Review current merge status
     """
+    errors = []
     if request.method == 'POST':
         ok = request.POST.keys()
         for obj in Docstring.objects.filter(merge_status=MERGE_MERGE,
                                             name__in=ok):
-            obj.automatic_merge(author=request.user.username)
+            try:
+                obj.automatic_merge(author=request.user.username)
+            except RuntimeError, e:
+                errors.append("%s: %s" % (obj.name, str(e)))
     
     conflicts = Docstring.objects.filter(merge_status=MERGE_CONFLICT)
     merged = Docstring.objects.filter(merge_status=MERGE_MERGE)
 
     return render_template(request, 'merge.html',
-                           dict(conflicts=conflicts, merged=merged))
+                           dict(conflicts=conflicts, merged=merged,
+                                errors=errors))
 
 @permission_required('doc.can_update_from_source')
 def control(request):

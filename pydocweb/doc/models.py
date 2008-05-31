@@ -204,9 +204,6 @@ class Docstring(models.Model):
             result = self.get_merge()
             if self.merge_status == MERGE_MERGE:
                 self.edit(result, author, 'Merged')
-                self.merge_status = MERGE_NONE
-                self.base_doc = self.source_doc
-                self.save()
     
     def get_rev_text(self, revno):
         """Get text in given revision of the docstring.
