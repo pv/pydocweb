@@ -34,7 +34,7 @@ Bidirectional conversion of ReST-formatted docstrings and Moinmoin wiki pages.
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
-import os, shutil, copy, glob, subprocess
+import os, shutil, copy, glob, subprocess, re
 import sys, cgi, math, pkgutil, cPickle as pickle
 import inspect, imp, textwrap, re, pydoc, compiler, difflib
 from optparse import make_option, OptionParser
@@ -460,15 +460,12 @@ def cmd_numpy_docs(args):
     function calls.
     """
     options_list = [
-        make_option("-m", "--module", action="append", dest="modules",
-                    help="modules to look in (default: numpy.add_newdocs)")
+        make_option("-f", "--file", action="append", dest="files",
+                    help="files to look in")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
                                       infile=True, outfile=True, nargs=0,
                                       syspath=True)
-
-    if not opts.modules:
-        opts.modules = ["numpy.add_newdocs"]
     
     new_info = {}
     
@@ -488,16 +485,22 @@ def cmd_numpy_docs(args):
                 else:
                     line = stmt.expr.lineno
                 new_info[name] = (file_name, line)
-
-    for module_name in opts.modules:
-        module = __import__(module_name, {}, {}, [''])
-        ast_parse_file(inspect.getsourcefile(module),
-                       inspect.getsource(module))
-
+    
+    for file_name in opts.files:
+        ast_parse_file(file_name, open(file_name, 'r').read())
+    
     doc = Documentation.load(opts.infile)
     for name, (file, line) in new_info.iteritems():
         el = doc.resolve(name)
         if el is not None:
+            if el.attrib['type'] == 'numpy.ufunc':
+                # Special case for ufuncs: signature is generated
+                # automatically, so remove it from the docstring.
+                text = el.text.decode('string-escape')
+                m = re.match(r"^(.*?\))\s+(.*)$", text, re.S)
+                if m:
+                    el.attrib['argspec'] = m.group(1)
+                    el.text = escape_text(m.group(2).strip())
             el.attrib['file'] = file
             el.attrib['line'] = str(line)
             el.attrib['is-addnewdoc'] = '1'
