@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load docstring %}
 
 {% block title %}Account registered{% endblock %}
 {% block pagetitle %}Account registered{% endblock %}
@@ -7,6 +8,6 @@
 
 <p>Account {{username|escape}} registered.</p>
 
-<p><b>To get edit permissions, contact the administrators.</b></p>
+{% help_page "Help Registration Done" %}
 
 {% endblock %}
