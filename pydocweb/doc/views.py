@@ -310,7 +310,7 @@ def edit(request, name):
             data['text'] = doc.get_merge()
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
-                                    merge_warning=(doc.merge_status==MERGE_MERGE)
+                                    merge_warning=(doc.merge_status==MERGE_MERGE),
                                     conflict_warning=(doc.merge_status==MERGE_CONFLICT),
                                     preview_html=None))
     else:
