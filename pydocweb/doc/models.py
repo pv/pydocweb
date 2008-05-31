@@ -621,8 +621,9 @@ def regenerate_base_xml():
     cmds.append([settings.PYDOCMOIN, 'prune'])
     try:
         cmds.append([settings.PYDOCMOIN, 'numpy-docs', '-s', _site_path()])
-        for mod in settings.ADDNEWDOCS_MODULES:
-            cmds[-1] += ['-m', mod]
+        for fn in settings.ADDNEWDOCS_FILES:
+            if os.path.isfile(fn):
+                cmds[-1] += ['-f', fn]
     except KeyError:
         pass
 

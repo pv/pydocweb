@@ -10,7 +10,10 @@ ADMINS = (
 SVN_DIRS = ("/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
             )#"/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/scipy")
 MODULES = ("numpy",)# "scipy")
-ADDNEWDOCS_MODULES = ("numpy.add_newdocs",)
+ADDNEWDOCS_FILES = (
+    SVN_DIRS[0] + "/numpy/add_newdocs.py",
+    SVN_DIRS[0] + "/numpy/core/code_generation/docstrings.py",
+)
 PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
 
 MAX_DOCSTRING_WIDTH = 79
