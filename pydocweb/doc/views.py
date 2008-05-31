@@ -53,7 +53,7 @@ class EditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30,
                                                             wrap='off')),
                            required=False)
-    comment = forms.CharField(required=False)
+    comment = forms.CharField(required=True)
 
     def clean(self):
         # fix CRLF -> LF
