@@ -7,24 +7,24 @@
   <p>Merge conflict with SVN.  You need to correct this by 
     editing the docstring.</p>
   {% else %}
-  <p>This docstring has been merged automatically with SVN.
+  <p>This docstring can be automatically merged with SVN.
   <form action="{% url pydocweb.doc.views.merge name %}" method="post">
     <input type=hidden name="{{name|escape}}" value="1" />
-    <input type=submit value="Accept" />
+    <input type=submit value="Accept merge" />
   </form>
   </p>
   {% endifequal %}
 </div>
 
+<h3>Merge changes</h3>
 <div id="merge-info">
   <pre>{{merge_html}}</pre>
 </div>
 
-<div id="docstring">
+<h3>Current docstring</h3>
+<div id="document">
   {{body_html}}
 </div>
-<a href="{% url pydocweb.doc.views.edit name %}">Edit</a>
-<a href="{% url pydocweb.doc.views.log name %}">Log</a>
 
 <div id='help'>
   <h2>Help</h2>

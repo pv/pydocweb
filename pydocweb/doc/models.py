@@ -16,7 +16,7 @@ REVIEW_PROOFED_OLD = 4
 REVIEW_PROOFED = 5
 
 MERGE_NONE = 0
-MERGE_MERGED = 1
+MERGE_MERGE = 1
 MERGE_CONFLICT = 2
 
 REVIEW_STATUS_NAMES = ['Not reviewed',
@@ -155,14 +155,15 @@ class Docstring(models.Model):
                                 comment=comment)
         rev.save()
 
-    def merge(self):
+    def get_merge(self):
         """
-        Perform a 3-way merge from source_doc to a new revision.
-
+        Return a 3-way merged docstring, or None if no merge is necessary.
+        Updates the merge status of the docstring.
+        
         Returns
         -------
         result : {None, str}
-            None if successful, else return string containing conflicts.
+            None if no merge is needed, else return the merge result.
         
         """
         if self.base_doc == self.source_doc:
@@ -175,36 +176,38 @@ class Docstring(models.Model):
             self.base_doc = self.source_doc
             self.save()
             return None
-
+        
         if self.text == self.source_doc:
             # Local text agrees with SVN source, no merge needed
-            self.merge_status = MERGE_MERGED
+            self.merge_status = MERGE_NONE
+            self.base_doc = self.source_doc
             self.save()
             return None
         
         result, conflicts = merge_3way(
-            strip_spurious_whitespace(self.text),
-            strip_spurious_whitespace(self.base_doc),
-            strip_spurious_whitespace(self.source_doc))
+            strip_spurious_whitespace(self.text) + "\n",
+            strip_spurious_whitespace(self.base_doc) + "\n",
+            strip_spurious_whitespace(self.source_doc) + "\n")
         result = strip_spurious_whitespace(result)
         if not conflicts:
-            self.edit(result, 'Bot', 'Automated merge')
-            self.merge_status = MERGE_MERGED
-            self.save()
-            return None
+            self.merge_status = MERGE_MERGE
         else:
             self.merge_status = MERGE_CONFLICT
-            self.save()
-            return result
+        self.save()
+        return result
 
-    def mark_merge_ok(self):
-        """Mark merge as successful"""
+    def automatic_merge(self, author):
+        """Perform an automatic merge"""
         if self.merge_status == MERGE_CONFLICT:
             raise RuntimeError("Merge conflict must be resolved")
-        self.merge_status = MERGE_NONE
-        self.base_doc = self.source_doc
-        self.save()
-
+        elif self.merge_status == MERGE_MERGE:
+            result = self.get_merge()
+            if self.merge_status == MERGE_MERGE:
+                self.edit(result, author, 'Merged')
+                self.merge_status = MERGE_NONE
+                self.base_doc = self.source_doc
+                self.save()
+    
     def get_rev_text(self, revno):
         """Get text in given revision of the docstring.
 
@@ -498,7 +501,7 @@ def _update_docstrings_from_xml(stream):
             # Source has changed, try to merge from base
             doc.source_doc = docstring
             doc.save()
-            doc.merge()
+            doc.get_merge() # update merge status
         
         doc.contents.all().delete()
         doc.save()

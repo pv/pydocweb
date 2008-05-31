@@ -241,14 +241,14 @@ def docstring(request, name):
                   )
     
     if revision is None and doc.merge_status == MERGE_CONFLICT:
-        conflict = doc.merge()
+        conflict = doc.get_merge()
         params['merge_type'] = 'conflict'
-        params['merge_text'] = conflict
+        params['merge_html'] = cgi.escape(conflict)
         return render_template(request, 'docstring/merge.html', params)
-    elif revision is None and doc.merge_status == MERGE_MERGED:
-        merge_text = html_diff_text(doc.revisions.all()[1].text,
+    elif revision is None and doc.merge_status == MERGE_MERGE:
+        merge_html = html_diff_text(doc.revisions.all()[1].text,
                                     doc.revisions.all()[0].text)
-        params['merge_text'] = merge_text
+        params['merge_html'] = merge_html
         return render_template(request, 'docstring/merge.html', params)
     else:
         return render_template(request, 'docstring/page.html', params)
@@ -305,12 +305,14 @@ def edit(request, name):
 
         form = EditForm(initial=data)
 
-    if revision is None and doc.merge_status == MERGE_CONFLICT:
+    if revision is None and doc.merge_status != MERGE_NONE:
         if data['text'] == doc.text:
-            data['text'] = doc.merge()
+            data['text'] = doc.get_merge()
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
-                                    conflict_warning=True, preview_html=None))
+                                    merge_warning=(doc.merge_status==MERGE_MERGE)
+                                    conflict_warning=(doc.merge_status==MERGE_CONFLICT),
+                                    preview_html=None))
     else:
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
@@ -519,12 +521,12 @@ def merge(request):
     """
     if request.method == 'POST':
         ok = request.POST.keys()
-        for obj in Docstring.objects.filter(merge_status=MERGE_MERGED,
+        for obj in Docstring.objects.filter(merge_status=MERGE_MERGE,
                                             name__in=ok):
-            obj.mark_merge_ok()
+            obj.automatic_merge(author=request.user.username)
     
     conflicts = Docstring.objects.filter(merge_status=MERGE_CONFLICT)
-    merged = Docstring.objects.filter(merge_status=MERGE_MERGED)
+    merged = Docstring.objects.filter(merge_status=MERGE_MERGE)
 
     return render_template(request, 'merge.html',
                            dict(conflicts=conflicts, merged=merged))
