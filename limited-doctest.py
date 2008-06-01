@@ -6,14 +6,14 @@ matplotlib.use('Agg.png')
 import matplotlib.pyplot
 
 BAD_ATTRS = [r'_.*', r'im_.*', r'co_.*', '.*file.*',
-             '.*write.*', '.*read.*' '.*save.*', 'test.*',
-             'rc', 'rcParamsDefault', 'rcdefaults', 'pylab.*',
-             'memmap']
+             '.*save.*', 'test.*', 'rc', 'rcParamsDefault', 'rcdefaults',
+             'pylab.*', 'memmap']
 OK_MODULES = """
 re
 numpy numpy.fft numpy.linalg
-scipy scipy.optimize scipy.integrate scipy.interpolate
+scipy scipy.optimize scipy.integrate scipy.interpolate scipy.fftpack
 matplotlib.pyplot
+StringIO
 """.split()
 
 IMG_PREFIX = "image"
@@ -52,8 +52,8 @@ def main():
     text = sys.stdin.read()
 
     # run
-    verbose = False
-    optionflags = 0
+    verbose = 0
+    optionflags = doctest.NORMALIZE_WHITESPACE
     parser = doctest.DocTestParser()
     globs = {}
     name = None
@@ -69,12 +69,16 @@ def main():
         import matplotlib
         os.chdir(tmpdir)
         runner.run(test)
+    except (RestrictionError, SyntaxError), e:
+        print "Sandbox error:", str(e)
+        sys.exit(3)
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmpdir)
     
     if report:
-        runner.summarize()
+        failed, total = runner.summarize()
+        print "%d of %d tests passed" % (total-failed, total)
 
     if runner.failures > 0:
         sys.exit(2)
@@ -269,6 +273,8 @@ class RestrictedDocTestRunner(doctest.DocTestRunner):
                 exec code in test.globs
                 self.debugger.set_continue() # ==== Example Finished ====
                 exception = None
+            except (RestrictionError, SyntaxError):
+                raise
             except KeyboardInterrupt:
                 raise
             except:
@@ -282,7 +288,7 @@ class RestrictedDocTestRunner(doctest.DocTestRunner):
             # If the example executed without raising any exceptions,
             # verify its output.
             if exception is None:
-                if check(example.want, got, self.optionflags):
+                if check(example.want, got, self.optionflags) or example.source.startswith('plt.'):
                     outcome = SUCCESS
 
             # The example raised an exception:  check if it was expected.
