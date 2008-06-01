@@ -13,6 +13,7 @@ urlpatterns = patterns(
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/comment/(?P<comment_id>\w+)/$', 'comment_edit'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/review/$', 'review'), 
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/log/$', 'log'),
+    (r'^doc/(?P<name>[a-zA-Z0-9._]+)/doctest/$', 'doctest'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/diff/(?P<rev1>\w+)/(?P<rev2>\w+)/$', 'diff'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/diff/(?P<rev2>\w+)/$', 'diff_prev'),
     (r'^doc/(?P<name>[a-zA-Z0-9._]+)/$', 'docstring'),

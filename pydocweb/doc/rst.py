@@ -1,5 +1,5 @@
 # Portions copied from MoinMoin's RST parser
-import cgi
+import cgi, os
 
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -16,18 +16,23 @@ import docutils.writers.html4css1
 import docutils.parsers.rst.roles
 import re
 
+CURRENT_IMAGE_PREFIX = ""
+
 class RstWriter(docutils.writers.html4css1.Writer):
     config_section = 'Rst Writer'
     config_section_dependencies = ('writers',)
     
     output = None
     
-    def __init__(self, resolve_to_wiki, resolve_prefixes=[]):
+    def __init__(self, resolve_to_wiki, resolve_prefixes=[], image_prefix=""):
+        global CURRENT_IMAGE_PREFIX
         docutils.writers.html4css1.Writer.__init__(self)
         self.unknown_reference_resolvers = [self.resolver]
         self.nodes = []
         self.resolve_to_wiki = resolve_to_wiki
         self.resolve_prefixes = resolve_prefixes
+        self.image_prefix = image_prefix
+        CURRENT_IMAGE_PREFIX = image_prefix
     
     def resolver(self, node):
         """
@@ -67,14 +72,16 @@ class RstWriter(docutils.writers.html4css1.Writer):
             raise ValueError()
     
     resolver.priority = 001
-
-def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
+    
+def render_html(text, image_prefix="",
+                resolve_to_wiki=True, resolve_prefixes=[]):
     # Fix Django clobbering
     docutils.parsers.rst.roles.DEFAULT_INTERPRETED_ROLE = 'title-reference'
     parts = docutils.core.publish_parts(
         text,
         writer=RstWriter(resolve_to_wiki=resolve_to_wiki,
-                         resolve_prefixes=resolve_prefixes),
+                         resolve_prefixes=resolve_prefixes,
+                         image_prefix=image_prefix),
         settings_overrides = dict(halt_level=5,
                                   traceback=True,
                                   file_insertion_enabled=0,
@@ -134,6 +141,7 @@ def render_docstring_html(doc, text):
 
     # Docstring body
     body_html = render_html(str(docstring),
+                            image_prefix=doc.name + "-",
                             resolve_to_wiki=False,
                             resolve_prefixes=prefixes)
 
@@ -170,6 +178,37 @@ index_directive.options = {}
 index_directive.content = True # whether content is allowed
 
 docutils.parsers.rst.directives.register_directive('index', index_directive)
+
+
+#------------------------------------------------------------------------------
+# Image
+#------------------------------------------------------------------------------
+
+def image_directive(name, arguments, options, content, lineno,
+                    content_offset, block_text, state, state_machine):
+    fn = CURRENT_IMAGE_PREFIX + os.path.basename('\n'.join(content).strip())
+    if os.path.isfile(settings.IMAGE_ROOT + fn):
+        uri = settings.IMAGE_URL + fn
+        return [docutils.nodes.image("", uri=uri)]
+    else:
+        return [docutils.nodes.literal_block(text="[IMAGE: %s]" % fn)]
+
+image_directive.arguments = (
+    1, # number of required arguments
+    1, # number of optional arguments
+    False # whether final argument can contain whitespace
+)
+image_directive.options = {
+}
+image_directive.arguments = (
+    0, # number of required arguments
+    0, # number of optional arguments
+    False # whether final argument can contain whitespace
+)
+image_directive.options = {}
+image_directive.content = True # whether content is allowed
+
+docutils.parsers.rst.directives.register_directive('image', image_directive)
 
 
 #------------------------------------------------------------------------------

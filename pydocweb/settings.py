@@ -51,11 +51,13 @@ USE_I18N = True
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = '/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydocweb/media/'
 MATH_ROOT = MEDIA_ROOT + "math/"
+IMAGE_ROOT = MEDIA_ROOT + "images/"
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
 MEDIA_URL = '/site_media'
 MATH_URL = MEDIA_URL + '/math/'
+IMAGE_URL = MEDIA_URL + '/images/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.

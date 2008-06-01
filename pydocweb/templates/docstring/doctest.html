@@ -1,0 +1,14 @@
+{% extends "docstring/base.html" %}
+{% load docstring %}
+
+{% block content %}
+
+<div id='document'>
+  <h2>Doctest results</h2>
+  <pre>{{doctest_output|escape}}</pre>
+  
+  <h2>Doctest code</h2>
+  <pre>{{doctest_code|escape}}</pre>
+</div>
+
+{% endblock %}

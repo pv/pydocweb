@@ -32,6 +32,9 @@
 {% block content %}
 <div id="document">
   {{body_html}}
+  <form action="{% url pydocweb.doc.views.doctest name %}" method="POST">
+    <input type=submit value="Run doctests">
+  </form>
 </div>
 
 {% block discussion %}

@@ -16,6 +16,7 @@ from django import newforms as forms
 
 from pydocweb.doc.models import *
 import rst
+import subprocess
 
 def render_template(request, template, vardict):
     return render_to_response(template, vardict, RequestContext(request))
@@ -472,7 +473,36 @@ def review(request, name):
     else:
         raise Http404()
 
+@permission_required('doc.change_docstring')
+def doctest(request, name):
+    if request.method != 'POST':
+        raise Http404()
     
+    doc = get_object_or_404(Docstring, name=name)
+    
+    RUN_DOCTEST = os.path.join(os.path.dirname(__file__),
+                               'limited-doctest.py')
+
+    cmd = [RUN_DOCTEST,
+           '--image-prefix=%s/%s-out' % (settings.IMAGE_ROOT,
+                                         doc.name),
+           ]
+    doctest_code = doc.text
+    try:
+        p = subprocess.Popen(cmd,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        out, err = p.communicate(doctest_code)
+        doctest_output = (out + "\n" + err).strip()
+    except OSError, e:
+        doctest_output = str(e)
+    
+    return render_template(request, 'docstring/doctest.html',
+                           dict(name=doc.name,
+                                doctest_output=doctest_output,
+                                doctest_code=doctest_code))
+
 #------------------------------------------------------------------------------
 # Sources
 #------------------------------------------------------------------------------
