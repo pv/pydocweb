@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, compiler, doctest, traceback, tempfile, shutil
+import os, sys, compiler, doctest, traceback, tempfile, shutil, resource
 from optparse import OptionParser
 import matplotlib
 matplotlib.use('Agg.png')
@@ -18,6 +18,12 @@ matplotlib.pyplot
 
 IMG_PREFIX = "image"
 IMG_COUNTER = 1
+
+MAX_RUN_TIME = 15 # sec
+os.environ['openin_any'] = 'p' # for Latex (if ran by matplotlib)
+os.environ['openout_any'] = 'p'
+os.environ['shell_escape'] = 'f'
+resource.setrlimit(resource.RLIMIT_CPU, (MAX_RUN_TIME, MAX_RUN_TIME))
 
 def main():
     """
@@ -63,7 +69,6 @@ def main():
         import matplotlib
         os.chdir(tmpdir)
         runner.run(test)
-        print os.listdir('.')
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmpdir)
