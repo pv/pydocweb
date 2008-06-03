@@ -114,11 +114,10 @@ def render_docstring_html(doc, text):
                    "standard</span><p>%s</p></div>" % cgi.escape(str(e)))
         return err_msg + render_html(text)
 
-    # Determine link namespace
+    # Determine allowed link namespace prefixes
     parts = doc.name.split('.')
-    prefixes = []
-    if len(parts) >= 2:
-        prefixes.append('.'.join(parts[:-1]) + '.')
+    prefixes = ['.'.join(parts[:j]) for j in range(1, len(parts))]
+    prefixes.reverse()
 
     # Base classes
     if doc.bases:
