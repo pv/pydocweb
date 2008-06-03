@@ -212,12 +212,19 @@ class NumpyDocString(object):
                     rest = [r[1]]
                 else:
                     rest = []
-            elif ',' in line and current_func is None:
-                for func in line.split(','):
-                    func = func.strip()
-                    if func:
-                        functions.append((func, []))
-            else:
+            elif not line.startswith(' '):
+                if current_func:
+                    functions.append((current_func, rest))
+                    current_func = None
+                    rest = []
+                if ',' in line:
+                    for func in line.split(','):
+                        func = func.strip()
+                        if func:
+                            functions.append((func, []))
+                elif line.strip():
+                    current_func = line.strip()
+            elif current_func is not None:
                 rest.append(line.strip())
         if current_func:
             functions.append((current_func, rest))
@@ -312,9 +319,10 @@ class NumpyDocString(object):
         if not self['See Also']: return []
         out = []
         out += self._str_header("See Also")
-        last_had_desc = False
+        last_had_desc = True
         for func, desc in self['See Also']:
-            if last_had_desc or desc or not len(out) <= 1:
+            if desc or last_had_desc:
+                out += ['']
                 out += ["`%s`_" % func]
             else:
                 out[-1] += ", `%s`_" % func
