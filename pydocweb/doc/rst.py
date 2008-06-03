@@ -85,7 +85,7 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
                                   link_base='',
                                   )
     )
-    return parts['html_body']
+    return parts['html_body'].encode('utf-8')
 
 #------------------------------------------------------------------------------
 # Rendering for Numpy docstrings
