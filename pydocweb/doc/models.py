@@ -281,7 +281,7 @@ class Docstring(models.Model):
                     j = len(parent_parts)
                     parts = parent_parts + parts[j:]
                 except DocstringAlias.DoesNotExist:
-                    pass
+                    parent = None
             j += 1
         return cls.objects.get(name='.'.join(parts))
 
