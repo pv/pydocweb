@@ -14,6 +14,9 @@ ADDNEWDOCS_FILES = (
     SVN_DIRS[0] + "/numpy/add_newdocs.py",
     SVN_DIRS[0] + "/numpy/core/code_generation/docstrings.py",
 )
+PYREX_FILES = (
+    SVN_DIRS[0] + "/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand",
+)
 PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
 
 MAX_DOCSTRING_WIDTH = 79

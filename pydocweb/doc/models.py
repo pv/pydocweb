@@ -627,6 +627,10 @@ def regenerate_base_xml():
     except KeyError:
         pass
 
+    cmds.append([settings.PYDOCMOIN, 'pyrex-docs', '-s', _site_path()])
+    for fn in settings.PYREX_FILES:
+        cmds[-1] += ['-f', fn]
+    
     base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
     base_xml = open(base_xml_fn, 'w')
     _exec_chainpipe(cmds, final_out=base_xml)
