@@ -481,7 +481,7 @@ def source(request, file_name):
     src = get_source_file_content(file_name)
     if src is None:
         raise Http404()
-    if not (file_name.endswith('.py')):
+    if not (file_name.endswith('.py') or file_name.endswith('.pyx')):
         raise Http404()
     lines = src.splitlines()
     return render_template(request, 'source.html',
