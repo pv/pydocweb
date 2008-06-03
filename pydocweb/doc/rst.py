@@ -116,7 +116,7 @@ def render_docstring_html(doc, text):
 
     # Determine allowed link namespace prefixes
     parts = doc.name.split('.')
-    prefixes = ['.'.join(parts[:j]) for j in range(1, len(parts))]
+    prefixes = ['.'.join(parts[:j]) + '.' for j in range(1, len(parts))]
     prefixes.reverse()
 
     # Base classes
