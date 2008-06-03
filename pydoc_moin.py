@@ -508,6 +508,74 @@ def cmd_numpy_docs(args):
             print >> sys.stderr, "%s: unknown object" % name
     doc.dump(opts.outfile)
 
+def cmd_pyrex_docs(args):
+    """pyrex-docs < docs.xml > docs2.xml
+
+    Get source line information from Pyrex source files.
+    """
+    import Pyrex.Compiler.Nodes as Nodes
+    import Pyrex.Compiler.Main
+    import Pyrex.Compiler.ModuleNode
+
+    options_list = [
+        make_option("-f", "--file", action="append", dest="files",
+                    help="FILE:MODULE, files to look in and corresponding modules")
+    ]
+    opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
+                                      infile=True, outfile=True, nargs=0,
+                                      syspath=True)
+    
+    def pyrex_parse_source(source):
+        Pyrex.Compiler.Main.Errors.num_errors = 0
+        source = os.path.abspath(source)
+        options = Pyrex.Compiler.Main.CompilationOptions()
+        context = Pyrex.Compiler.Main.Context(options.include_path)
+        module_name = context.extract_module_name(source)
+        scope = context.find_module(module_name, pos=(source,1,0), need_pxd=0)
+        tree = context.parse(source, scope.type_names, pxd=0)
+        return tree
+
+    def pyrex_walk_tree(node, file_name, base_name, locations={}):
+        if isinstance(node, Pyrex.Compiler.ModuleNode.ModuleNode):
+            locations[base_name] = (file_name,) + node.pos[1:]
+            pyrex_walk_tree(node.body, file_name, base_name, locations)
+        elif isinstance(node, Nodes.StatListNode):
+            for c in node.stats:
+                pyrex_walk_tree(c, file_name, base_name, locations)
+        elif isinstance(node, Nodes.CClassDefNode):
+            name = '.'.join([base_name, node.class_name])
+            locations[name] = (file_name,) + node.pos[1:]
+            pyrex_walk_tree(node.body, file_name, name, locations)
+        elif isinstance(node, Nodes.DefNode):
+            name = '.'.join([base_name, node.name])
+            locations[name] = (file_name,) + node.pos[1:]
+    
+    locations = {}
+    
+    for file_mod_name in opts.files:
+        file_name, module_name = file_mod_name.rsplit(':', 1)
+        file_name = os.path.abspath(file_name)
+        tree = pyrex_parse_source(file_name)
+        pyrex_walk_tree(tree, file_name, module_name, locations)
+    
+    doc = Documentation.load(opts.infile)
+    for name, (file, line, offset) in locations.iteritems():
+        el = doc.resolve(name)
+        if el is not None:
+            if el.attrib['type'] == 'numpy.ufunc':
+                # Special case for ufuncs: signature is generated
+                # automatically, so remove it from the docstring.
+                text = el.text.decode('string-escape')
+                m = re.match(r"^(.*?\))\s+(.*)$", text, re.S)
+                if m:
+                    el.attrib['argspec'] = m.group(1)
+                    el.text = escape_text(m.group(2).strip())
+            el.attrib['file'] = file
+            el.attrib['line'] = str(line)
+            el.attrib['char-offset'] = str(offset)
+        else:
+            print >> sys.stderr, "%s: unknown object" % name
+    doc.dump(opts.outfile)
 
 def cmd_patch(args):
     """patch OLD.XML NEW.XML > patch
@@ -617,7 +685,7 @@ def cmd_bzr(args):
 
 COMMANDS = [cmd_collect, cmd_moin_upload_local,
             cmd_mangle, cmd_prune, cmd_list, cmd_moin_collect_local, cmd_patch,
-            cmd_numpy_docs, cmd_bzr]
+            cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs]
 
 #------------------------------------------------------------------------------
 # Source code replacement
@@ -694,7 +762,11 @@ class SourceReplacer(object):
 
         # -- Find replace location
 
-        ch_iter = iter_chars_on_lines(lines, line)
+        if el.attrib.get('char-offset') is not None:
+            ch_iter = iter_chars_on_lines(
+                lines, line, int(el.attrib['char-offset']))
+        else:
+            ch_iter = iter_chars_on_lines(lines, line)
         statement_iter = iter_statements(ch_iter)
         
         statements = []
@@ -703,7 +775,7 @@ class SourceReplacer(object):
             statements.append(statement_iter.next())
         except StopIteration:
             pass
-
+        
         def is_string(s):
             """Is the given AST expr Discard(Const('string'))"""
             return (isinstance(s, compiler.ast.Discard) and
@@ -719,10 +791,10 @@ class SourceReplacer(object):
             """Return the indent on the given line"""
             n_indent_ch = len(s) - len(s.lstrip())
             return s[:n_indent_ch]
-
+        
         indent = None
         pre_stuff, post_stuff = "", "\n"
-
+        
         if el.attrib.get('is-addnewdoc') == '1':
             # add_newdoc
             try:
