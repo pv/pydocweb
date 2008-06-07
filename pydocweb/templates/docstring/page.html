@@ -43,7 +43,7 @@
     <div class="author">
       <span class="timestamp">{{comment.timestamp|date:"Y-m-d H:i:s"}}</span>
       <span class="author">{{comment.author|escape}}</span>
-      <span class="slug">{{comment.text|truncatewords:4|escape}}</span>
+      <span class="slug">{{comment.text|truncatewords:8|escape}}</span>
     </div>
     {% if perms.doc.change_reviewcomment %}
     {% ifequal comment.author_username user.username %}

@@ -416,9 +416,6 @@ table.changes#comments .resolved {
   overflow: hidden;
   white-space: nowrap;
 }
-.comment.resolved .slug:after { 
-  content: "...";
-}
 
 /*
  * Content list
