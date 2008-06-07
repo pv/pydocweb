@@ -224,6 +224,7 @@ def docstring(request, name):
             author_username=comment.author,
             timestamp=comment.timestamp,
             html=rst.render_html(comment.text),
+            text=comment.text,
         ))
     
     review_form = ReviewForm(dict(status=doc.review))

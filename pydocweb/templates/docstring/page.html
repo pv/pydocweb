@@ -43,6 +43,7 @@
     <div class="author">
       <span class="timestamp">{{comment.timestamp|date:"Y-m-d H:i:s"}}</span>
       <span class="author">{{comment.author|escape}}</span>
+      <span class="slug">{{comment.text|truncatewords:4|escape}}</span>
     </div>
     {% if perms.doc.change_reviewcomment %}
     {% ifequal comment.author_username user.username %}
@@ -188,10 +189,11 @@ function toggle_resolved() {
     var el = $("#show-resolved");
     if (el.length > 0) {
         $("#show-resolved").attr('id', 'hide-resolved').text('Hide resolved');
+        $(".resolved").attr('class', 'comment not-resolved');
     } else {
         $("#hide-resolved").attr('id', 'show-resolved').text('Show resolved');
+        $(".not-resolved").attr('class', 'comment resolved');
     }
-    $(".resolved").toggle();
 }
 </script>
 {% endblock %}

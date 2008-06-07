@@ -357,8 +357,10 @@ dl dt {
 #comments #hide-resolved { 
   float: right;
 }
-#comments .resolved { 
+table.changes#comments .resolved { 
   display: none;
+  background-color: #ddd;
+  color: #555;
 }
 .comment div.author { 
   margin: 0;
@@ -394,6 +396,28 @@ dl dt {
 }
 .comment .edit-tools form { 
   display: inline;
+}
+.comment .slug { 
+  display: none;
+}
+.comment.resolved .author { 
+  background: #eee;
+}
+.comment.resolved .edit-tools { 
+  display: none;
+}
+.comment.resolved .text { 
+  display: none;
+}
+.comment.resolved .slug { 
+  display: inline;
+  padding-left: 2em;
+  color: #445;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.comment.resolved .slug:after { 
+  content: "...";
 }
 
 /*
