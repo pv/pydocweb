@@ -127,7 +127,7 @@ def render_docstring_html(doc, text):
 
     # Argspec
     if doc.argspec:
-        argspec = doc.argspec
+        argspec = re.sub(r'^[^(]*', '', doc.argspec)
     else:
         argspec = re.sub(r'^[^(]*', '', docstring['Signature'])
 
