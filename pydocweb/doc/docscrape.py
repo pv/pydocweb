@@ -255,7 +255,7 @@ class NumpyDocString(object):
         # grab signature (if given) and summary
         summary = self._doc.read_to_next_empty_line()
         if len(summary) == 1 and \
-               re.compile('^[\w\. =]+\(.*\)$').match(summary[0].strip()):
+               re.compile('^([\w. ]+=)?[\w\.]+\(.*\)$').match(summary[0].strip()):
             self['Signature'] = summary[0]
             if not self._is_at_section():
                 self['Summary'] = self._doc.read_to_next_empty_line()
