@@ -73,7 +73,7 @@ def edit_wiki(request, name):
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
                 try:
-                    prev_text = WikiPage.objects.get(name=name)
+                    prev_text = WikiPage.objects.get(name=name).text
                     prev_text = prev_text.decode('utf-8')
                 except WikiPage.DoesNotExist:
                     prev_text = ""
