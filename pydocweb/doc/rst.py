@@ -101,7 +101,7 @@ def render_docstring_html(doc, text):
 
     decoded = ''
     trial_phrase = text
-    while not decoded:
+    while not decoded and trial_phrase:
         try:
             decoded = trial_phrase.decode('ascii').encode('ascii')
         except UnicodeError, e:
