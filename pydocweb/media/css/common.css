@@ -590,3 +590,14 @@ table.footnote tr {
     white-space: nowrap;
 }
 
+/*
+ * Stats
+ */
+#block .none { background: #fff; }
+#block .changed { background: #ddd; }
+#block .needs-work { background: #fcc; }
+#block .old-reviewed { background: #dda; }
+#block .reviewed { background: #ffc; }
+#block .old-proofed { background: #ada; }
+#block .proofed { background: #cfc; }
+#block .unimportant { background: #aaa; }

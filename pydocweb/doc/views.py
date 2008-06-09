@@ -732,3 +732,40 @@ def search(request):
                            dict(form=form,
                                 docstring_results=docstring_results,
                                 wiki_results=wiki_results))
+
+#------------------------------------------------------------------------------
+# Stats
+#------------------------------------------------------------------------------
+
+def stats(request):
+
+    # Get block statistics
+    blocks = []
+    for j in [REVIEW_NONE,
+              REVIEW_NEEDS_WORK,
+              REVIEW_REVIEWED_OLD,
+              REVIEW_REVIEWED,
+              REVIEW_PROOFED_OLD,
+              REVIEW_PROOFED]:
+        objs = Docstring.objects.filter(review=j)
+        if j == REVIEW_NONE:
+            objs = objs.filter(dirty=False)
+        blocks.append(dict(count=objs.count(),
+                           code=REVIEW_STATUS_CODES[j],
+                           name=REVIEW_STATUS_NAMES[j],
+                           ))
+    blocks.insert(1, dict(
+        count=Docstring.objects.filter(review=REVIEW_NONE, dirty=True).count(),
+        code='changed',
+        name='Changed'))
+    total_count = sum(float(b['count']) for b in blocks)
+    for b in blocks:
+        b['width'] = 100. * b['count'] / total_count
+        b['text'] = '%.0f %%' % (round(b['width']),)
+
+    unimportant_count = Docstring.objects.filter(review=REVIEW_UNIMPORTANT).count()
+    
+    return render_template(request, 'stats.html',
+                           dict(blocks=blocks,
+                                unimportant_count=unimportant_count,
+                                ))

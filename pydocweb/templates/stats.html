@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Status{% endblock %}
+{% block pagetitle %}Status{% endblock %}
+
+{% block content %}
+
+<div id="block">
+  <h2>Overview</h2>
+  <div style="padding: 0; border: 1px solid #ccc; height: 3em; width: 90%;">
+    {% for block in blocks %}
+    <div style="height: 3em; padding: 0; margin: 0; width: {{block.width|escape}}%; overflow: hidden; text-align: center; float:left; vertical-align: middle; font-weight: bold; color: #445;" class="{{block.code|escape}}"><div style="padding-top: 0.6em;">{{block.text|escape}}</div></div>
+    {% endfor %}
+  </div>
+  <table>
+    <tr>
+      <th>Status</th>
+      <th>%</th>
+      <th>Count</th>
+    </tr>
+    {% for block in blocks reversed %}
+    <tr>
+      <td class="{{block.code|escape}}">{{block.name|escape}}</td>
+      <td>{{block.text|escape}}</td>
+      <td>{{block.count|escape}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td class="unimportant">Unimportant</td>
+      <td>&ndash;</td>
+      <td>{{unimportant_count|escape}}</td>
+    </tr>
+  </table>
+</div>
+
+
+
+
+{% endblock %}
+
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+</script>
+{% endblock %}
