@@ -8,37 +8,46 @@ MAX_NAME_LEN = 256
 
 # -- Editing Docstrings
 
+REVIEW_UNIMPORTANT = -1
 REVIEW_NONE = 0
 REVIEW_NEEDS_WORK = 1
 REVIEW_REVIEWED_OLD = 2
 REVIEW_REVIEWED = 3
 REVIEW_PROOFED_OLD = 4
 REVIEW_PROOFED = 5
-REVIEW_UNIMPORTANT = 6
 
 MERGE_NONE = 0
 MERGE_MERGE = 1
 MERGE_CONFLICT = 2
 
-REVIEW_STATUS_NAMES = ['Not reviewed',
-                       'Needs work',
-                       'Old revision reviewed',
-                       'Reviewed',
-                       'Old revision proofed',
-                       'Proofed',
-                       'Unimportant',
-                       ]
-REVIEW_STATUS_CODES = [
-    'none',
-    'needs-work',
-    'old-reviewed',
-    'reviewed',
-    'old-proofed',
-    'proofed',
-    'unimportant',
-]
-MERGE_STATUS_NAMES = ['OK', 'Merged', 'Conflict']
-MERGE_STATUS_CODES = ['ok', 'merged', 'conflict']
+REVIEW_STATUS_NAMES = {
+    0: 'Not reviewed',
+    1: 'Needs work',
+    2: 'Old revision reviewed',
+    3: 'Reviewed',
+    4: 'Old revision proofed',
+    5: 'Proofed',
+    -1: 'Unimportant',
+}
+REVIEW_STATUS_CODES = {
+    0: 'none',
+    1: 'needs-work',
+    2: 'old-reviewed',
+    3: 'reviewed',
+    4: 'old-proofed',
+    5: 'proofed',
+    -1: 'unimportant',
+}
+MERGE_STATUS_NAMES = {
+    0: 'OK',
+    1: 'Merged',
+    2: 'Conflict',
+}
+MERGE_STATUS_CODES = {
+    0: 'ok',
+    1: 'merged',
+    2: 'conflict',
+}
 
 class Docstring(models.Model):
     name        = models.CharField(maxlength=MAX_NAME_LEN, primary_key=True,
