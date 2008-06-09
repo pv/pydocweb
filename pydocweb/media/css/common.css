@@ -252,6 +252,7 @@ dl dt {
 #review-status.reviewed { background: #ffc; }
 #review-status.old-proofed { background: #ada; }
 #review-status.proofed { background: #cfc; }
+#review-status.unimportant { background: #aaa; }
 
 /*
  * Revision header
@@ -439,6 +440,7 @@ table.changes#comments .resolved {
 .content-list td.reviewed { background: #ffc; }
 .content-list td.old-proofed { background: #ada; }
 .content-list td.proofed { background: #cfc; }
+.content-list td.unimportant { background: #aaa; }
 
 /*
  * Merge info
@@ -456,6 +458,7 @@ table.changes#comments .resolved {
 #patch-select td.reviewed { background: #ffc; }
 #patch-select td.old-proofed { background: #ada; }
 #patch-select td.proofed { background: #cfc; }
+#patch-select td.unimportant { background: #aaa; }
 
 #patch-select td.ok { background: #fff; }
 #patch-select td.merged { background: #ffc; }

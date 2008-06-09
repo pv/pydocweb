@@ -14,6 +14,7 @@ REVIEW_REVIEWED_OLD = 2
 REVIEW_REVIEWED = 3
 REVIEW_PROOFED_OLD = 4
 REVIEW_PROOFED = 5
+REVIEW_UNIMPORTANT = 6
 
 MERGE_NONE = 0
 MERGE_MERGE = 1
@@ -24,7 +25,9 @@ REVIEW_STATUS_NAMES = ['Not reviewed',
                        'Old revision reviewed',
                        'Reviewed',
                        'Old revision proofed',
-                       'Proofed']
+                       'Proofed',
+                       'Unimportant',
+                       ]
 REVIEW_STATUS_CODES = [
     'none',
     'needs-work',
@@ -32,6 +35,7 @@ REVIEW_STATUS_CODES = [
     'reviewed',
     'old-proofed',
     'proofed',
+    'unimportant',
 ]
 MERGE_STATUS_NAMES = ['OK', 'Merged', 'Conflict']
 MERGE_STATUS_CODES = ['ok', 'merged', 'conflict']
