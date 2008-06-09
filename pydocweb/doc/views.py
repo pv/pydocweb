@@ -57,7 +57,7 @@ class EditForm(forms.Form):
 
     def clean(self):
         # fix CRLF -> LF
-        self.clean_data['text']="\n".join(self.clean_data['text'].splitlines())
+        self.clean_data['text'] = "\n".join(self.clean_data['text'].splitlines())
         return self.clean_data
 
 @permission_required('doc.change_wikipage')
@@ -73,7 +73,8 @@ def edit_wiki(request, name):
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
                 try:
-                    prev_text = WikiPage.objects.get(name=name).text
+                    prev_text = WikiPage.objects.get(name=name)
+                    prev_text = prev_text.decode('utf-8')
                 except WikiPage.DoesNotExist:
                     prev_text = ""
                 diff_html = html_diff_text(prev_text, data['text'],
@@ -276,7 +277,7 @@ def edit(request, name):
             data = form.clean_data
             if request.POST.get('button_preview'):
                 preview_html = rst.render_docstring_html(doc, data['text'])
-                diff_html = html_diff_text(doc.text, data['text'],
+                diff_html = html_diff_text(doc.text.decode('utf-8'), data['text'],
                                            'previous revision',
                                            'current text')
                 return render_template(request, 'docstring/edit.html',

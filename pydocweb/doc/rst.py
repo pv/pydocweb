@@ -97,21 +97,46 @@ class RSTDocString(NumpyDocString):
         return []
 
 def render_docstring_html(doc, text):
+    errors = []
+
+    decoded = ''
+    trial_phrase = text
+    while not decoded:
+        try:
+            decoded = trial_phrase.decode('ascii').encode('ascii')
+        except UnicodeError, e:
+            errors.append(str(e))
+            trial_phrase = trial_phrase[:e.start] + \
+                           ' '*(e.end - e.start) + \
+                           trial_phrase[e.end:]
+
     try:
-        docstring =  RSTDocString(text)
+        unicode('utf-8')
+    except UnicodeEncodeError:
+        text = text.decode('utf-8')
+        
+    try:
+        docstring = RSTDocString(text)
         if docstring['Signature'] and doc.argspec:
-            raise ValueError('Docstring has a spurious function signature '
-                             'description at the beginning.')
+            errors.append('Docstring has a spurious function signature '
+                          'description at the beginning.')
         for j, line in enumerate(text.splitlines()):
             if len(line) > settings.MAX_DOCSTRING_WIDTH:
-                raise ValueError("Docstring line %d is longer than %d "
-                                 "characters: %s" % (
+                errors.append("Docstring line %d is longer than %d "
+                              "characters: %s" % (
                     j+1, settings.MAX_DOCSTRING_WIDTH, cgi.escape(line)))
+
     except ValueError, e:
+        errors.append(str(e))
+
+    if errors:
+        err_list = '<ul>' + '\n'.join('<li>' + cgi.escape(s) + '</li>'
+                                      for s in errors) + '</ul>'
         err_msg = ("<div class=\"system-message\">"
                    "<span class=\"system-message-title\">"
                    "Docstring does not conform to Numpy documentation "
-                   "standard</span><p>%s</p></div>" % cgi.escape(str(e)))
+                   "standard</span><p>%s</p></div>" % err_list)
+        
         return err_msg + render_html(text)
 
     # Determine allowed link namespace prefixes
@@ -132,7 +157,7 @@ def render_docstring_html(doc, text):
         argspec = re.sub(r'^[^(]*', '', docstring['Signature'])
 
     # Docstring body
-    body_html = render_html(str(docstring),
+    body_html = render_html(unicode(docstring),
                             resolve_to_wiki=False,
                             resolve_prefixes=prefixes)
 
