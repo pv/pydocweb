@@ -198,9 +198,11 @@ def docstring_index(request):
                            dict(entries=entries))
 
 class ReviewForm(forms.Form):
-    _choices = [(str(j), x) for j, x in enumerate(REVIEW_STATUS_NAMES)]
+    _choices = [(str(j), x)
+                for j, x in REVIEW_STATUS_NAMES.items()]
     status = forms.IntegerField(
-        min_value=0, max_value=len(REVIEW_STATUS_NAMES),
+        min_value=min(REVIEW_STATUS_NAMES.keys()),
+        max_value=max(REVIEW_STATUS_NAMES.keys()),
         widget=forms.Select(choices=_choices),
         label="Review status"
         )
