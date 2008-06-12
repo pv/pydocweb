@@ -181,16 +181,30 @@ def diff_wiki_prev(request, name, rev2):
 #------------------------------------------------------------------------------
 
 def docstring_index(request):
+    # needed for speed! accessing the .review property is too slow
+    review_map = {}
+    from django.db import connection
+    cursor = connection.cursor()
+    cursor.execute("""SELECT name, review FROM doc_docstring""")
+    for name, review in cursor.fetchall():
+        review_map[name] = review
+    cursor.execute("""SELECT docstring_id, review FROM doc_docstringrevision
+                      GROUP BY docstring_id ORDER BY timestamp""")
+    for name, review in cursor.fetchall():
+        review_map[name] = review
+    
+    # continue pseudo-normally
     entries = Docstring.objects.all()
     CHANGE_NAMES = ['Unchanged', 'Changed']
     entries = [dict(name=c.name,
                     merge_status=c.merge_status,
-                    review=c.review,
+                    review=review_map[c.name],
                     dirty=c.dirty,
-                    statuscode=REVIEW_STATUS_CODES[c.review],
+                    statuscode=REVIEW_STATUS_CODES[review_map[c.name]],
                     status="%s, %s, %s" % (CHANGE_NAMES[int(c.dirty)],
                                            MERGE_STATUS_NAMES[c.merge_status],
-                                           REVIEW_STATUS_NAMES[c.review]),
+                                           REVIEW_STATUS_NAMES[review_map[c.name]]
+                                           ),
                     )
                for c in entries]
     entries.sort(key=lambda x: (-x['merge_status'], not x['dirty'],
