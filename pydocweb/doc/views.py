@@ -182,7 +182,6 @@ def diff_wiki_prev(request, name, rev2):
 
 def docstring_index(request):
     entries = Docstring.objects.all()
-    entries = entries.order_by('-merge_status', '-dirty', '-review', 'name')
     CHANGE_NAMES = ['Unchanged', 'Changed']
     entries = [dict(name=c.name,
                     merge_status=c.merge_status,
@@ -194,6 +193,8 @@ def docstring_index(request):
                                            REVIEW_STATUS_NAMES[c.review]),
                     )
                for c in entries]
+    entries.sort(key=lambda x: (-x['merge_status'], not x['dirty'],
+                                -x['review'], x['name']))
     return render_template(request, 'docstring/index.html',
                            dict(entries=entries))
 
@@ -504,8 +505,6 @@ def patch(request):
         return HttpResponse(patch, mimetype="text/plain")
     
     docs = Docstring.objects.filter(dirty=True)
-    docs = docs.order_by('merge_status', '-review', 'name')
-    
     docs = [
         dict(included=(entry.merge_status == MERGE_NONE and
                        entry.review >= REVIEW_REVIEWED),
@@ -513,9 +512,12 @@ def patch(request):
              merge_status_code=MERGE_STATUS_CODES[entry.merge_status],
              status=REVIEW_STATUS_NAMES[entry.review],
              status_code=REVIEW_STATUS_CODES[entry.review],
+             review=entry.review,
+             merge_status_id=entry.merge_status,
              name=entry.name)
         for entry in docs
     ]
+    docs.sort(key=lambda x: (x['merge_status_id'], -x['review'], x['name']))
     return render_template(request, "patch.html",
                            dict(changed=docs))
 
@@ -747,15 +749,16 @@ def stats(request):
               REVIEW_REVIEWED,
               REVIEW_PROOFED_OLD,
               REVIEW_PROOFED]:
-        objs = Docstring.objects.filter(review=j)
         if j == REVIEW_NONE:
-            objs = objs.filter(dirty=False)
-        blocks.append(dict(count=objs.count(),
+            objs = Docstring.get_by_review(j, dirty=False)
+        else:
+            objs = Docstring.get_by_review(j)
+        blocks.append(dict(count=len(objs),
                            code=REVIEW_STATUS_CODES[j],
                            name=REVIEW_STATUS_NAMES[j],
                            ))
     blocks.insert(1, dict(
-        count=Docstring.objects.filter(review=REVIEW_NONE, dirty=True).count(),
+        count=len(Docstring.get_by_review(review=REVIEW_NONE, dirty=True)),
         code='changed',
         name='Changed'))
     total_count = sum(float(b['count']) for b in blocks)
@@ -763,7 +766,7 @@ def stats(request):
         b['width'] = 100. * b['count'] / total_count
         b['text'] = '%.0f %%' % (round(b['width']),)
 
-    unimportant_count = Docstring.objects.filter(review=REVIEW_UNIMPORTANT).count()
+    unimportant_count = len(Docstring.get_by_review(review=REVIEW_UNIMPORTANT))
     
     return render_template(request, 'stats.html',
                            dict(blocks=blocks,

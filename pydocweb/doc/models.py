@@ -71,8 +71,9 @@ class Docstring(models.Model):
     source_doc  = models.TextField(help_text="Docstring in SVN")
     base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
     
-    review       = models.IntegerField(default=REVIEW_NONE,
-                                       help_text="Review status")
+    review_code = models.IntegerField(default=REVIEW_NONE,
+                                      db_column="review",
+                                      help_text="Review status of SVN string")
     merge_status = models.IntegerField(default=MERGE_NONE,
                                        help_text="Docstring merge status")
     dirty        = models.BooleanField(default=False,
@@ -104,6 +105,24 @@ class Docstring(models.Model):
     @property
     def proofed(self):
         return self.review == REVIEW_PROOFED
+    
+    def _get_review(self):
+        try:
+            return self.revisions.all()[0].review_code
+        except IndexError:
+            return self.review_code
+
+    def _set_review(self, value):
+        try:
+            last_rev = self.revisions.all()[0]
+            last_rev.review_code = value
+            last_rev.save()
+        except IndexError:
+            self.review_code = value
+    
+    review = property(_get_review, _set_review)
+        
+    # --
 
     @property
     def child_objects(self):
@@ -154,18 +173,19 @@ class Docstring(models.Model):
         if new_text == self.text:
             # NOOP
             return
-        
-        if self.review == REVIEW_REVIEWED:
-            self.review = REVIEW_REVIEWED_OLD
-        elif self.review == REVIEW_PROOFED:
-            self.review = REVIEW_PROOFED_OLD
 
+        new_review_code = {
+            REVIEW_REVIEWED: REVIEW_REVIEWED_OLD,
+            REVIEW_PROOFED: REVIEW_PROOFED_OLD
+        }.get(self.review, self.review)
+        
         self.dirty = (self.source_doc != new_text)
         self.save()
         rev = DocstringRevision(docstring=self,
                                 text=new_text,
                                 author=author,
-                                comment=comment)
+                                comment=comment,
+                                review_code=new_review_code)
         rev.save()
 
     def get_merge(self):
@@ -341,13 +361,38 @@ class Docstring(models.Model):
         """ % (where_, not_,), [s, s])
         return res + cursor.fetchall()
 
+    @classmethod
+    def get_by_review(cls, review, dirty=None):
+        where_ = ""
+        if dirty is True:
+            where_ += ' AND dirty '
+        elif dirty is False:
+            where_ += ' AND NOT dirty '
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""\
+        SELECT d.name FROM doc_docstring AS d
+        LEFT JOIN doc_docstringrevision AS r WHERE d.name = r.docstring_id
+        GROUP BY d.name HAVING r.review = %%s %s
+        """ % where_, [review])
+        res =  cursor.fetchall()
+        cursor.execute("""\
+        SELECT name FROM doc_docstring
+        WHERE name NOT IN (SELECT docstring_id FROM doc_docstringrevision)
+        AND review = %%s %s
+        """ % where_, [review])
+        return res + cursor.fetchall()
+
 class DocstringRevision(models.Model):
-    revno     = models.AutoField(primary_key=True)
-    docstring = models.ForeignKey(Docstring, related_name="revisions")
-    text      = models.TextField()
-    author    = models.CharField(maxlength=256)
-    comment   = models.CharField(maxlength=1024)
-    timestamp = models.DateTimeField(default=datetime.datetime.now)
+    revno       = models.AutoField(primary_key=True)
+    docstring   = models.ForeignKey(Docstring, related_name="revisions")
+    text        = models.TextField()
+    author      = models.CharField(maxlength=256)
+    comment     = models.CharField(maxlength=1024)
+    timestamp   = models.DateTimeField(default=datetime.datetime.now)
+    review_code = models.IntegerField(default=REVIEW_NONE,
+                                      db_column="review",
+                                      help_text="Review status")
     
     # comments = [ReviewComment...]
     
