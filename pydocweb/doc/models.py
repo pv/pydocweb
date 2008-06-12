@@ -296,9 +296,9 @@ class Docstring(models.Model):
             elif parent is not None:
                 try:
                     ref = parent.contents.get(alias=parts[j])
-                    parent_parts = ref.target.split('.')
-                    j = len(parent_parts)
-                    parts = parent_parts + parts[j:]
+                    target_parts = ref.target.split('.')
+                    parts = target_parts + parts[(j+1):]
+                    j = len(target_parts)
                 except DocstringAlias.DoesNotExist:
                     parent = None
             j += 1
