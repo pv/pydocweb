@@ -281,9 +281,15 @@ class Docstring(models.Model):
         
         parts = name.split('.')
         parent = None
+        seen = {}
         j = 0
         while j < len(parts):
             try_name = '.'.join(parts[:j+1])
+            if try_name in seen:
+                # infinite loop: break it
+                parts = name.split('.')
+                break
+            seen[try_name] = True
             doc = _get(try_name)
             if doc is not None:
                 parent = doc
