@@ -9,7 +9,7 @@
   <h2>Overview</h2>
   <div style="padding: 0; border: 1px solid #ccc; height: 3em; width: 90%;">
     {% for block in blocks %}
-    <div style="height: 3em; padding: 0; margin: 0; width: {{block.width|escape}}%; overflow: hidden; text-align: center; float:left; vertical-align: middle; font-weight: bold; color: #445;" class="{{block.code|escape}}"><div style="padding-top: 0.6em;">{{block.text|escape}}</div></div>
+    <div style="height: 3em; padding: 0; margin: 0; width: {{block.width|escape}}%; overflow: hidden; text-align: center; float:left; vertical-align: middle; font-weight: bold; color: #445;" class="{{block.code|escape}}"><div style="padding-top: 0.6em; margin:0;">{{block.text|escape}}</div></div>
     {% endfor %}
   </div>
   <p>
