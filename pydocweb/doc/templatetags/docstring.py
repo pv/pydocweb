@@ -40,7 +40,11 @@ def help_page(page_name):
 
 @register.tag
 def as_table_rows(parser, token):
-    """Rearrange a list into rows in a table"""
+    """
+    Rearrange a list into rows in a table
+
+    {% as_table_rows 3 src_var as dst_var %]
+    """
     try:
         func_name, ncols, src_var, as_, dst_var = token.split_contents()
         if ncols.endswith('T') or ncols.endswith('t'):

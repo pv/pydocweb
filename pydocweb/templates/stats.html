@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load docstring %}
 
 {% block title %}Status{% endblock %}
 {% block pagetitle %}Status{% endblock %}
@@ -7,19 +8,29 @@
 
 <div id="block">
   <h2>Overview</h2>
-  <div style="padding: 0; border: 1px solid #ccc; height: 3em; width: 90%;">
-    {% for block in blocks %}
-    <div style="height: 3em; padding: 0; margin: 0; width: {{block.width|escape}}%; overflow: hidden; text-align: center; float:left; vertical-align: middle; font-weight: bold; color: #445;" class="{{block.code|escape}}"><div style="padding-top: 0.6em; margin:0;">{{block.text|escape}}</div></div>
+  <h3>Weekly</h3>
+  <p>
+  <div style="padding: 0; border: none; clear:both;">
+    {% for period in stats %}
+    <div style="padding:0; margin:0; width: 3.5em; float:left;">
+      {% for block in period.blocks %}
+      <div style="height: {{block.height|escape}}px; overflow:hidden; vertical-align:middle; text-align:center; font-weight: bold; border-right: 1px solid #ccc; {% if forloop.first %}border-top: solid 1px #ccc;{% endif %}{% if forloop.last %}border-bottom: solid 1px #ccc;{% endif %}{% if forloop.parentloop.first %}border-left: 1px solid #ccc;{% endif %}" class="{{block.code|escape}}">{{block.text|escape}}</div>
+      {% endfor %}
+      <div style="padding-bottom: 1ex;">{{period.start_time|date:"Y- m-d"}}</div>
+    </div>
     {% endfor %}
+    <div style="clear:both;"></div>
   </div>
+  </p>
+  <h3>Current</h3>
   <p>
     <table>
       <tr>
-	<th>Status</th>
-	<th>%</th>
+	<th></th>
+	<th>Percentage</th>
 	<th>Count</th>
       </tr>
-      {% for block in blocks reversed %}
+      {% for block in current_period.blocks %}
       <tr>
 	<td class="{{block.code|escape}}">{{block.name|escape}}</td>
 	<td>{{block.text|escape}}</td>
@@ -29,10 +40,53 @@
       <tr>
 	<td class="unimportant">Unimportant</td>
 	<td>&ndash;</td>
-	<td>{{unimportant_count|escape}}</td>
-      </tr>
+	<td>{{current_period.unimportant_count|escape}}</td>
     </table>
   </p>
+  
+  <h2>This week ({{current_period.start_time|date:"Y-m-d"}}&mdash;{{current_period.end_time|date:"Y-m-d"}})</h2>
+  <table>
+    <th>Active editors</th>
+    {% for item in current_period.author_edits.items|dictsort:"1" reversed %}
+    <tr>
+      <td>{{item.0|escape}}</td>
+      <td>{{item.1|escape}} words</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table>
+    <th>Churning docstrings</th>
+    {% for item in current_period.docstring_edits.items|dictsort:"1" reversed %}
+    <tr>
+      <td><a href="{% url pydocweb.doc.views.docstring item.0 %}">{{item.0|escape}}</a></td>
+      <td>{{item.1|escape}} words</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  {% if last_period %}
+  <h2>Last week ({{last_period.start_time|date:"Y-m-d"}}&mdash;{{last_period.end_time|date:"Y-m-d"}})</h2>
+  <table>
+    <th>Active editors</th>
+    {% for item in last_period.author_edits.items|dictsort:"1" reversed %}
+    <tr>
+      <td>{{item.0|escape}}</td>
+      <td>{{item.1|escape}} words</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table>
+    <th>Churning docstrings</th>
+    {% for item in last_period.docstring_edits.items|dictsort:"1" reversed %}
+    <tr>
+      <td><a href="{% url pydocweb.doc.views.docstring item.0 %}">{{item.0|escape}}</a></td>
+      <td>{{item.1|escape}} words</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
 </div>
 
 

@@ -752,37 +752,169 @@ def search(request):
 #------------------------------------------------------------------------------
 # Stats
 #------------------------------------------------------------------------------
+import datetime, difflib, re
 
 def stats(request):
+    # Basic history statistics
+    edits = _get_edits()
 
-    # Get block statistics
-    blocks = []
-    for j in [REVIEW_NONE,
-              REVIEW_NEEDS_WORK,
-              REVIEW_REVIEWED_OLD,
-              REVIEW_REVIEWED,
-              REVIEW_PROOFED_OLD,
-              REVIEW_PROOFED]:
-        if j == REVIEW_NONE:
-            objs = Docstring.get_by_review(j, dirty=False)
-        else:
-            objs = Docstring.get_by_review(j)
-        blocks.append(dict(count=len(objs),
-                           code=REVIEW_STATUS_CODES[j],
-                           name=REVIEW_STATUS_NAMES[j],
-                           ))
-    blocks.insert(1, dict(
-        count=len(Docstring.get_by_review(review=REVIEW_NONE, dirty=True)),
-        code='changed',
-        name='Changed'))
-    total_count = sum(float(b['count']) for b in blocks)
-    for b in blocks:
-        b['width'] = 100. * b['count'] / total_count
-        b['text'] = '%.0f %%' % (round(b['width']),)
+    HEIGHT = 200
+    
+    if not edits:
+        stats = None
+    else:
+        stats = _get_weekly_stats(edits)
+    
+    # Generate bar graph for period history
+    for period in stats:
+        blocks = []
+        
+        for blk_type in [REVIEW_NONE, 'changed', REVIEW_NEEDS_WORK,
+                         REVIEW_REVIEWED_OLD, REVIEW_REVIEWED,
+                         REVIEW_PROOFED_OLD, REVIEW_PROOFED]:
+            count = period.review_counts[blk_type]
+            code = REVIEW_STATUS_CODES.get(blk_type, 'changed')
+            name = REVIEW_STATUS_NAMES.get(blk_type, 'Changed')
+            blocks.append(dict(count=count,
+                               code=code,
+                               name=name))
+        
+        total_count = sum(float(b['count']) for b in blocks)
+        for b in blocks:
+            ratio = float(b['count']) / total_count
+            b['height'] = "%d" % round(HEIGHT * ratio)
+            b['text'] = '%d%%' % (round(100*ratio),)
+        unimportant_count = period.review_counts[REVIEW_UNIMPORTANT]
 
-    unimportant_count = len(Docstring.get_by_review(review=REVIEW_UNIMPORTANT))
+        period.blocks = blocks
+        period.unimportant_count = unimportant_count
+    
+    # Render
+    try:
+        last_period = None
+        current_period = None
+        current_period = stats[-1]
+        last_period = stats[-2]
+    except IndexError:
+        pass
     
     return render_template(request, 'stats.html',
-                           dict(blocks=blocks,
-                                unimportant_count=unimportant_count,
+                           dict(stats=stats,
+                                current_period=current_period,
+                                last_period=last_period,
+                                height=HEIGHT,
                                 ))
+
+def _get_weekly_stats(edits):
+    review_status = {}
+    review_counts = {}
+    
+    author_edits = {}
+    docstring_edits = {}
+    docstring_status = {}
+
+    author_map = _get_author_map()
+    
+    for j in [REVIEW_NONE, REVIEW_NEEDS_WORK, REVIEW_REVIEWED_OLD,
+              REVIEW_REVIEWED, REVIEW_PROOFED_OLD, REVIEW_PROOFED,
+              REVIEW_UNIMPORTANT]:
+        review_counts[j] = 0
+    review_counts['changed'] = 0
+    
+    for docstring in Docstring.objects.all():
+        review_status[docstring.name] = docstring.review_code
+        review_counts[docstring.review_code] += 1
+    
+    docstring_count = Docstring.objects.count()
+    unimportant_count = len(Docstring.get_by_review(review=REVIEW_UNIMPORTANT))
+    
+    # Periodical review statistics
+    time_step = datetime.timedelta(days=7)
+    
+    period_stats = []
+    
+    remaining_edits = list(edits)
+    remaining_edits.sort(key=lambda x: x[0])
+
+    t = edits[0][0] - time_step # start from monday
+    t = datetime.datetime(t.year, t.month, t.day)
+    start_time = t - datetime.timedelta(days=t.weekday())
+    
+    while start_time <= datetime.datetime.now():
+        end_time = start_time + time_step
+        
+        while remaining_edits and remaining_edits[0][0] < end_time:
+            timestamp, n_edits, rev = remaining_edits.pop(0)
+            if n_edits <= 0: continue
+
+            review_counts[review_status[rev.docstring.name]] -= 1
+            if rev.review_code == REVIEW_NONE:
+                review_status[rev.docstring.name] = 'changed'
+            else:
+                review_status[rev.docstring.name] = rev.review_code
+            review_counts[review_status[rev.docstring.name]] += 1
+
+            if rev.author != 'xml-import':
+                author = author_map.get(rev.author, rev.author)
+                author_edits.setdefault(author, 0)
+                author_edits[author] += n_edits
+            
+            docstring_edits.setdefault(rev.docstring.name, 0)
+            docstring_edits[rev.docstring.name] += n_edits
+            docstring_status[rev.docstring.name] = rev.review_code
+        
+        period_stats.append(PeriodStats(start_time, end_time,
+                                        author_edits,
+                                        docstring_edits,
+                                        dict(docstring_status),
+                                        dict(review_counts)))
+        start_time = end_time
+        author_edits = {}
+        docstring_edits = {}
+
+    return period_stats
+
+class PeriodStats(object):
+    def __init__(self, start_time, end_time, author_edits,
+                 docstring_edits, docstring_status, review_counts):
+        self.start_time = start_time
+        self.end_time = end_time
+        self.author_edits = author_edits
+        self.docstring_edits = docstring_edits
+        self.docstring_status = docstring_status
+        self.review_counts = review_counts
+
+    def __repr__(self):
+        return "<PeriodStats %s-%s: %s %s %s %s>" % (self.start_time,
+                                                     self.end_time,
+                                                     self.author_edits,
+                                                     self.docstring_edits,
+                                                     self.docstring_status,
+                                                     self.review_counts)
+
+def _get_edits():
+    revisions = DocstringRevision.objects.all().order_by('docstring',
+                                                         'timestamp')
+
+    last_text = None
+    last_docstring = None
+
+    edits = []
+
+    nonjunk_re = re.compile("[^a-zA-Z \n]")
+    
+    for rev in revisions:
+        if last_docstring != rev.docstring or last_text is None:
+            last_text = rev.docstring.source_doc
+
+        a = nonjunk_re.sub('', last_text).split()
+        b = nonjunk_re.sub('', rev.text).split()
+        sm = difflib.SequenceMatcher(a=a, b=b)
+        ratio = sm.quick_ratio()
+        n_edits = len(b) - (len(a) + len(b))*.5*ratio
+
+        edits.append((rev.timestamp, n_edits, rev))
+        last_text = rev.text
+        last_docstring = rev.docstring
+
+    return edits
