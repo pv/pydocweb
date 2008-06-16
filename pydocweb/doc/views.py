@@ -783,11 +783,19 @@ def stats(request):
         for b in blocks:
             ratio = float(b['count']) / total_count
             b['height'] = "%d" % round(HEIGHT * ratio)
-            b['text'] = '%d%%' % (round(100*ratio),)
+            b['percentage'] = '%d' % (round(100*ratio),)
         unimportant_count = period.review_counts[REVIEW_UNIMPORTANT]
 
         period.blocks = blocks
         period.unimportant_count = unimportant_count
+        period.docstring_info = [
+            dict(name=name,
+                 review=period.docstring_status[name],
+                 start_rev=period.start_revs[name],
+                 end_rev=period.end_revs[name],
+                 edits=n_edits)
+            for name, n_edits in period.docstring_edits.items()
+        ]
     
     # Render
     try:
@@ -808,11 +816,9 @@ def stats(request):
 def _get_weekly_stats(edits):
     review_status = {}
     review_counts = {}
-    
-    author_edits = {}
-    docstring_edits = {}
     docstring_status = {}
-
+    docstring_start_rev = {}
+    
     author_map = _get_author_map()
     
     for j in [REVIEW_NONE, REVIEW_NEEDS_WORK, REVIEW_REVIEWED_OLD,
@@ -824,9 +830,7 @@ def _get_weekly_stats(edits):
     for docstring in Docstring.objects.all():
         review_status[docstring.name] = docstring.review_code
         review_counts[docstring.review_code] += 1
-    
-    docstring_count = Docstring.objects.count()
-    unimportant_count = len(Docstring.get_by_review(review=REVIEW_UNIMPORTANT))
+        docstring_start_rev[docstring.name] = 'svn'
     
     # Periodical review statistics
     time_step = datetime.timedelta(days=7)
@@ -843,10 +847,16 @@ def _get_weekly_stats(edits):
     while start_time <= datetime.datetime.now():
         end_time = start_time + time_step
         
+        docstring_end_rev = {}
+        author_edits = {}
+        docstring_edits = {}
+        
         while remaining_edits and remaining_edits[0][0] < end_time:
             timestamp, n_edits, rev = remaining_edits.pop(0)
             if n_edits <= 0: continue
 
+            docstring_end_rev[rev.docstring.name] = rev.revno
+            
             review_counts[review_status[rev.docstring.name]] -= 1
             if rev.review_code == REVIEW_NONE:
                 review_status[rev.docstring.name] = 'changed'
@@ -867,22 +877,26 @@ def _get_weekly_stats(edits):
                                         author_edits,
                                         docstring_edits,
                                         dict(docstring_status),
-                                        dict(review_counts)))
+                                        dict(review_counts),
+                                        dict(docstring_start_rev),
+                                        docstring_end_rev,))
         start_time = end_time
-        author_edits = {}
-        docstring_edits = {}
-
+        docstring_start_rev.update(docstring_end_rev)
+    
     return period_stats
 
 class PeriodStats(object):
     def __init__(self, start_time, end_time, author_edits,
-                 docstring_edits, docstring_status, review_counts):
+                 docstring_edits, docstring_status, review_counts,
+                 start_revs, end_revs):
         self.start_time = start_time
         self.end_time = end_time
         self.author_edits = author_edits
         self.docstring_edits = docstring_edits
         self.docstring_status = docstring_status
         self.review_counts = review_counts
+        self.start_revs = start_revs
+        self.end_revs = end_revs
 
     def __repr__(self):
         return "<PeriodStats %s-%s: %s %s %s %s>" % (self.start_time,
