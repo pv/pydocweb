@@ -59,7 +59,7 @@
     <th>Churning docstrings</th>
     {% for item in current_period.docstring_info|dictsort:"edits" reversed %}
     <tr>
-      <td><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
+      <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
       <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
     </tr>
     {% endfor %}
@@ -81,7 +81,7 @@
     <th>Churning docstrings</th>
     {% for item in last_period.docstring_info|dictsort:"edits" reversed %}
     <tr>
-      <td><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
+        <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
       <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
     </tr>
     {% endfor %}

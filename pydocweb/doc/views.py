@@ -790,7 +790,8 @@ def stats(request):
         period.unimportant_count = unimportant_count
         period.docstring_info = [
             dict(name=name,
-                 review=period.docstring_status[name],
+                 review=REVIEW_STATUS_CODES.get(period.docstring_status[name],
+                                                'changed'),
                  start_rev=period.start_revs[name],
                  end_rev=period.end_revs[name],
                  edits=n_edits)
