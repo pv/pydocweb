@@ -8,22 +8,24 @@
 
 <div id="block">
   <h2>Overview</h2>
-  <h3>Weekly</h3>
-  <p>
-  <div style="padding: 0; border: none; clear:both;">
+
+  <div style="float:left; margin-right:2em;margin-bottom:2ex;">
+  <h3 style="margin-top:0;">Weekly</h3>
+  <div style="padding-top:1ex;margin-top:-1px;">
     {% for period in stats %}
     <div style="padding:0; margin:0; width: 3.5em; float:left;">
       {% for block in period.blocks %}
-      <div style="height: {{block.height|escape}}px; overflow:hidden; vertical-align:middle; text-align:center; font-weight: bold; border-right: 1px solid #ccc; {% if forloop.first %}border-top: solid 1px #ccc;{% endif %}{% if forloop.last %}border-bottom: solid 1px #ccc;{% endif %}{% if forloop.parentloop.first %}border-left: 1px solid #ccc;{% endif %}" class="{{block.code|escape}}">{{block.percentage|escape}}%</div>
+      <div style="height: {{block.height|escape}}px; overflow:hidden; text-align:center; font-weight: bold; border-right: 1px solid #ccc; {% if forloop.first %}border-top: solid 1px #ccc;{% endif %}{% if forloop.last %}border-bottom: solid 1px #ccc;{% endif %}{% if forloop.parentloop.first %}border-left: 1px solid #ccc;{% endif %}" class="{{block.code|escape}}">{{block.percentage|escape}}%</div>
       {% endfor %}
       <div style="padding-bottom: 1ex;">{{period.start_time|date:"Y- m-d"}}</div>
     </div>
     {% endfor %}
-    <div style="clear:both;"></div>
   </div>
-  </p>
-  <h3>Current</h3>
-  <p>
+  <div style="clear:both;"></div>
+  </div>
+ 
+  <div>
+    <h3>Current</h3>
     <table>
       <tr>
 	<th></th>
@@ -42,9 +44,19 @@
 	<td>&ndash;</td>
 	<td>{{current_period.unimportant_count|escape}}</td>
     </table>
-  </p>
-  
-  <h2>This week ({{current_period.start_time|date:"Y-m-d"}}&mdash;{{current_period.end_time|date:"Y-m-d"}})</h2>
+  </div>
+
+  <h2 style="clear:both;">This week ({{current_period.start_time|date:"Y-m-d"}}&mdash;{{current_period.end_time|date:"Y-m-d"}})</h2>
+  <table style="float:left;margin-right:2em;">
+    <th>Churning docstrings</th>
+    {% for item in current_period.docstring_info|dictsort:"edits" reversed %}
+    <tr>
+      <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
+      <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
   <table>
     <th>Active editors</th>
     {% for item in current_period.author_edits.items|dictsort:"1" reversed %}
@@ -55,18 +67,17 @@
     {% endfor %}
   </table>
 
-  <table>
+  {% if last_period %}
+  <h2 style="clear:both;">Last week ({{last_period.start_time|date:"Y-m-d"}}&mdash;{{last_period.end_time|date:"Y-m-d"}})</h2>
+  <table style="float:left;margin-right:2em;">
     <th>Churning docstrings</th>
-    {% for item in current_period.docstring_info|dictsort:"edits" reversed %}
+    {% for item in last_period.docstring_info|dictsort:"edits" reversed %}
     <tr>
-      <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
+        <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
       <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
     </tr>
     {% endfor %}
   </table>
-
-  {% if last_period %}
-  <h2>Last week ({{last_period.start_time|date:"Y-m-d"}}&mdash;{{last_period.end_time|date:"Y-m-d"}})</h2>
   <table>
     <th>Active editors</th>
     {% for item in last_period.author_edits.items|dictsort:"1" reversed %}
@@ -77,15 +88,6 @@
     {% endfor %}
   </table>
 
-  <table>
-    <th>Churning docstrings</th>
-    {% for item in last_period.docstring_info|dictsort:"edits" reversed %}
-    <tr>
-        <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
-      <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
-    </tr>
-    {% endfor %}
-  </table>
   {% endif %}
 </div>
 
