@@ -49,7 +49,7 @@
         {{group.name|escape}}{% if not forloop.last %}, {% endif %}
       {% endfor %}
     </td>
-    <td>{{usr.date_joined|escape}}</td>
+    <td>{{usr.date_joined|date:"Y-m-d H:i:s"}}</td>
   </tr>
   {% endfor %}
 </table>
