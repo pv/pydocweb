@@ -602,3 +602,5 @@ table.footnote tr {
 #block .old-proofed { background: #ada; }
 #block .proofed { background: #cfc; }
 #block .unimportant { background: #aaa; }
+
+#block .extra-row { display:none; }

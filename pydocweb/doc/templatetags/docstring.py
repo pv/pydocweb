@@ -4,6 +4,8 @@ from django import template
 from pydocweb.doc.models import Docstring, WikiPage, REVIEW_STATUS_CODES
 import pydocweb.doc.rst as rst
 from django.core.urlresolvers import reverse
+from django.template.defaultfilters import stringfilter
+
 
 register = template.Library()
 
@@ -82,3 +84,12 @@ class AsTableRowsNode(template.Node):
             raise NotImplementedError()
         context[self.dst_var] = dst
         return ''
+
+@register.filter(name='greater')
+def greater(value, arg):
+    try:
+        if int(value) > int(arg):
+            return "1"
+        return ""
+    except (TypeError, ValueError):
+        return ""

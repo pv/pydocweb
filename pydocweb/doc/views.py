@@ -797,20 +797,17 @@ def stats(request):
                  edits=n_edits)
             for name, n_edits in period.docstring_edits.items()
         ]
+        period.total_edits = sum(x[1] for x in period.docstring_edits.items())
     
     # Render
     try:
-        last_period = None
-        current_period = None
         current_period = stats[-1]
-        last_period = stats[-2]
     except IndexError:
-        pass
+        current_period = None
     
     return render_template(request, 'stats.html',
                            dict(stats=stats,
                                 current_period=current_period,
-                                last_period=last_period,
                                 height=HEIGHT,
                                 ))
 
@@ -821,6 +818,7 @@ def _get_weekly_stats(edits):
     docstring_start_rev = {}
     
     author_map = _get_author_map()
+    author_map['xml-import'] = "Imported"
     
     for j in [REVIEW_NONE, REVIEW_NEEDS_WORK, REVIEW_REVIEWED_OLD,
               REVIEW_REVIEWED, REVIEW_PROOFED_OLD, REVIEW_PROOFED,
@@ -865,10 +863,9 @@ def _get_weekly_stats(edits):
                 review_status[rev.docstring.name] = rev.review_code
             review_counts[review_status[rev.docstring.name]] += 1
 
-            if rev.author != 'xml-import':
-                author = author_map.get(rev.author, rev.author)
-                author_edits.setdefault(author, 0)
-                author_edits[author] += n_edits
+            author = author_map.get(rev.author, rev.author)
+            author_edits.setdefault(author, 0)
+            author_edits[author] += n_edits
             
             docstring_edits.setdefault(rev.docstring.name, 0)
             docstring_edits[rev.docstring.name] += n_edits

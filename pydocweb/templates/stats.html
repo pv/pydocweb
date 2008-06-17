@@ -46,11 +46,28 @@
     </table>
   </div>
 
-  <h2 style="clear:both;">This week ({{current_period.start_time|date:"Y-m-d"}}&mdash;{{current_period.end_time|date:"Y-m-d"}})</h2>
-  <table style="float:left;margin-right:2em;">
-    <th>Churning docstrings</th>
-    {% for item in current_period.docstring_info|dictsort:"edits" reversed %}
+  {% for period in stats reversed %}
+  <h2 style="clear:both;">
+    {% if forloop.first %}
+    This week ({{period.start_time|date:"Y-m-d"}}&mdash;{{period.end_time|date:"Y-m-d"}})
+    {% else %}
+    {{period.start_time|date:"Y-m-d"}}&mdash;{{period.end_time|date:"Y-m-d"}}
+    {% endif %}
+  </h2>
+  <table style="float:left;margin-right:2em;" id="period-{{forloop.counter}}">
     <tr>
+      <th>Churning docstrings</th>
+      <th>{{period.total_edits|floatformat:"0"}} word{{period.total_edits|pluralize}}</th>
+    </tr>
+    {% for item in period.docstring_info|dictsort:"edits" reversed %}
+    {% ifequal forloop.counter0 6 %}
+    <tr><td></td><td><a href="#" onclick="toggle_period('period-{{forloop.parentloop.counter}}'); return false;">...</a></td></tr>
+    {% endifequal %}
+    {% if forloop.counter0|greater:"5" %}
+    <tr class="extra-row">
+    {% else %}
+    <tr>
+    {% endif %}  
       <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
       <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
     </tr>
@@ -59,40 +76,15 @@
 
   <table>
     <th>Active editors</th>
-    {% for item in current_period.author_edits.items|dictsort:"1" reversed %}
+    {% for item in period.author_edits.items|dictsort:"1" reversed %}
     <tr>
       <td>{{item.0|escape}}</td>
       <td>{{item.1|floatformat:"-0"}} word{{item.1|pluralize}}</td>
     </tr>
     {% endfor %}
   </table>
-
-  {% if last_period %}
-  <h2 style="clear:both;">Last week ({{last_period.start_time|date:"Y-m-d"}}&mdash;{{last_period.end_time|date:"Y-m-d"}})</h2>
-  <table style="float:left;margin-right:2em;">
-    <th>Churning docstrings</th>
-    {% for item in last_period.docstring_info|dictsort:"edits" reversed %}
-    <tr>
-        <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
-      <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
-    </tr>
-    {% endfor %}
-  </table>
-  <table>
-    <th>Active editors</th>
-    {% for item in last_period.author_edits.items|dictsort:"1" reversed %}
-    <tr>
-      <td>{{item.0|escape}}</td>
-      <td>{{item.1|floatformat:"-0"}} word{{item.1|pluralize}}</td>
-    </tr>
-    {% endfor %}
-  </table>
-
-  {% endif %}
+  {% endfor %}
 </div>
-
-
-
 
 {% endblock %}
 
@@ -101,5 +93,8 @@
 {% block extra_headers %}
 {{block.super}}
 <script>
+function toggle_period(period_id) {
+    $("#" + period_id + " .extra-row").toggle()
+}
 </script>
 {% endblock %}
