@@ -195,20 +195,25 @@ def docstring_index(request):
     
     # continue pseudo-normally
     entries = Docstring.objects.all()
-    CHANGE_NAMES = ['Unchanged', 'Changed']
+    review_sort_order = {
+        REVIEW_PROOFED: 0,
+        REVIEW_NEEDS_PROOF: 1,
+        REVIEW_NEEDS_WORK: 2,
+        REVIEW_REVISED: 3,
+        REVIEW_NEEDS_REVIEW: 4,
+        REVIEW_BEING_WRITTEN: 5,
+        REVIEW_NEEDS_EDITING: 6,
+        REVIEW_UNIMPORTANT: 7,
+    }
     entries = [dict(name=c.name,
-                    merge_status=c.merge_status,
-                    review=review_map[c.name],
-                    dirty=c.dirty,
                     statuscode=REVIEW_STATUS_CODES[review_map[c.name]],
-                    status="%s, %s, %s" % (CHANGE_NAMES[int(c.dirty)],
-                                           MERGE_STATUS_NAMES[c.merge_status],
-                                           REVIEW_STATUS_NAMES[review_map[c.name]]
-                                           ),
+                    sort_code=(review_sort_order[review_map[c.name]],
+                               not c.dirty, c.name),
+                    status=(REVIEW_STATUS_NAMES[review_map[c.name]],
+                            c.dirty),
                     )
                for c in entries]
-    entries.sort(key=lambda x: (-x['merge_status'], not x['dirty'],
-                                -x['review'], x['name']))
+    entries.sort(key=lambda x: x['sort_code'])
     return render_template(request, 'docstring/index.html',
                            dict(entries=entries))
 
@@ -479,12 +484,23 @@ def diff_prev(request, name, rev2):
 
     return diff(request, name, rev1, rev2)
 
-@permission_required('doc.can_review')
+@permission_required('doc.change_docstring')
 def review(request, name):
     if request.method == 'POST':
         doc = get_object_or_404(Docstring, name=name)
+        
         form = ReviewForm(request.POST)
         if form.is_valid():
+
+            # restrict reviewing by editors
+            def _valid_review(r, extra=[]):
+                return r in ([REVIEW_NEEDS_EDITING, REVIEW_BEING_WRITTEN,
+                              REVIEW_NEEDS_REVIEW] + extra)
+            if not request.user.has_perm('doc.can_review') and not (
+                _valid_review(doc.review, [REVIEW_REVISED]) and
+                _valid_review(form.clean_data['status'])):
+                return HttpResponseRedirect(reverse(docstring, args=[name]))
+            
             doc.review = form.clean_data['status']
             doc.save()
         return HttpResponseRedirect(reverse(docstring, args=[name]))
@@ -521,7 +537,7 @@ def patch(request):
     docs = Docstring.objects.filter(dirty=True)
     docs = [
         dict(included=(entry.merge_status == MERGE_NONE and
-                       entry.review >= REVIEW_REVIEWED),
+                       entry.review == REVIEW_PROOFED),
              merge_status=MERGE_STATUS_NAMES[entry.merge_status],
              merge_status_code=MERGE_STATUS_CODES[entry.merge_status],
              status=REVIEW_STATUS_NAMES[entry.review],
@@ -769,9 +785,14 @@ def stats(request):
     for period in stats:
         blocks = []
         
-        for blk_type in [REVIEW_NONE, 'changed', REVIEW_NEEDS_WORK,
-                         REVIEW_REVIEWED_OLD, REVIEW_REVIEWED,
-                         REVIEW_PROOFED_OLD, REVIEW_PROOFED]:
+        for blk_type in [REVIEW_NEEDS_EDITING,
+                         'changed',
+                         REVIEW_BEING_WRITTEN,
+                         REVIEW_NEEDS_REVIEW,
+                         REVIEW_REVISED,
+                         REVIEW_NEEDS_WORK,
+                         REVIEW_NEEDS_PROOF,
+                         REVIEW_PROOFED]:
             count = period.review_counts[blk_type]
             code = REVIEW_STATUS_CODES.get(blk_type, 'changed')
             name = REVIEW_STATUS_NAMES.get(blk_type, 'Changed')
@@ -820,9 +841,7 @@ def _get_weekly_stats(edits):
     author_map = _get_author_map()
     author_map['xml-import'] = "Imported"
     
-    for j in [REVIEW_NONE, REVIEW_NEEDS_WORK, REVIEW_REVIEWED_OLD,
-              REVIEW_REVIEWED, REVIEW_PROOFED_OLD, REVIEW_PROOFED,
-              REVIEW_UNIMPORTANT]:
+    for j in REVIEW_STATUS_NAMES.keys():
         review_counts[j] = 0
     review_counts['changed'] = 0
     
@@ -857,7 +876,7 @@ def _get_weekly_stats(edits):
             docstring_end_rev[rev.docstring.name] = rev.revno
             
             review_counts[review_status[rev.docstring.name]] -= 1
-            if rev.review_code == REVIEW_NONE:
+            if rev.review_code == REVIEW_NEEDS_EDITING:
                 review_status[rev.docstring.name] = 'changed'
             else:
                 review_status[rev.docstring.name] = rev.review_code

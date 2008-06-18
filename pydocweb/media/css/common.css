@@ -247,13 +247,19 @@ dl dt {
   vertical-align: middle;
 }
 
-#review-status.none { background: #fff; }
-#review-status.needs-work { background: #fcc; }
-#review-status.old-reviewed { background: #dda; }
-#review-status.reviewed { background: #ffc; }
-#review-status.old-proofed { background: #ada; }
-#review-status.proofed { background: #cfc; }
-#review-status.unimportant { background: #aaa; }
+/*
+ * Review states
+ */
+
+.unimportant   { background: #999; }
+.needs-editing { background: #fff; }
+.being-written { background: #ddd; }
+.changed       { background: #ddd; }
+.needs-review  { background: #faa; }
+.revised       { background: #fca; }
+.needs-work    { background: #ff5; }
+.reviewed      { background: #bfb; }
+.proofed       { background: #ccf; }
 
 /*
  * Revision header
@@ -435,13 +441,6 @@ table.changes#comments .resolved {
   border: solid 1px #ccc;
 }
 
-.content-list td.none { background: #fff; }
-.content-list td.needs-work { background: #fcc; }
-.content-list td.old-reviewed { background: #dda; }
-.content-list td.reviewed { background: #ffc; }
-.content-list td.old-proofed { background: #ada; }
-.content-list td.proofed { background: #cfc; }
-.content-list td.unimportant { background: #aaa; }
 
 /*
  * Merge info
@@ -453,13 +452,6 @@ table.changes#comments .resolved {
 /*
  * Patch selection
  */
-#patch-select td.none { background: #fff; }
-#patch-select td.needs-work { background: #fcc; }
-#patch-select td.old-reviewed { background: #dda; }
-#patch-select td.reviewed { background: #ffc; }
-#patch-select td.old-proofed { background: #ada; }
-#patch-select td.proofed { background: #cfc; }
-#patch-select td.unimportant { background: #aaa; }
 
 #patch-select td.ok { background: #fff; }
 #patch-select td.merged { background: #ffc; }
@@ -594,13 +586,4 @@ table.footnote tr {
 /*
  * Stats
  */
-#block .none { background: #fff; }
-#block .changed { background: #ddd; }
-#block .needs-work { background: #fcc; }
-#block .old-reviewed { background: #dda; }
-#block .reviewed { background: #ffc; }
-#block .old-proofed { background: #ada; }
-#block .proofed { background: #cfc; }
-#block .unimportant { background: #aaa; }
-
 #block .extra-row { display:none; }

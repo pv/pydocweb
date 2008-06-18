@@ -9,34 +9,37 @@ MAX_NAME_LEN = 256
 # -- Editing Docstrings
 
 REVIEW_UNIMPORTANT = -1
-REVIEW_NONE = 0
-REVIEW_NEEDS_WORK = 1
-REVIEW_REVIEWED_OLD = 2
-REVIEW_REVIEWED = 3
-REVIEW_PROOFED_OLD = 4
-REVIEW_PROOFED = 5
+REVIEW_NEEDS_EDITING = 0
+REVIEW_BEING_WRITTEN = 1
+REVIEW_NEEDS_REVIEW = 2
+REVIEW_REVISED = 3
+REVIEW_NEEDS_WORK = 4
+REVIEW_NEEDS_PROOF = 5
+REVIEW_PROOFED = 6
 
 MERGE_NONE = 0
 MERGE_MERGE = 1
 MERGE_CONFLICT = 2
 
 REVIEW_STATUS_NAMES = {
-    0: 'Not reviewed',
-    1: 'Needs work',
-    2: 'Old revision reviewed',
-    3: 'Reviewed',
-    4: 'Old revision proofed',
-    5: 'Proofed',
     -1: 'Unimportant',
+    0: 'Needs editing',
+    1: 'Being written',
+    2: 'Needs review',
+    3: 'Needs review (revised)',
+    4: 'Needs work (reviewed)',
+    5: 'Reviewed (needs proof)',
+    6: 'Proofed',
 }
 REVIEW_STATUS_CODES = {
-    0: 'none',
-    1: 'needs-work',
-    2: 'old-reviewed',
-    3: 'reviewed',
-    4: 'old-proofed',
-    5: 'proofed',
     -1: 'unimportant',
+    0: 'needs-editing',
+    1: 'being-written',
+    2: 'needs-review',
+    3: 'revised',
+    4: 'needs-work',
+    5: 'reviewed',
+    6: 'proofed',
 }
 MERGE_STATUS_NAMES = {
     0: 'OK',
@@ -71,7 +74,7 @@ class Docstring(models.Model):
     source_doc  = models.TextField(help_text="Docstring in SVN")
     base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
     
-    review_code = models.IntegerField(default=REVIEW_NONE,
+    review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
                                       help_text="Review status of SVN string")
     merge_status = models.IntegerField(default=MERGE_NONE,
@@ -97,14 +100,6 @@ class Docstring(models.Model):
     # --
 
     class MergeConflict(RuntimeError): pass
-    
-    @property
-    def reviewed(self):
-        return self.review in (REVIEW_REVIEWED, REVIEW_PROOFED)
-
-    @property
-    def proofed(self):
-        return self.review == REVIEW_PROOFED
     
     def _get_review(self):
         try:
@@ -175,8 +170,9 @@ class Docstring(models.Model):
             return
 
         new_review_code = {
-            REVIEW_REVIEWED: REVIEW_REVIEWED_OLD,
-            REVIEW_PROOFED: REVIEW_PROOFED_OLD
+            REVIEW_NEEDS_WORK: REVIEW_REVISED,
+            REVIEW_NEEDS_PROOF: REVIEW_REVISED,
+            REVIEW_PROOFED: REVIEW_REVISED
         }.get(self.review, self.review)
         
         self.dirty = (self.source_doc != new_text)
@@ -390,7 +386,7 @@ class DocstringRevision(models.Model):
     author      = models.CharField(maxlength=256)
     comment     = models.CharField(maxlength=1024)
     timestamp   = models.DateTimeField(default=datetime.datetime.now)
-    review_code = models.IntegerField(default=REVIEW_NONE,
+    review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
                                       help_text="Review status")
     

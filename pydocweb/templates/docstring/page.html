@@ -12,11 +12,11 @@
 <span id="revision-header">Revision {{revision.revno|escape}}</span>
 {% else %}
 <span id="review-status" class="{{status_code|escape}}">
-  {% if perms.doc.can_review %}
+  {% if perms.doc.change_docstring %}
   <form action="{% url pydocweb.doc.views.review name %}" method="post">
     <ul>
       {{review_form.as_ul}}
-      <li><input type="submit" value="Change" /></li>
+      <li><input type="submit" id="submit-review-status" value="Change" /></li>
     </ul>
   </form>
   {% else %}
@@ -195,5 +195,23 @@ function toggle_resolved() {
         $(".not-resolved").attr('class', 'comment resolved');
     }
 }
+
+{% if perms.doc.can_review %}{% else %}
+$(document).ready(function () {
+    if ($("#id_status [value=-1]").attr("selected") ||
+        $("#id_status [value=4]").attr("selected") ||
+        $("#id_status [value=5]").attr("selected") ||
+        $("#id_status [value=6]").attr("selected")) {
+        $("#id_status").attr("disabled", 1);
+        $("#submit-review-status").attr("disabled", 1);
+    }
+    $("#id_status [value=-1]").attr("disabled", 1);
+    $("#id_status [value=3]").attr("disabled", 1);
+    $("#id_status [value=4]").attr("disabled", 1);
+    $("#id_status [value=5]").attr("disabled", 1);
+    $("#id_status [value=6]").attr("disabled", 1);
+});
+{% endif %}
+
 </script>
 {% endblock %}
