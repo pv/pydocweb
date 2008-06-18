@@ -10,7 +10,7 @@
 
 {% for status in status_list %}
 
-<h3>{{status.grouper.0|escape}}{% if status.grouper.1 %}, edited{% else %}{% endif %}</h3>
+<h3>{{status.grouper.0|escape}}{% if status.grouper.1 %} (edited){% else %}{% endif %}</h3>
 
 {% as_table_rows 3 status.list as rows %}
 <table class="content-list">
