@@ -12,7 +12,7 @@ SVN_DIRS = ("/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
 MODULES = ("numpy",)# "scipy")
 ADDNEWDOCS_FILES = (
     SVN_DIRS[0] + "/numpy/add_newdocs.py",
-    SVN_DIRS[0] + "/numpy/core/code_generation/docstrings.py",
+    SVN_DIRS[0] + "/numpy/core/code_generators/docstrings.py",
 )
 PYREX_FILES = (
     SVN_DIRS[0] + "/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand",
