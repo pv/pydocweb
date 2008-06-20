@@ -86,6 +86,9 @@ class Docstring(models.Model):
                                    help_text="Source file path")
     line_number = models.IntegerField(null=True,
                                       help_text="Line number in source file")
+
+    timestamp   = models.DateTimeField(default=datetime.datetime.now,
+                                       help_text="Time of last SVN pull")
     
     # contents = [DocstringAlias...]
     # revisions = [DocstringRevision...]
@@ -508,6 +511,8 @@ def _update_docstrings_from_xml(stream):
     tree = etree.parse(stream)
     root = tree.getroot()
 
+    timestamp = datetime.datetime.now()
+
     known_entries = {}
     for el in root:
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
@@ -547,6 +552,7 @@ def _update_docstrings_from_xml(stream):
         doc.repr_ = repr_
         doc.file_name = el.get('file')
         doc.line_number = line
+        doc.timestamp = timestamp
         
         if created:
             # New docstring
