@@ -786,7 +786,6 @@ def stats(request):
         blocks = []
         
         for blk_type in [REVIEW_NEEDS_EDITING,
-                         'changed',
                          REVIEW_BEING_WRITTEN,
                          REVIEW_NEEDS_REVIEW,
                          REVIEW_REVISED,
@@ -794,8 +793,11 @@ def stats(request):
                          REVIEW_NEEDS_PROOF,
                          REVIEW_PROOFED]:
             count = period.review_counts[blk_type]
-            code = REVIEW_STATUS_CODES.get(blk_type, 'changed')
-            name = REVIEW_STATUS_NAMES.get(blk_type, 'Changed')
+            code = REVIEW_STATUS_CODES[blk_type]
+            if blk_type == REVIEW_BEING_WRITTEN:
+                name = "Being written / Changed"
+            else:
+                name = REVIEW_STATUS_NAMES[blk_type]
             blocks.append(dict(count=count,
                                code=code,
                                name=name))
@@ -811,8 +813,7 @@ def stats(request):
         period.unimportant_count = unimportant_count
         period.docstring_info = [
             dict(name=name,
-                 review=REVIEW_STATUS_CODES.get(period.docstring_status[name],
-                                                'changed'),
+                 review=REVIEW_STATUS_CODES[period.docstring_status[name]],
                  start_rev=period.start_revs[name],
                  end_rev=period.end_revs[name],
                  edits=n_edits)
@@ -843,7 +844,6 @@ def _get_weekly_stats(edits):
     
     for j in REVIEW_STATUS_NAMES.keys():
         review_counts[j] = 0
-    review_counts['changed'] = 0
     
     for docstring in Docstring.objects.all():
         review_status[docstring.name] = docstring.review_code
@@ -877,7 +877,7 @@ def _get_weekly_stats(edits):
             
             review_counts[review_status[rev.docstring.name]] -= 1
             if rev.review_code == REVIEW_NEEDS_EDITING:
-                review_status[rev.docstring.name] = 'changed'
+                review_status[rev.docstring.name] = REVIEW_BEING_WRITTEN
             else:
                 review_status[rev.docstring.name] = rev.review_code
             review_counts[review_status[rev.docstring.name]] += 1

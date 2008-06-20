@@ -262,7 +262,6 @@ dl dt {
 .unimportant   { background: #999; }
 .needs-editing { background: #fff; }
 .being-written { background: #ddd; }
-.changed       { background: #ddd; }
 .needs-review  { background: #faa; }
 .revised       { background: #fca; }
 .needs-work    { background: #ff5; }
