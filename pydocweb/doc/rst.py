@@ -133,6 +133,7 @@ def render_docstring_html(doc, text):
                               'description at the beginning.')
     except ValueError, e:
         errors.append(str(e))
+        docstring = None
 
     if errors:
         err_list = '<ul>' + '\n'.join('<li>' + cgi.escape(s) + '</li>'
@@ -141,9 +142,12 @@ def render_docstring_html(doc, text):
                    "<span class=\"system-message-title\">"
                    "Docstring does not conform to Numpy documentation "
                    "standard</span><p>%s</p></div>" % err_list)
+    else:
+        err_msg = ""
 
+    if docstring is None:
         return err_msg + render_html(text)
-
+    
     # Determine allowed link namespace prefixes
     parts = doc.name.split('.')
     prefixes = ['.'.join(parts[:j]) + '.' for j in range(1, len(parts))]
@@ -165,7 +169,7 @@ def render_docstring_html(doc, text):
     return t.render(Context(dict(name=doc.name,
                                  bases=bases,
                                  basename=doc.name.split('.')[-1],
-                                 body_html=body_html)))
+                                 body_html=err_msg + body_html)))
 
 #------------------------------------------------------------------------------
 # Index
