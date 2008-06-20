@@ -363,7 +363,7 @@ class NumpyDocString(object):
         out += self._str_signature()
         out += self._str_summary()
         out += self._str_extended_summary()
-        for param_list in ('Parameters','Returns','Raises'):
+        for param_list in ('Parameters','Returns','Raises','Warns'):
             out += self._str_param_list(param_list)
         out += self._str_see_also()
         for s in ('Notes','References','Examples'):
@@ -461,7 +461,8 @@ class NumpyClassDocString(NumpyDocString):
         out += self._str_signature()
         out += self._str_summary()
         out += self._str_extended_summary()
-        for param_list in ('Attributes', 'Methods', 'Parameters', 'Raises'):
+        for param_list in ('Attributes', 'Methods', 'Parameters', 'Raises',
+                           'Warns'):
             out += self._str_param_list(param_list)
         out += self._str_see_also()
         for s in ('Notes','References','Examples'):
@@ -562,7 +563,7 @@ class SphinxDocString(NumpyDocString):
         out = []
         out += self._str_summary()
         out += self._str_extended_summary()
-        for param_list in ('Parameters','Returns','Raises'):
+        for param_list in ('Parameters','Returns','Raises','Warns'):
             out += self._str_param_list(param_list)
         for s in ('Notes','References','Examples'):
             out += self._str_section(s)
