@@ -805,7 +805,7 @@ def stats(request):
         total_count = sum(float(b['count']) for b in blocks)
         for b in blocks:
             ratio = float(b['count']) / total_count
-            b['height'] = "%d" % round(HEIGHT * ratio)
+            b['height'] = "%.2f" % (HEIGHT * ratio)
             b['percentage'] = '%d' % (round(100*ratio),)
         unimportant_count = period.review_counts[REVIEW_UNIMPORTANT]
 
