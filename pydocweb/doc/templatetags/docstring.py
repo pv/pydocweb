@@ -10,14 +10,14 @@ from django.template.defaultfilters import stringfilter
 register = template.Library()
 
 @register.simple_tag
-def docstring_name_link(name):
+def docstring_name_link(name, all_links=False):
     from django.core.urlresolvers import reverse
     parts = str(name).split('.')
     namelinks = []
     for j in xrange(1, len(parts)+1):
         partial = '.'.join(parts[:j])
         target = reverse('pydocweb.doc.views.docstring', args=[partial])
-        if j < len(parts):
+        if j < len(parts) or all_links:
             namelinks.append("<a href=\"%s\">%s</a>" % (
                 urllib.quote(target), cgi.escape(parts[j-1])))
         else:
