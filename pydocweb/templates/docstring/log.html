@@ -16,7 +16,7 @@
   </tr>
   {% for rev in revisions %}
   <tr>
-    <td>{{rev.id|escape}}</td>
+    <td class="{{rev.review|escape}}">{{rev.id|escape}}</td>
     <td>
       <a href="{% url pydocweb.doc.views.docstring name %}?revision={{rev.id|escape}}">{{rev.timestamp|date:"Y-m-d H:i:s"}}</a>
     </td>

@@ -435,13 +435,15 @@ def log(request, name):
             id=rev.revno,
             author=author_map.get(rev.author, rev.author),
             comment=rev.comment,
-            timestamp=rev.timestamp
+            timestamp=rev.timestamp,
+            review=REVIEW_STATUS_CODES[rev.review_code],
         ))
 
     revisions.append(dict(
         id="SVN",
         author="",
         comment="",
+        review=REVIEW_STATUS_CODES[doc.review_code],
         timestamp=None,
     ))
 
