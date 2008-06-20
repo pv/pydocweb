@@ -431,7 +431,7 @@ class NumpyFunctionDocString(NumpyDocString):
         if len(self['Summary']) > 1:
             errors.append("Function summary line spans multiple lines")
 
-        if not (re.match('^\w+\(\)$', self['Signature'] or self['Parameters']):
+        if not (re.match('^\w+\(\)$', self['Signature']) or self['Parameters']):
             errors.append("No Parameters section")
         
         return errors
