@@ -223,11 +223,19 @@ def cmd_prune(args):
 
     for el in doc._id_cache.itervalues():
         for ref in list(el.findall('ref')):
+            target = doc.get(ref.attrib['ref'])
+            name = ref.attrib['name']
+            
             # remove stuff beginning with _
             if ref.attrib['name'].startswith('_'):
                 el.remove(ref)
             # remove stuff not in __all__
-            elif ref.attrib.get('in-all') == '0':
+            # (except modules in their canonical location)
+            elif (ref.attrib.get('in-all') == '0'
+                  and not (target is not None
+                           and target.tag == 'module'
+                           and target.attrib['id'] == '%s.%s'%(el.attrib['id'],
+                                                               name))):
                 el.remove(ref)
 
     doc.recache()
