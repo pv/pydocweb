@@ -499,7 +499,7 @@ class NumpyModuleDocString(NumpyDocString):
         return '\n'.join(out)
 
     def get_errors(self):
-        errors = NumpyDocString.get_errors(self)
+        errors = NumpyDocString.get_errors(self, check_order=False)
         return errors
 
 def header(text, style='-'):
