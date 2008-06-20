@@ -125,7 +125,8 @@ def render_docstring_html(doc, text):
         if doc.type_ in ('callable', 'class'):
             had_signature = bool(docstring['Signature'])
             if doc.argspec:
-                docstring['Signature'] = doc.argspec
+                docstring['Signature'] = "%s%s" % (doc.name.split('.')[-1],
+                                                   doc.argspec)
             errors.extend(docstring.get_errors())
             if had_signature and doc.argspec:
                 errors.append('Docstring has a spurious function signature '
