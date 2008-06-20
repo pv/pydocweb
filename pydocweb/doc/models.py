@@ -173,6 +173,7 @@ class Docstring(models.Model):
             return
 
         new_review_code = {
+            REVIEW_NEEDS_EDITING: REVIEW_BEING_WRITTEN,
             REVIEW_NEEDS_WORK: REVIEW_REVISED,
             REVIEW_NEEDS_PROOF: REVIEW_REVISED,
             REVIEW_PROOFED: REVIEW_REVISED
