@@ -123,6 +123,10 @@ class Docstring(models.Model):
     # --
 
     @property
+    def is_obsolete(self):
+        return (self.timestamp != Docstring.objects.order_by('-timestamp')[0].timestamp)
+
+    @property
     def child_objects(self):
         return self._get_contents('object')
 
