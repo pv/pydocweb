@@ -477,12 +477,8 @@ class NumpyClassDocString(NumpyDocString):
 class NumpyModuleDocString(NumpyDocString):
     def __setitem__(self,key,val):
         self._parsed_data[key] = val
-    
+
     def _parse(self):
-        self._parsed_data = {
-            'See Also': [],
-            'index': {},
-            }
         return NumpyDocString._parse(self)
 
     def __str__(self):
