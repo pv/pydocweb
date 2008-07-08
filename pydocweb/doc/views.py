@@ -773,7 +773,7 @@ def search(request):
 
 def contributors(request):
     edit_group = Group.objects.filter(name='Editor')[0]
-    users = edit_group.user_set.order_by('last_name')
+    users = edit_group.user_set.order_by('last_name', 'first_name')
     users = users.values('first_name', 'last_name').distinct()
     users = [d['first_name'] + ' ' + d['last_name'] for d in users]
     return render_template(request, 'contributors.html',
