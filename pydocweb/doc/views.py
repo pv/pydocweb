@@ -8,7 +8,7 @@ from django.template import RequestContext
 
 from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 
 from django import newforms as forms
@@ -581,7 +581,7 @@ def control(request):
             update_docstrings()
 
     return render_template(request, 'control.html',
-                           dict(users=User.objects.all()))
+                           dict(users=User.objects.filter()))
 
 #------------------------------------------------------------------------------
 # User management
@@ -765,6 +765,21 @@ def search(request):
                            dict(form=form,
                                 docstring_results=docstring_results,
                                 wiki_results=wiki_results))
+
+
+#------------------------------------------------------------------------------
+# Contributors
+#------------------------------------------------------------------------------
+
+def contributors(request):
+    edit_group = Group.objects.filter(name='Editor')[0]
+    users = edit_group.user_set.order_by('last_name')
+    users = users.values('first_name', 'last_name').distinct()
+    users = [d['first_name'] + ' ' + d['last_name'] for d in users]
+    return render_template(request, 'contributors.html',
+                           dict(users=users),
+                           )
+
 
 #------------------------------------------------------------------------------
 # Stats

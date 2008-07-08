@@ -27,6 +27,7 @@ urlpatterns = patterns(
     (r'^changes/$', 'changes'),
     (r'^search/$', 'search'),
     (r'^stats/$', 'stats'),
+    (r'^contributors/$', 'contributors'),
 )
 
 urlpatterns += patterns(

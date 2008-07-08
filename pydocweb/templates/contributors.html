@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Contributors{% endblock %}
+{% block pagetitle %}Contributors{% endblock %}
+
+{% block content %}
+
+<h3>In alphabetical order:</h3>
+
+<ul>
+  {% for user in users %}
+    <li>{{user}}</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
