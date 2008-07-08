@@ -36,7 +36,7 @@ def wiki(request, name):
             rev = page.revisions.get(revno=revision)
         except (TypeError, ValueError, WikiPageRevision.DoesNotExist):
             rev = page
-        
+
         if not rev.text and revision is None:
             raise WikiPage.DoesNotExist()
         body = rst.render_html(rev.text)
@@ -65,11 +65,11 @@ def edit_wiki(request, name):
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(wiki, args=[name]))
-        
+
         revision = None
         form = EditForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
                 try:
@@ -124,9 +124,9 @@ def log_wiki(request, name):
                                                     args=[name, rev1, rev2]))
             except (ValueError, TypeError):
                 pass
-    
+
     author_map = _get_author_map()
-        
+
     revisions = []
     for rev in page.revisions.all():
         revisions.append(dict(
@@ -135,7 +135,7 @@ def log_wiki(request, name):
             comment=rev.comment,
             timestamp=rev.timestamp,
         ))
-    
+
     return render_template(request, 'wiki/log.html',
                            dict(name=name, revisions=revisions))
 
@@ -152,7 +152,7 @@ def diff_wiki(request, name, rev1, rev2):
             rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2))
     except (ValueError, TypeError):
         raise Http404()
-    
+
     name1 = str(rev1.revno)
     name2 = str(rev2.revno)
 
@@ -192,7 +192,7 @@ def docstring_index(request):
                       GROUP BY docstring_id ORDER BY timestamp""")
     for name, review in cursor.fetchall():
         review_map[name] = review
-    
+
     # continue pseudo-normally
     entries = Docstring.objects.all()
     review_sort_order = {
@@ -249,9 +249,9 @@ def docstring(request, name):
             html=rst.render_html(comment.text),
             text=comment.text,
         ))
-    
+
     review_form = ReviewForm(dict(status=doc.review))
-    
+
     params = dict(name=name,
                   doc=doc,
                   review_form=review_form,
@@ -263,7 +263,7 @@ def docstring(request, name):
                   line_number=doc.line_number,
                   revision=revision,
                   )
-    
+
     if revision is None and doc.merge_status == MERGE_CONFLICT:
         conflict = doc.get_merge()
         params['merge_type'] = 'conflict'
@@ -284,19 +284,19 @@ def _get_author_map():
             author_map[user.username] = "%s %s" % (user.first_name,
                                                    user.last_name)
     return author_map
-    
+
 @permission_required('doc.change_docstring')
 def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
-    
+
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(docstring, args=[name]))
-        
+
         revision = None
         form = EditForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             if request.POST.get('button_preview'):
                 preview_html = rst.render_docstring_html(doc, data['text'])
                 diff_html = html_diff_text(doc.text.decode('utf-8'), data['text'],
@@ -329,7 +329,7 @@ def edit(request, name):
         if revision is None and doc.merge_status != MERGE_NONE:
             data['text'] = doc.get_merge()
             data['comment'] = "Merged"
-        
+
         form = EditForm(initial=data)
 
     if revision is None and doc.merge_status != MERGE_NONE:
@@ -350,8 +350,8 @@ class CommentEditForm(forms.Form):
 
     def clean(self):
         # fix CRLF -> LF
-        self.clean_data['text']="\n".join(self.clean_data['text'].splitlines())
-        return self.clean_data
+        self.cleaned_data['text']="\n".join(self.cleaned_data['text'].splitlines())
+        return self.cleaned_data
 
 @permission_required('doc.change_reviewcomment')
 def comment_edit(request, name, comment_id):
@@ -365,15 +365,15 @@ def comment_edit(request, name, comment_id):
                                        author=request.user.username)
     except (ValueError, TypeError, ReviewComment.DoesNotExist):
         comment = None
-    
+
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(docstring, args=[name])
                                         + "#discussion-sec")
-        
+
         form = CommentEditForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
                 return render_template(request, 'docstring/edit_comment.html',
@@ -397,7 +397,7 @@ def comment_edit(request, name, comment_id):
             else:
                 if comment is None:
                     comment = ReviewComment(docstring=doc)
-                
+
                 try:
                     comment.rev = doc.revisions.all()[0]
                 except IndexError:
@@ -414,13 +414,13 @@ def comment_edit(request, name, comment_id):
         else:
             data = {}
         form = CommentEditForm(initial=data)
-    
+
     return render_template(request, 'docstring/edit_comment.html',
                            dict(form=form, name=name, comment=comment))
 
 def log(request, name):
     doc = get_object_or_404(Docstring, name=name)
-    
+
     if request.method == "POST":
         if request.POST.get('button_diff'):
             rev1 = str(request.POST.get('rev1'))
@@ -428,7 +428,7 @@ def log(request, name):
             return HttpResponseRedirect(reverse(diff, args=[name, rev1, rev2]))
 
     author_map = _get_author_map()
-        
+
     revisions = []
     for rev in doc.revisions.all():
         revisions.append(dict(
@@ -478,7 +478,7 @@ def diff_prev(request, name, rev2):
             rev2 = rev2.revno
     except (DocstringRevision.DoesNotExist, IndexError):
         raise Http404()
-    
+
     try:
         rev1 = DocstringRevision.objects.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
@@ -490,10 +490,9 @@ def diff_prev(request, name, rev2):
 def review(request, name):
     if request.method == 'POST':
         doc = get_object_or_404(Docstring, name=name)
-        
+
         form = ReviewForm(request.POST)
         if form.is_valid():
-
             # restrict reviewing by editors
             def _valid_review(r, extra=[]):
                 return r in ([REVIEW_NEEDS_EDITING, REVIEW_BEING_WRITTEN,
@@ -502,14 +501,14 @@ def review(request, name):
                 _valid_review(doc.review, [REVIEW_REVISED]) and
                 _valid_review(form.clean_data['status'])):
                 return HttpResponseRedirect(reverse(docstring, args=[name]))
-            
+
             doc.review = form.clean_data['status']
             doc.save()
         return HttpResponseRedirect(reverse(docstring, args=[name]))
     else:
         raise Http404()
 
-    
+
 #------------------------------------------------------------------------------
 # Sources
 #------------------------------------------------------------------------------
@@ -535,7 +534,7 @@ def patch(request):
         patch = patch_against_source(
             Docstring.objects.filter(name__in=included_docs))
         return HttpResponse(patch, mimetype="text/plain")
-    
+
     docs = Docstring.objects.filter(dirty=True)
     docs = [
         dict(included=(entry.merge_status == MERGE_NONE and
@@ -567,7 +566,7 @@ def merge(request):
                 obj.automatic_merge(author=request.user.username)
             except RuntimeError, e:
                 errors.append("%s: %s" % (obj.name, str(e)))
-    
+
     conflicts = Docstring.objects.filter(merge_status=MERGE_CONFLICT)
     merged = Docstring.objects.filter(merge_status=MERGE_MERGE)
 
@@ -602,9 +601,9 @@ class PasswordChangeForm(forms.Form):
     password_verify = forms.CharField(widget=forms.PasswordInput, required=True)
 
     def clean(self):
-        if self.clean_data.get('password') != self.clean_data.get('password_verify'):
+        if self.cleaned_data.get('password') != self.cleaned_data.get('password_verify'):
             raise forms.ValidationError("Passwords don't match")
-        return self.clean_data
+        return self.cleaned_data
 
 class RegistrationForm(forms.Form):
     username = forms.CharField(required=True, min_length=4)
@@ -616,9 +615,9 @@ class RegistrationForm(forms.Form):
     password_verify = forms.CharField(widget=forms.PasswordInput, required=True)
 
     def clean(self):
-        if self.clean_data.get('password') != self.clean_data.get('password_verify'):
+        if self.cleaned_data.get('password') != self.cleaned_data.get('password_verify'):
             raise forms.ValidationError("Passwords don't match")
-        return self.clean_data
+        return self.cleaned_data
 
 def login(request):
     message = ""
@@ -626,7 +625,7 @@ def login(request):
         time.sleep(2) # thwart password cracking
         form = LoginForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             user = authenticate(username=data['username'],
                                 password=data['password'])
             if user is not None and user.is_active:
@@ -648,7 +647,7 @@ def password_change(request):
     if request.method == 'POST':
         form = PasswordChangeForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             request.user.set_password(data['password'])
             request.user.first_name = data['first_name']
             request.user.last_name = data['last_name']
@@ -671,7 +670,7 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             count = User.objects.filter(username=data['username']).count()
             if count == 0:
                 user = User.objects.create_user(data['username'],
@@ -687,7 +686,7 @@ def register(request):
                 message = "User name %s is already reserved" % data['username']
     else:
         form = RegistrationForm()
-    
+
     return render_template(request, 'registration/register.html',
                            dict(form=form, message=message))
 
@@ -740,28 +739,28 @@ class SearchForm(forms.Form):
             help_text="Use % as a wild characted; as in an SQL LIKE search")
     invert = forms.BooleanField(required=False,
             help_text="Find non-matching items")
-    type_ = forms.CharField(widget=forms.Select(choices=_choices),
+    _type = forms.CharField(widget=forms.Select(choices=_choices),
                             label="Item type")
 
 def search(request):
     docstring_results = []
     wiki_results = []
-    
+
     if request.method == 'POST':
         form = SearchForm(request.POST)
         if form.is_valid():
-            data = form.clean_data
+            data = form.cleaned_data
             if data['fulltext'] != '':
                 data['fulltext'] = '%%%s%%' % data['fulltext']
-            if data['type_'] != 'wiki':
+            if data['_type'] != 'wiki':
                 docstring_results = Docstring.fulltext_search(
-                    data['fulltext'], data['invert'], data['type_'])
-            if data['type_'] in ('any', 'wiki'):
+                    data['fulltext'], data['invert'], data['_type'])
+            if data['_type'] in ('any', 'wiki'):
                 wiki_results = WikiPage.fulltext_search(data['fulltext'],
                                                         data['invert'])
     else:
         form = SearchForm()
-    
+
     return render_template(request, 'search.html',
                            dict(form=form,
                                 docstring_results=docstring_results,
@@ -777,16 +776,16 @@ def stats(request):
     edits = _get_edits()
 
     HEIGHT = 200
-    
+
     if not edits:
         stats = None
     else:
         stats = _get_weekly_stats(edits)
-    
+
     # Generate bar graph for period history
     for period in stats:
         blocks = []
-        
+
         for blk_type in [REVIEW_NEEDS_EDITING,
                          REVIEW_BEING_WRITTEN,
                          REVIEW_NEEDS_REVIEW,
@@ -803,7 +802,7 @@ def stats(request):
             blocks.append(dict(count=count,
                                code=code,
                                name=name))
-        
+
         total_count = sum(float(b['count']) for b in blocks)
         for b in blocks:
             ratio = float(b['count']) / total_count
@@ -822,13 +821,13 @@ def stats(request):
             for name, n_edits in period.docstring_edits.items()
         ]
         period.total_edits = sum(x[1] for x in period.docstring_edits.items())
-    
+
     # Render
     try:
         current_period = stats[-1]
     except IndexError:
         current_period = None
-    
+
     return render_template(request, 'stats.html',
                            dict(stats=stats,
                                 current_period=current_period,
@@ -840,43 +839,43 @@ def _get_weekly_stats(edits):
     review_counts = {}
     docstring_status = {}
     docstring_start_rev = {}
-    
+
     author_map = _get_author_map()
     author_map['xml-import'] = "Imported"
-    
+
     for j in REVIEW_STATUS_NAMES.keys():
         review_counts[j] = 0
-    
+
     for docstring in Docstring.objects.all():
         review_status[docstring.name] = docstring.review_code
         review_counts[docstring.review_code] += 1
         docstring_start_rev[docstring.name] = 'svn'
-    
+
     # Periodical review statistics
     time_step = datetime.timedelta(days=7)
-    
+
     period_stats = []
-    
+
     remaining_edits = list(edits)
     remaining_edits.sort(key=lambda x: x[0])
 
     t = edits[0][0] - time_step # start from monday
     t = datetime.datetime(t.year, t.month, t.day)
     start_time = t - datetime.timedelta(days=t.weekday())
-    
+
     while start_time <= datetime.datetime.now():
         end_time = start_time + time_step
-        
+
         docstring_end_rev = {}
         author_edits = {}
         docstring_edits = {}
-        
+
         while remaining_edits and remaining_edits[0][0] < end_time:
             timestamp, n_edits, rev = remaining_edits.pop(0)
             if n_edits <= 0: continue
 
             docstring_end_rev[rev.docstring.name] = rev.revno
-            
+
             review_counts[review_status[rev.docstring.name]] -= 1
             if rev.review_code == REVIEW_NEEDS_EDITING:
                 review_status[rev.docstring.name] = REVIEW_BEING_WRITTEN
@@ -887,11 +886,11 @@ def _get_weekly_stats(edits):
             author = author_map.get(rev.author, rev.author)
             author_edits.setdefault(author, 0)
             author_edits[author] += n_edits
-            
+
             docstring_edits.setdefault(rev.docstring.name, 0)
             docstring_edits[rev.docstring.name] += n_edits
             docstring_status[rev.docstring.name] = rev.review_code
-        
+
         period_stats.append(PeriodStats(start_time, end_time,
                                         author_edits,
                                         docstring_edits,
@@ -901,7 +900,7 @@ def _get_weekly_stats(edits):
                                         docstring_end_rev,))
         start_time = end_time
         docstring_start_rev.update(docstring_end_rev)
-    
+
     return period_stats
 
 class PeriodStats(object):
@@ -935,7 +934,7 @@ def _get_edits():
     edits = []
 
     nonjunk_re = re.compile("[^a-zA-Z \n]")
-    
+
     for rev in revisions:
         if last_docstring != rev.docstring or last_text is None:
             last_text = rev.docstring.source_doc

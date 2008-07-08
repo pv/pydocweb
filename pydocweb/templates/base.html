@@ -20,26 +20,26 @@
 	<li class="button"><a href="{% url pydocweb.doc.views.search %}">Search</a></li>
 	<li class="button"><a href="{% url pydocweb.doc.views.stats %}">Stats</a></li>
 {% if perms.doc.change_docstring %}
-	<li class="button"><a href="{% url pydocweb.doc.views.merge %}">Merge</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.merge %}">Merge</a></li>
 {% endif %}
-	<li class="button"><a href="{% url pydocweb.doc.views.patch %}">Patch</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.patch %}">Patch</a></li>
 {% if user.is_superuser %}
-	<li class="button"><a href="{% url pydocweb.doc.views.control %}">Control</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.control %}">Control</a></li>
 {% endif %}
 	<li>&mdash;</li>
 {% if user.is_authenticated %}
 	<li><b>{{user.first_name|escape}} {{user.last_name|escape}}</b>:</li>
 	<li class="button"><a href="{% url pydocweb.doc.views.password_change %}">Profile</a></li>
-	<li class="button"><a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>	
+	<li class="button"><a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>
 {% else %}
-	<li class="button"><a href="{% url pydocweb.doc.views.login %}">Log in</a></li>	
+	<li class="button"><a href="{% url pydocweb.doc.views.login %}">Log in</a></li>
 {% endif %}
       </ul>
     </div>
     <div id="container">
       <div id="title"><h1>{% block pagetitle %}{% endblock %}</h1></div>
       {% block actions %}{% endblock %}
-      <div id="content">{% block content %}{% endblock %}</div>
+         <div id="content">{% block content %}{% endblock %}</div>
     </container>
   </body>
 </html>

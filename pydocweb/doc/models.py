@@ -53,27 +53,26 @@ MERGE_STATUS_CODES = {
 }
 
 class Docstring(models.Model):
-    name        = models.CharField(maxlength=MAX_NAME_LEN, primary_key=True,
+    name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")
-    
-    type_       = models.CharField(maxlength=16,
-                                   help_text="module, class, callable or object")
-    
-    type_name   = models.CharField(maxlength=MAX_NAME_LEN, null=True,
+
+    _type       = models.CharField(max_length=16,
+                                  help_text="module, class, callable or object")
+
+    type_name   = models.CharField(max_length=MAX_NAME_LEN, null=True,
                                    help_text="Canonical name of the type")
-    argspec     = models.CharField(maxlength=2048, null=True,
+    argspec     = models.CharField(max_length=2048, null=True,
                                    help_text="Argspec for functions")
-    objclass    = models.CharField(maxlength=MAX_NAME_LEN, null=True,
+    objclass    = models.CharField(max_length=MAX_NAME_LEN, null=True,
                                    help_text="Objclass for methods")
-    bases       = models.CharField(maxlength=1024, null=True,
+    bases       = models.CharField(max_length=1024, null=True,
                                    help_text="Base classes for classes")
-    
-    repr_       = models.TextField(null=True,
-                                   help_text="Repr of the object")
-    
+
+    _repr       = models.TextField(null=True,
+                                  help_text="Repr of the object")
+
     source_doc  = models.TextField(help_text="Docstring in SVN")
     base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
-    
     review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
                                       help_text="Review status of SVN string")
@@ -81,29 +80,27 @@ class Docstring(models.Model):
                                        help_text="Docstring merge status")
     dirty        = models.BooleanField(default=False,
                                        help_text="Differs from SVN")
-    
-    file_name   = models.CharField(maxlength=2048, null=True,
+
+    file_name   = models.CharField(max_length=2048, null=True,
                                    help_text="Source file path")
     line_number = models.IntegerField(null=True,
                                       help_text="Line number in source file")
-
     timestamp   = models.DateTimeField(default=datetime.datetime.now,
                                        help_text="Time of last SVN pull")
-    
     # contents = [DocstringAlias...]
     # revisions = [DocstringRevision...]
     # comments = [ReviewComment...]
-    
+
     class Meta:
         ordering = ['name']
         permissions = (
             ('can_review', 'Can review and proofread'),
         )
-    
+
     # --
 
     class MergeConflict(RuntimeError): pass
-    
+
     def _get_review(self):
         try:
             return self.revisions.all()[0].review_code
@@ -117,9 +114,9 @@ class Docstring(models.Model):
             last_rev.save()
         except IndexError:
             self.review_code = value
-    
+
     review = property(_get_review, _set_review)
-        
+
     # --
 
     @property
@@ -141,37 +138,37 @@ class Docstring(models.Model):
     @property
     def child_classes(self):
         return self._get_contents('class')
-    
-    def _get_contents(self, type_):
+
+    def _get_contents(self, _type):
         return DocstringAlias.objects.filter(parent=self).extra(
             where=['doc_docstring.name == target',
-                   "doc_docstring.type_ == '%s'" % type_],
+                   "doc_docstring._type == '%s'" % _type],
             tables=['doc_docstring']
         )
-    
+
     def edit(self, new_text, author, comment):
         """
         Create a new revision of the docstring with given content.
-        
+
         Also resolves merge conflicts. Does not create a new revision
         if there are no changes in the text.
-        
+
         Raises
         ------
         Docstring.MergeConflict
             If the new text still contains conflict markers.
-        
+
         """
         new_text = strip_spurious_whitespace(new_text)
-        
+
         if ('<<<<<<' in new_text or '>>>>>>' in new_text):
             raise RuntimeError('New text still contains merge conflict markers')
-        
+
         # assume any merge was OK
         self.merge_status = MERGE_NONE
         self.base_doc = self.source_doc
         self.save()
-        
+
         if new_text == self.text:
             # NOOP
             return
@@ -182,7 +179,7 @@ class Docstring(models.Model):
             REVIEW_NEEDS_PROOF: REVIEW_REVISED,
             REVIEW_PROOFED: REVIEW_REVISED
         }.get(self.review, self.review)
-        
+
         self.dirty = (self.source_doc != new_text)
         self.save()
         rev = DocstringRevision(docstring=self,
@@ -196,24 +193,24 @@ class Docstring(models.Model):
         """
         Return a 3-way merged docstring, or None if no merge is necessary.
         Updates the merge status of the docstring.
-        
+
         Returns
         -------
         result : {None, str}
             None if no merge is needed, else return the merge result.
-        
+
         """
         if self.base_doc == self.source_doc:
             # Nothing to merge
             return None
-        
+
         if self.revisions.count() == 0:
             # No local edits
             self.merge_status = MERGE_NONE
             self.base_doc = self.source_doc
             self.save()
             return None
-        
+
         if self.text == self.source_doc:
             # Local text agrees with SVN source, no merge needed
             self.merge_status = MERGE_NONE
@@ -241,7 +238,7 @@ class Docstring(models.Model):
             result = self.get_merge()
             if self.merge_status == MERGE_MERGE:
                 self.edit(result, author, 'Merged')
-    
+
     def get_rev_text(self, revno):
         """Get text in given revision of the docstring.
 
@@ -273,7 +270,7 @@ class Docstring(models.Model):
                 return rev.text, rev
             except (ValueError, TypeError):
                 raise DocstringRevision.DoesNotExist()
-    
+
     @property
     def text(self):
         """Return the current text in the docstring, latest revision or SVN"""
@@ -285,24 +282,24 @@ class Docstring(models.Model):
     @classmethod
     def resolve(cls, name):
         """Resolve a docstring reference. `name` needs not be a canonical name.
-        
+
         Returns
         -------
         doc : Docstring
-        
+
         Raises
         ------
         Docstring.DoesNotExist
             If not found
-        
+
         """
         def _get(name):
             try: return cls.objects.get(name=name)
             except cls.DoesNotExist: return None
-        
+
         doc = _get(name)
         if doc is not None: return doc
-        
+
         parts = name.split('.')
         parent = None
         seen = {}
@@ -335,19 +332,19 @@ class Docstring(models.Model):
     def fulltext_search(cls, s, invert=False, obj_type=None):
         """
         Fulltext search using an SQL LIKE clause
-        
+
         Returns
         -------
         it : iterator
             Iterator of matching docstring names
-        
+
         """
         if invert:
             not_ = "NOT"
         else:
             not_ = ""
         if obj_type in ('module', 'class', 'callable', 'object'):
-            where_ = "type_ = '%s' AND" % obj_type
+            where_ = "_type = '%s' AND" % obj_type
         else:
             where_ = ""
         from django.db import connection
@@ -391,29 +388,29 @@ class DocstringRevision(models.Model):
     revno       = models.AutoField(primary_key=True)
     docstring   = models.ForeignKey(Docstring, related_name="revisions")
     text        = models.TextField()
-    author      = models.CharField(maxlength=256)
-    comment     = models.CharField(maxlength=1024)
+    author      = models.CharField(max_length=256)
+    comment     = models.CharField(max_length=1024)
     timestamp   = models.DateTimeField(default=datetime.datetime.now)
     review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
                                       help_text="Review status")
-    
+
     # comments = [ReviewComment...]
-    
+
     class Meta:
         get_latest_by = "timestamp"
         ordering = ['-revno']
 
 class DocstringAlias(models.Model):
     parent = models.ForeignKey(Docstring, related_name="contents")
-    target = models.CharField(maxlength=MAX_NAME_LEN, null=True)
-    alias = models.CharField(maxlength=MAX_NAME_LEN)
+    target = models.CharField(max_length=MAX_NAME_LEN, null=True)
+    alias = models.CharField(max_length=MAX_NAME_LEN)
 
 # -- Wiki pages
 
 class WikiPage(models.Model):
-    name = models.CharField(maxlength=256, primary_key=True)
-    
+    name = models.CharField(max_length=256, primary_key=True)
+
     def edit(self, new_text, author, comment):
         """Create a new revision of the page"""
         new_text = strip_spurious_whitespace(new_text)
@@ -422,7 +419,7 @@ class WikiPage(models.Model):
                                text=new_text,
                                comment=comment)
         rev.save()
-    
+
     @property
     def text(self):
         """Return the current text in the page, or None if there is no text"""
@@ -445,12 +442,12 @@ class WikiPage(models.Model):
     def fulltext_search(cls, s, invert=False):
         """
         Fulltext search using an SQL LIKE clause
-        
+
         Returns
         -------
         it : iterator
             Iterator of matching docstring names
-        
+
         """
         if invert:
             not_ = "NOT"
@@ -468,14 +465,14 @@ class WikiPageRevision(models.Model):
     revno = models.AutoField(primary_key=True)
     page = models.ForeignKey(WikiPage, related_name="revisions")
     text = models.TextField()
-    author = models.CharField(maxlength=256)
-    comment = models.CharField(maxlength=1024)
+    author = models.CharField(max_length=256)
+    comment = models.CharField(max_length=1024)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
         get_latest_by = "timestamp"
         ordering = ['-revno']
-    
+
 # -- Reviewing
 
 class ReviewComment(models.Model):
@@ -483,11 +480,11 @@ class ReviewComment(models.Model):
     rev       = models.ForeignKey(DocstringRevision, related_name="comments",
                                   null=True)
     text      = models.TextField()
-    author    = models.CharField(maxlength=256)
+    author    = models.CharField(max_length=256)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
-    
+
     resolved  = models.BooleanField(default=False)
-    
+
     class Meta:
         get_latest_by = "timestamp"
         ordering = ['timestamp']
@@ -504,7 +501,7 @@ class MalformedPydocXML(RuntimeError): pass
 def update_docstrings_from_xml(stream):
     """
     Read XML from stream and update database accordingly.
-    
+
     """
     try:
         _update_docstrings_from_xml(stream)
@@ -522,43 +519,43 @@ def _update_docstrings_from_xml(stream):
     for el in root:
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
         known_entries[el.attrib['id']] = True
-    
+
     for el in root:
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
-        
+
         bases = []
         for b in el.findall('base'):
             bases.append(b.attrib['ref'])
         bases = " ".join(bases)
         if not bases:
             bases = None
-        
+
         if el.text:
             docstring = strip_spurious_whitespace(el.text.decode('string-escape'))
         else:
             docstring = ""
-        
-        repr_ = None
+
+        _repr = None
         if el.get('is-repr') == '1' and el.text:
-            repr_ = strip_spurious_whitespace(el.text.decode('string-escape'))
+            _repr = strip_spurious_whitespace(el.text.decode('string-escape'))
             docstring = ""
-        
+
         try:
             line = int(el.get('line'))
         except (ValueError, TypeError):
             line = None
 
         doc, created = Docstring.objects.get_or_create(name=el.attrib['id'])
-        doc.type_ = el.tag
+        doc._type = el.tag
         doc.type_name = el.get('type')
         doc.argspec = el.get('argspec')
         doc.objclass = el.get('objclass')
         doc.bases = bases
-        doc.repr_ = repr_
+        doc._repr = _repr
         doc.file_name = el.get('file')
         doc.line_number = line
         doc.timestamp = timestamp
-        
+
         if created:
             # New docstring
             doc.merge_status = MERGE_NONE
@@ -570,12 +567,12 @@ def _update_docstrings_from_xml(stream):
             doc.source_doc = docstring
             doc.save()
             doc.get_merge() # update merge status
-        
+
         doc.contents.all().delete()
         doc.save()
-        
+
         # -- Contents
-        
+
         for ref in el.findall('ref'):
             alias = DocstringAlias()
             alias.target = ref.attrib['ref']
@@ -587,7 +584,7 @@ def _update_docstrings_from_xml(stream):
 def import_docstring_revisions_from_xml(stream):
     """
     Read XML from stream and import new Docstring revisions from it.
-    
+
     """
     try:
         _import_docstring_revisions_from_xml(stream)
@@ -625,7 +622,7 @@ def update_docstrings(update_svn=True):
 
         if os.path.isdir(dist_dir):
             shutil.rmtree(dist_dir)
-        
+
         cwd = os.getcwd()
         os.chdir(svn_dir)
         try:
@@ -644,11 +641,11 @@ def update_docstrings(update_svn=True):
         update_docstrings_from_xml(f)
     finally:
         f.close()
-        
+
 def patch_against_source(revs):
     """
     Generate a patch against source files, for the given docstrings.
-    
+
     """
     # -- Generate new.xml
     new_root = etree.Element('pydoc')
@@ -667,10 +664,10 @@ def patch_against_source(revs):
     new_xml_file.write('<?xml version="1.0"?>')
     new_xml.write(new_xml_file)
     new_xml_file.flush()
-    
+
     # -- Generate patch
     base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
-    
+
     err = tempfile.TemporaryFile()
     patch = _exec_chainpipe([[settings.PYDOCMOIN, 'patch',
                               '-s', _site_path(),
@@ -682,7 +679,7 @@ def patch_against_source(revs):
 def regenerate_base_xml():
     """
     Re-generates base.xml containing SVN source docstrings
-    
+
     """
     cmds = []
     cmds.append(
@@ -701,7 +698,7 @@ def regenerate_base_xml():
     cmds.append([settings.PYDOCMOIN, 'pyrex-docs', '-s', _site_path()])
     for fn in settings.PYREX_FILES:
         cmds[-1] += ['-f', fn]
-    
+
     base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
     base_xml = open(base_xml_fn, 'w')
     _exec_chainpipe(cmds, final_out=base_xml)
@@ -742,7 +739,7 @@ def _exec_cmd(cmd, ok_return_value=0, **kw):
         out, err = p.communicate()
     except OSError, e:
         raise RuntimeError("Command %s failed: %s" % (' '.join(cmd), e))
-    
+
     if ok_return_value is not None and p.returncode != ok_return_value:
         raise RuntimeError("Command %s failed (code %d): %s"
                            % (' '.join(cmd), p.returncode, out + err))
@@ -774,16 +771,16 @@ def get_source_file_content(relative_file_name):
 def merge_3way(mine, base, other):
     """
     Perform a 3-way merge, inserting changes between base and other to mine.
-    
+
     Returns
     -------
     out : str
         Resulting new file1, possibly with conflict markers
     conflict : bool
         Whether a conflict occurred in merge.
-    
+
     """
-    
+
     f1 = tempfile.NamedTemporaryFile()
     f2 = tempfile.NamedTemporaryFile()
     f3 = tempfile.NamedTemporaryFile()
@@ -848,4 +845,3 @@ def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
 
 def strip_spurious_whitespace(text):
     return ("\n".join([x.rstrip() for x in text.split("\n")])).strip()
-

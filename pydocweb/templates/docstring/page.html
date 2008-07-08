@@ -37,7 +37,7 @@
     is no longer present in SVN.
   </div>
   {% endif %}
-  {{body_html}}
+  {{ body_html|safe }}
 </div>
 
 {% block discussion %}
@@ -87,7 +87,7 @@
     </div>
     {% endif %}{% endifequal %}
     {% endif %}
-    <div class="text">{{comment.html}}</div>
+    <div class="text">{{ comment.html|safe }}</div>
   </div>
   {% endfor %}
   {% if perms.doc.change_reviewcomment %}
@@ -101,7 +101,7 @@
 
 {% block docstring_contents %}
 
-{% ifequal doc.type_ "module" %}
+{% ifequal doc._type "module" %}
 <div id="content-list">
   <h1>Modules</h1>
   {% as_table_rows 5 doc.child_modules as rows %}
@@ -153,7 +153,7 @@
 </div>
 {% endifequal %}
 
-{% ifequal doc.type_ "class" %}
+{% ifequal doc._type "class" %}
 <div id="contents">
   <h1>Methods</h1>
   {% as_table_rows 5 doc.child_callables as rows %}
