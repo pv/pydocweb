@@ -1166,10 +1166,7 @@ class MoinFormatter(object):
         t += self.title(el, titlechar)
         if 'type' in el.attrib:
             t += "Type: %s\n" % self.partlink(el.attrib['type'])
-        if el.attrib.get('is-repr'):
-            t += "{{{\n%s\n}}}" % el.text.decode("string-escape")
-        else:
-            t += self.docstring(el)
+        t += self.docstring(el)
         t += "[[Action(edit)]]\n"
         t += self.additional_docs(el)
         return t
@@ -1435,9 +1432,6 @@ class Documentation(object):
 
     def _visit_object(self, obj, parent, name):
         entry = self._basic_entry('object', obj, parent, name)
-        if not entry.text:
-            entry.attrib['is-repr'] = '1'
-            entry.text = escape_text(repr(obj))
         return entry
 
     def _getmembers(self, obj):

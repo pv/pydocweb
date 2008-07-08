@@ -6,6 +6,7 @@
 <!ATTLIST module type CDATA #REQUIRED>
 <!ATTLIST module file CDATA #IMPLIED>
 <!ATTLIST module line CDATA #IMPLIED>
+<!ATTLIST module char-offset CDATA #IMPLIED>
 <!ATTLIST module is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT class (#PCDATA|ref|base|callable|object)*>
@@ -14,6 +15,7 @@
 <!ATTLIST class type CDATA #REQUIRED>
 <!ATTLIST class file CDATA #IMPLIED>
 <!ATTLIST class line CDATA #IMPLIED>
+<!ATTLIST class char-offset CDATA #IMPLIED>
 <!ATTLIST class is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT callable (#PCDATA)*>
@@ -24,6 +26,7 @@
 <!ATTLIST callable line CDATA #IMPLIED>
 <!ATTLIST callable objclass CDATA #IMPLIED>
 <!ATTLIST callable argspec CDATA #IMPLIED>
+<!ATTLIST callable char-offset CDATA #IMPLIED>
 <!ATTLIST callable is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT object (#PCDATA)*>
@@ -32,7 +35,7 @@
 <!ATTLIST object type CDATA #REQUIRED>
 <!ATTLIST object file CDATA #IMPLIED>
 <!ATTLIST object line CDATA #IMPLIED>
-<!ATTLIST object is-repr (0|1) #IMPLIED>
+<!ATTLIST object char-offset CDATA #IMPLIED>
 <!ATTLIST object is-addnewdoc (0|1) #IMPLIED>
 
 <!ELEMENT base EMPTY>
