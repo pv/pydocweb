@@ -7,6 +7,11 @@ ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 
+import os
+def relative_dir(path):
+    return os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                        path))
+
 SVN_DIRS = ("/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
             )#"/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/scipy")
 MODULES = ("numpy",)# "scipy")
@@ -17,7 +22,7 @@ ADDNEWDOCS_FILES = (
 PYREX_FILES = (
     SVN_DIRS[0] + "/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand",
 )
-PYDOCMOIN = "/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydoc_moin.py"
+PYDOCMOIN = relative_dir("../pydoc_moin.py")
 
 MAX_DOCSTRING_WIDTH = 79
 
@@ -52,8 +57,9 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/pydocweb/media/'
-MATH_ROOT = MEDIA_ROOT + "math/"
+MEDIA_ROOT = relative_dir('media')
+MATH_ROOT = relative_dir('media/math')
+IMAGE_ROOT = relative_dir('media/images')
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
@@ -92,13 +98,11 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'pydocweb.urls'
 
-import os
-
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "templates")),
+    relative_dir("templates"),
 )
 
 INSTALLED_APPS = (
