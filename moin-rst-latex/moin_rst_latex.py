@@ -27,7 +27,6 @@ LATEX_TEMPLATE = r"""
 """
 LATEX_ARGS = ["--interaction=nonstopmode"]
 DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1",
-               "--truecolor"
                # NOTE: PIL doesn't handle indexed PNG alpha gracefully,
                #       hence truecolor...
                ]
