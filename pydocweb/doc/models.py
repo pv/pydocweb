@@ -68,9 +68,6 @@ class Docstring(models.Model):
     bases       = models.CharField(max_length=1024, null=True,
                                    help_text="Base classes for classes")
 
-    _repr       = models.TextField(null=True,
-                                  help_text="Repr of the object")
-
     source_doc  = models.TextField(help_text="Docstring in SVN")
     base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
     review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
@@ -535,11 +532,6 @@ def _update_docstrings_from_xml(stream):
         else:
             docstring = ""
 
-        _repr = None
-        if el.get('is-repr') == '1' and el.text:
-            _repr = strip_spurious_whitespace(el.text.decode('string-escape'))
-            docstring = ""
-
         try:
             line = int(el.get('line'))
         except (ValueError, TypeError):
@@ -551,7 +543,6 @@ def _update_docstrings_from_xml(stream):
         doc.argspec = el.get('argspec')
         doc.objclass = el.get('objclass')
         doc.bases = bases
-        doc._repr = _repr
         doc.file_name = el.get('file')
         doc.line_number = line
         doc.timestamp = timestamp
