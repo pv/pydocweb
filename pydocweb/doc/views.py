@@ -57,8 +57,8 @@ class EditForm(forms.Form):
 
     def clean(self):
         # fix CRLF -> LF
-        self.clean_data['text'] = "\n".join(self.clean_data['text'].splitlines())
-        return self.clean_data
+        self.cleaned_data['text'] = "\n".join(self.cleaned_data['text'].splitlines())
+        return self.cleaned_data
 
 @permission_required('doc.change_wikipage')
 def edit_wiki(request, name):
@@ -499,10 +499,10 @@ def review(request, name):
                               REVIEW_NEEDS_REVIEW] + extra)
             if not request.user.has_perm('doc.can_review') and not (
                 _valid_review(doc.review, [REVIEW_REVISED]) and
-                _valid_review(form.clean_data['status'])):
+                _valid_review(form.cleaned_data['status'])):
                 return HttpResponseRedirect(reverse(docstring, args=[name]))
 
-            doc.review = form.clean_data['status']
+            doc.review = form.cleaned_data['status']
             doc.save()
         return HttpResponseRedirect(reverse(docstring, args=[name]))
     else:
