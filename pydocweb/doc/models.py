@@ -56,7 +56,7 @@ class Docstring(models.Model):
     name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")
 
-    type_code   = models.CharField(max_length=16,
+    type_code   = models.CharField(max_length=16, db_column="type_",
                                    help_text="module, class, callable, object")
 
     type_name   = models.CharField(max_length=MAX_NAME_LEN, null=True,
