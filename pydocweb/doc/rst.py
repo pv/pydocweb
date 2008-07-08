@@ -113,16 +113,16 @@ def render_docstring_html(doc, text):
     
     # Parse docstring
     try:
-        if doc._type == 'module':
+        if doc.type_code == 'module':
             docstring = NumpyModuleDocString(text)
-        elif doc._type == 'class':
+        elif doc.type_code == 'class':
             docstring = NumpyClassDocString(text)
-        elif doc._type == 'callable':
+        elif doc.type_code == 'callable':
             docstring = NumpyFunctionDocString(text)
         else:
             return render_html(text)
 
-        if doc._type in ('callable', 'class'):
+        if doc.type_code in ('callable', 'class'):
             had_signature = bool(docstring['Signature'])
             if doc.argspec:
                 argspec = re.sub(r'^[^(]*', '', doc.argspec)

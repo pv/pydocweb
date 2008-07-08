@@ -56,8 +56,8 @@ class Docstring(models.Model):
     name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")
 
-    _type       = models.CharField(max_length=16,
-                                  help_text="module, class, callable or object")
+    type_code   = models.CharField(max_length=16,
+                                   help_text="module, class, callable, object")
 
     type_name   = models.CharField(max_length=MAX_NAME_LEN, null=True,
                                    help_text="Canonical name of the type")
@@ -136,10 +136,10 @@ class Docstring(models.Model):
     def child_classes(self):
         return self._get_contents('class')
 
-    def _get_contents(self, _type):
+    def _get_contents(self, type_code):
         return DocstringAlias.objects.filter(parent=self).extra(
             where=['doc_docstring.name == target',
-                   "doc_docstring._type == '%s'" % _type],
+                   "doc_docstring.type_code == '%s'" % type_code],
             tables=['doc_docstring']
         )
 
@@ -341,7 +341,7 @@ class Docstring(models.Model):
         else:
             not_ = ""
         if obj_type in ('module', 'class', 'callable', 'object'):
-            where_ = "_type = '%s' AND" % obj_type
+            where_ = "type_code = '%s' AND" % obj_type
         else:
             where_ = ""
         from django.db import connection
@@ -538,7 +538,7 @@ def _update_docstrings_from_xml(stream):
             line = None
 
         doc, created = Docstring.objects.get_or_create(name=el.attrib['id'])
-        doc._type = el.tag
+        doc.type_code = el.tag
         doc.type_name = el.get('type')
         doc.argspec = el.get('argspec')
         doc.objclass = el.get('objclass')
