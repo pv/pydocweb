@@ -80,7 +80,7 @@
 
   <table>
     <th>Active editors</th>
-    {% for item in period.author_edits.items|dictsort:"1" reversed %}
+    {% for item in period.author_edits %}
     <tr>
       <td>{{item.0|escape}}</td>
       <td>{{item.1|floatformat:"-0"}} word{{item.1|pluralize}}</td>

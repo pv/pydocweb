@@ -835,6 +835,8 @@ def stats(request):
                  edits=n_edits)
             for name, n_edits in period.docstring_edits.items()
         ]
+        period.author_edits = period.author_edits.items()
+        period.author_edits.sort(key=lambda x: -x[1])
         period.total_edits = sum(x[1] for x in period.docstring_edits.items())
 
     # Render
