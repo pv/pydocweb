@@ -296,6 +296,11 @@ dl dt {
   padding: 0;
 }
 
+#document h1.title {
+  font-size: 14pt;
+  text-decoration: underline;
+}
+
 #document h2 { 
   font-size: 10pt;
   color: #008;
