@@ -137,12 +137,16 @@ class Docstring(models.Model):
         return self._get_contents('class')
 
     def _get_contents(self, type_code):
-        return DocstringAlias.objects.filter(parent=self).extra(
-            where=['doc_docstring.name == target',
-                   "doc_docstring.type_code == '%s'" % type_code],
-            tables=['doc_docstring']
-        )
-
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""\
+        SELECT a.alias FROM doc_docstringalias AS a, doc_docstring AS d
+        WHERE d.name = a.target AND a.parent_id = %s AND d.type_ = %s""",
+        [self.name, type_code])
+        names = [n[0] for n in cursor.fetchall()]
+        return DocstringAlias.objects.filter(parent=self,
+                                             alias__in=names)
+    
     def edit(self, new_text, author, comment):
         """
         Create a new revision of the docstring with given content.
@@ -341,7 +345,7 @@ class Docstring(models.Model):
         else:
             not_ = ""
         if obj_type in ('module', 'class', 'callable', 'object'):
-            where_ = "type_code = '%s' AND" % obj_type
+            where_ = "type_ = '%s' AND" % obj_type
         else:
             where_ = ""
         from django.db import connection
