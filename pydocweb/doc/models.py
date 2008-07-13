@@ -646,13 +646,13 @@ def patch_against_source(revs):
         el = etree.SubElement(new_root, 'object')
         if isinstance(rev, Docstring):
             el.attrib['id'] = rev.name
-            el.text = rev.text.encode('string-escape')
+            el.text = rev.text.encode('utf-8').encode('string-escape')
         else:
             el.attrib['id'] = rev.docstring.name
-            el.text = rev.text.encode('string-escape')
+            el.text = rev.text.encode('utf-8').encode('string-escape')
         namelist.append(el.attrib['id'])
     new_xml_file = tempfile.NamedTemporaryFile()
-    new_xml_file.write('<?xml version="1.0"?>')
+    new_xml_file.write('<?xml version="1.0" encoding="utf-8"?>')
     new_xml.write(new_xml_file)
     new_xml_file.flush()
 
