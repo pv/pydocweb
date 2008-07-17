@@ -496,7 +496,7 @@ def review(request, name):
             # restrict reviewing by editors
             def _valid_review(r, extra=[]):
                 return r in ([REVIEW_NEEDS_EDITING, REVIEW_BEING_WRITTEN,
-                              REVIEW_NEEDS_REVIEW] + extra)
+                              REVIEW_NEEDS_REVIEW, REVIEW_NEEDS_WORK] + extra)
             if not request.user.has_perm('doc.can_review') and not (
                 _valid_review(doc.review, [REVIEW_REVISED]) and
                 _valid_review(form.cleaned_data['status'])):

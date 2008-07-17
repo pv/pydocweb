@@ -205,7 +205,6 @@ function toggle_resolved() {
 {% if perms.doc.can_review %}{% else %}
 $(document).ready(function () {
     if ($("#id_status [value=-1]").attr("selected") ||
-        $("#id_status [value=4]").attr("selected") ||
         $("#id_status [value=5]").attr("selected") ||
         $("#id_status [value=6]").attr("selected")) {
         $("#id_status").attr("disabled", 1);
@@ -213,7 +212,6 @@ $(document).ready(function () {
     }
     $("#id_status [value=-1]").attr("disabled", 1);
     $("#id_status [value=3]").attr("disabled", 1);
-    $("#id_status [value=4]").attr("disabled", 1);
     $("#id_status [value=5]").attr("disabled", 1);
     $("#id_status [value=6]").attr("disabled", 1);
 });
