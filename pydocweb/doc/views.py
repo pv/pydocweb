@@ -207,10 +207,8 @@ def docstring_index(request):
     }
     entries = [dict(name=c.name,
                     statuscode=REVIEW_STATUS_CODES[review_map[c.name]],
-                    sort_code=(review_sort_order[review_map[c.name]],
-                               not c.dirty, c.name),
-                    status=(REVIEW_STATUS_NAMES[review_map[c.name]],
-                            c.dirty),
+                    sort_code=(review_sort_order[review_map[c.name]], c.name),
+                    status=(REVIEW_STATUS_NAMES[review_map[c.name]],),
                     )
                for c in entries]
     entries.sort(key=lambda x: x['sort_code'])
