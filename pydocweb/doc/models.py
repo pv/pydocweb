@@ -681,7 +681,7 @@ def dump_docs_as_xml(stream, revs=None, only_text=False):
             for b in doc.bases.split():
                 etree.SubElement(el, 'base', dict(ref=b))
         for c in doc.contents.all():
-            etree.SubElement(el, 'ref', dict(name=c.alias, target=c.target))
+            etree.SubElement(el, 'ref', dict(name=c.alias, ref=c.target))
     
     stream.write('<?xml version="1.0" encoding="utf-8"?>')
     new_xml.write(stream)
