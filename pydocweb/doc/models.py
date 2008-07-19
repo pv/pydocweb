@@ -385,6 +385,12 @@ class Docstring(models.Model):
         """ % where_, [review])
         return res + cursor.fetchall()
 
+    @classmethod
+    def get_non_obsolete(cls):
+        current = cls.objects.order_by('-timestamp')[0].timestamp
+        return cls.objects.filter(timestamp=current)
+
+
 class DocstringRevision(models.Model):
     revno       = models.AutoField(primary_key=True)
     docstring   = models.ForeignKey(Docstring, related_name="revisions")
@@ -637,29 +643,59 @@ def update_docstrings(update_svn=True):
     finally:
         f.close()
 
-def patch_against_source(revs):
+def dump_docs_as_xml(stream, revs=None, only_text=False):
+    """
+    Write an XML dump containing the given docstrings to the given stream.
+    
+    """
+    if revs is None:
+        revs = Docstring.get_non_obsolete()
+    
+    new_root = etree.Element('pydoc')
+    new_xml = etree.ElementTree(new_root)
+    for rev in revs:
+        if isinstance(rev, Docstring):
+            doc = rev
+            text = doc.text
+        else:
+            doc = rev.docstring
+            text = rev.text
+        
+        el = etree.SubElement(new_root, doc.type_code)
+        el.attrib['id'] = rev.name
+        el.text = text.encode('utf-8').encode('string-escape')
+
+        if only_text: continue
+        
+        if doc.argspec:
+            el.attrib['argspec'] = doc.argspec
+        if doc.objclass:
+            el.attrib['objclass'] = doc.objclass
+        if doc.type_name:
+            el.attrib['type'] = doc.type_name
+        if doc.file_name:
+            el.attrib['file'] = doc.file_name
+        if doc.line_number:
+            el.attrib['line'] = str(doc.line_number)
+        if doc.bases:
+            for b in doc.bases.split():
+                etree.SubElement(el, 'base', dict(ref=b))
+        for c in doc.contents.all():
+            etree.SubElement(el, 'ref', dict(name=c.alias, target=c.target))
+    
+    stream.write('<?xml version="1.0" encoding="utf-8"?>')
+    new_xml.write(stream)
+
+def patch_against_source(revs=None):
     """
     Generate a patch against source files, for the given docstrings.
 
     """
     # -- Generate new.xml
-    new_root = etree.Element('pydoc')
-    new_xml = etree.ElementTree(new_root)
-    namelist = []
-    for rev in revs:
-        el = etree.SubElement(new_root, 'object')
-        if isinstance(rev, Docstring):
-            el.attrib['id'] = rev.name
-            el.text = rev.text.encode('utf-8').encode('string-escape')
-        else:
-            el.attrib['id'] = rev.docstring.name
-            el.text = rev.text.encode('utf-8').encode('string-escape')
-        namelist.append(el.attrib['id'])
     new_xml_file = tempfile.NamedTemporaryFile()
-    new_xml_file.write('<?xml version="1.0" encoding="utf-8"?>')
-    new_xml.write(new_xml_file)
+    dump_docs_as_xml(new_xml_file, revs, only_text=True)
     new_xml_file.flush()
-
+    
     # -- Generate patch
     base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
 

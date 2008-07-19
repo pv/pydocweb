@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User, Group
 
+from django.views.decorators.cache import cache_page, cache_control
+
 
 from django import newforms as forms
 
@@ -194,7 +196,7 @@ def docstring_index(request):
         review_map[name] = review
 
     # continue pseudo-normally
-    entries = Docstring.objects.all()
+    entries = Docstring.get_non_obsolete()
     review_sort_order = {
         REVIEW_PROOFED: 0,
         REVIEW_NEEDS_PROOF: 1,
@@ -550,6 +552,14 @@ def patch(request):
     return render_template(request, "patch.html",
                            dict(changed=docs))
 
+@cache_page(60*15)
+@cache_control(public=True, max_age=60*15)
+def dump(request):
+    response = HttpResponse(mimetype="application/xml")
+    response['Content-Disposition'] = 'attachment; filename=foo.xls'
+    dump_docs_as_xml(response)
+    return response
+
 @permission_required('doc.change_docstring')
 def merge(request):
     """
@@ -784,6 +794,8 @@ def contributors(request):
 #------------------------------------------------------------------------------
 import datetime, difflib, re
 
+@cache_page(60*15)
+@cache_control(max_age=60*15, public=True)
 def stats(request):
     # Basic history statistics
     edits = _get_edits()
