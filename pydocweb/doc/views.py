@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User, Group
 
 from django.views.decorators.cache import cache_page, cache_control
+from django.views.decorators.vary import vary_on_cookie
 
 
 from django import newforms as forms
@@ -795,6 +796,7 @@ def contributors(request):
 import datetime, difflib, re
 
 @cache_page(60*15)
+@vary_on_cookie
 @cache_control(max_age=60*15, public=True)
 def stats(request):
     # Basic history statistics
