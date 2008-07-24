@@ -12,11 +12,11 @@
 <span id="revision-header">Revision {{revision.revno|escape}}</span>
 {% else %}
 <span id="review-status" class="{{status_code|escape}}">
-  {% if perms.doc.can_review %}
+  {% if perms.doc.change_docstring %}
   <form action="{% url pydocweb.doc.views.review name %}" method="post">
     <ul>
       {{review_form.as_ul}}
-      <li><input type="submit" value="Change" /></li>
+      <li><input type="submit" id="submit-review-status" value="Change" /></li>
     </ul>
   </form>
   {% else %}
@@ -32,6 +32,13 @@
 {% block content %}
 <div id="document">
   {{body_html}}
+  {% if doc.is_obsolete %}
+  <div style="margin:1em; padding: 1em; border: 2px solid red;">
+    <b>Note:</b> This docstring is obsolete; the corresponding object
+    is no longer present in SVN.
+  </div>
+  {% endif %}
+  {{ body_html|safe }}
   <form action="{% url pydocweb.doc.views.doctest name %}" method="POST">
     <input type=submit value="Run doctests">
   </form>
@@ -46,6 +53,7 @@
     <div class="author">
       <span class="timestamp">{{comment.timestamp|date:"Y-m-d H:i:s"}}</span>
       <span class="author">{{comment.author|escape}}</span>
+      <span class="slug">{{comment.text|truncatewords:8|escape}}</span>
     </div>
     {% if perms.doc.change_reviewcomment %}
     {% ifequal comment.author_username user.username %}
@@ -83,7 +91,7 @@
     </div>
     {% endif %}{% endifequal %}
     {% endif %}
-    <div class="text">{{comment.html}}</div>
+    <div class="text">{{ comment.html|safe }}</div>
   </div>
   {% endfor %}
   {% if perms.doc.change_reviewcomment %}
@@ -97,7 +105,7 @@
 
 {% block docstring_contents %}
 
-{% ifequal doc.type_ "module" %}
+{% ifequal doc.type_code "module" %}
 <div id="content-list">
   <h1>Modules</h1>
   {% as_table_rows 5 doc.child_modules as rows %}
@@ -149,7 +157,7 @@
 </div>
 {% endifequal %}
 
-{% ifequal doc.type_ "class" %}
+{% ifequal doc.type_code "class" %}
 <div id="contents">
   <h1>Methods</h1>
   {% as_table_rows 5 doc.child_callables as rows %}
@@ -191,10 +199,27 @@ function toggle_resolved() {
     var el = $("#show-resolved");
     if (el.length > 0) {
         $("#show-resolved").attr('id', 'hide-resolved').text('Hide resolved');
+        $(".resolved").attr('class', 'comment not-resolved');
     } else {
         $("#hide-resolved").attr('id', 'show-resolved').text('Show resolved');
+        $(".not-resolved").attr('class', 'comment resolved');
     }
-    $(".resolved").toggle();
 }
+
+{% if perms.doc.can_review %}{% else %}
+$(document).ready(function () {
+    if ($("#id_status [value=-1]").attr("selected") ||
+        $("#id_status [value=5]").attr("selected") ||
+        $("#id_status [value=6]").attr("selected")) {
+        $("#id_status").attr("disabled", 1);
+        $("#submit-review-status").attr("disabled", 1);
+    }
+    $("#id_status [value=-1]").attr("disabled", 1);
+    $("#id_status [value=3]").attr("disabled", 1);
+    $("#id_status [value=5]").attr("disabled", 1);
+    $("#id_status [value=6]").attr("disabled", 1);
+});
+{% endif %}
+
 </script>
 {% endblock %}

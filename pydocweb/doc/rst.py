@@ -92,40 +92,74 @@ def render_html(text, image_prefix="",
                                   link_base='',
                                   )
     )
-    return parts['html_body']
+    return parts['html_body'].encode('utf-8')
 
 #------------------------------------------------------------------------------
 # Rendering for Numpy docstrings
 #------------------------------------------------------------------------------
-from docscrape import NumpyDocString
-
-class RSTDocString(NumpyDocString):
-    def _str_signature(self):
-        return []
+from docscrape import (NumpyFunctionDocString, NumpyModuleDocString,
+                       NumpyClassDocString)
 
 def render_docstring_html(doc, text):
+    errors = []
+    
+    # Convert to ASCII
+    decoded = ''
+    trial_phrase = text
+    while not decoded and trial_phrase:
+        try:
+            decoded = trial_phrase.decode('ascii').encode('ascii')
+        except UnicodeError, e:
+            errors.append("Line %d contains non-ASCII characters"
+                          % (1 + trial_phrase[:e.start].count("\n")))
+            trial_phrase = trial_phrase[:e.start] + \
+                           '<?NONASCII?>'*(e.end - e.start) + \
+                           trial_phrase[e.end:]
+    
+    text = decoded
+    
+    # Parse docstring
     try:
-        docstring =  RSTDocString(text)
-        if docstring['Signature'] and doc.argspec:
-            raise ValueError('Docstring has a spurious function signature '
-                             'description at the beginning.')
-        for j, line in enumerate(text.splitlines()):
-            if len(line) > settings.MAX_DOCSTRING_WIDTH:
-                raise ValueError("Docstring line %d is longer than %d "
-                                 "characters: %s" % (
-                    j+1, settings.MAX_DOCSTRING_WIDTH, cgi.escape(line)))
+        if doc.type_code == 'module':
+            docstring = NumpyModuleDocString(text)
+        elif doc.type_code == 'class':
+            docstring = NumpyClassDocString(text)
+        elif doc.type_code == 'callable':
+            docstring = NumpyFunctionDocString(text)
+        else:
+            return render_html(text)
+
+        if doc.type_code in ('callable', 'class'):
+            had_signature = bool(docstring['Signature'])
+            if doc.argspec:
+                argspec = re.sub(r'^[^(]*', '', doc.argspec)
+                docstring['Signature'] = "%s%s" % (doc.name.split('.')[-1],
+                                                   argspec)
+            errors.extend(docstring.get_errors())
+            if had_signature and doc.argspec:
+                errors.append('Docstring has a spurious function signature '
+                              'description at the beginning.')
     except ValueError, e:
+        errors.append(str(e))
+        docstring = None
+
+    if errors:
+        err_list = '<ul>' + '\n'.join('<li>' + cgi.escape(s) + '</li>'
+                                      for s in errors) + '</ul>'
         err_msg = ("<div class=\"system-message\">"
                    "<span class=\"system-message-title\">"
                    "Docstring does not conform to Numpy documentation "
-                   "standard</span><p>%s</p></div>" % cgi.escape(str(e)))
-        return err_msg + render_html(text)
+                   "standard</span><p>%s</p></div>" % err_list)
+    else:
+        err_msg = ""
 
-    # Determine link namespace
+    if docstring is None:
+        return err_msg + render_html(text)
+    
+    # Determine allowed link namespace prefixes
     parts = doc.name.split('.')
-    prefixes = []
-    if len(parts) >= 2:
-        prefixes.append('.'.join(parts[:-1]) + '.')
+    prefixes = ['.'.join(parts[:j]) + '.' for j in range(1, len(parts))]
+    prefixes.reverse()
 
     # Base classes
     if doc.bases:
@@ -133,14 +167,8 @@ def render_docstring_html(doc, text):
     else:
         bases = []
 
-    # Argspec
-    if doc.argspec:
-        argspec = doc.argspec
-    else:
-        argspec = re.sub(r'^[^(]*', '', docstring['Signature'])
-
     # Docstring body
-    body_html = render_html(str(docstring),
+    body_html = render_html(unicode(docstring),
                             image_prefix=doc.name + "-",
                             resolve_to_wiki=False,
                             resolve_prefixes=prefixes)
@@ -149,9 +177,8 @@ def render_docstring_html(doc, text):
     t = get_template('docstring/body.html')
     return t.render(Context(dict(name=doc.name,
                                  bases=bases,
-                                 argspec=argspec,
                                  basename=doc.name.split('.')[-1],
-                                 body_html=body_html)))
+                                 body_html=err_msg + body_html)))
 
 #------------------------------------------------------------------------------
 # Index

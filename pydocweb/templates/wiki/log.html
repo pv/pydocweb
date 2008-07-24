@@ -1,7 +1,7 @@
 {% extends "wiki/base.html" %}
 
 {% block content %}
-{{body_html}}
+{{body_html|safe}}
 
 <form action="{% url pydocweb.doc.views.log_wiki name %}" method="POST">
 <table>

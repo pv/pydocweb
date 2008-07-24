@@ -3,13 +3,9 @@
 {% if bases %}
 <p>
   Derived from: {% for base in bases %}
-  {% docstring_name_link base %}{% if forloop.last %}{% else %}, {% endif %}
+  {% docstring_name_link base 1 %}{% if forloop.last %}{% else %}, {% endif %}
   {% endfor %}
 </p>
 {% endif %}
 
-{% if argspec %}
-<p class="func-signature">{{basename|escape}}{{argspec|escape}}</p>
-{% endif %}
-
-{{body_html}}
+{{body_html|safe}}

@@ -80,9 +80,12 @@ class Reader(object):
     def is_empty(self):
         return not ''.join(self._str).strip()
 
+    def __iter__(self):
+        for line in self._str:
+            yield line
 
 class NumpyDocString(object):
-    def __init__(self,docstring):
+    def __init__(self, docstring):
         docstring = docstring.split('\n')
 
         # De-indent paragraph
@@ -108,8 +111,11 @@ class NumpyDocString(object):
             'Notes': [],
             'References': '',
             'Examples': '',
-            'index': {}
+            'index': {},
+            'Attributes': [],
+            'Methods': [],
             }
+        self.section_order = []
 
         self._parse()
 
@@ -212,12 +218,19 @@ class NumpyDocString(object):
                     rest = [r[1]]
                 else:
                     rest = []
-            elif ',' in line and current_func is None:
-                for func in line.split(','):
-                    func = func.strip()
-                    if func:
-                        functions.append((func, []))
-            else:
+            elif not line.startswith(' '):
+                if current_func:
+                    functions.append((current_func, rest))
+                    current_func = None
+                    rest = []
+                if ',' in line:
+                    for func in line.split(','):
+                        func = func.strip()
+                        if func:
+                            functions.append((func, []))
+                elif line.strip():
+                    current_func = line.strip()
+            elif current_func is not None:
                 rest.append(line.strip())
         if current_func:
             functions.append((current_func, rest))
@@ -242,14 +255,12 @@ class NumpyDocString(object):
                 out[line[1]] = strip_each_in(line[2].split(','))
         return out
 
-    def _parse(self):
-        self._doc.reset()
-
-        # grab signature (if given) and summary
+    def _parse_summary(self):
+        """Grab signature (if given) and summary"""
         summary = self._doc.read_to_next_empty_line()
-        if len(summary) == 1 and \
-               re.compile('^[\w\.]+\(.*\)$').match(summary[0].strip()):
-            self['Signature'] = summary[0]
+        summary_str = " ".join([s.strip() for s in summary])
+        if re.compile('^([\w. ]+=)?[\w\.]+\(.*\)$').match(summary_str):
+            self['Signature'] = summary_str
             if not self._is_at_section():
                 self['Summary'] = self._doc.read_to_next_empty_line()
         else:
@@ -257,18 +268,26 @@ class NumpyDocString(object):
 
         if not self._is_at_section():
             self['Extended Summary'] = self._read_to_next_section()
-
-        for (section,content) in self._read_sections():
+    
+    def _parse(self):
+        self._doc.reset()
+        self._parse_summary()
+        for (section, content) in self._read_sections():
             if not section.startswith('..'):
                 section = ' '.join([s.capitalize() for s in section.split(' ')])
-            if section in ('Parameters','Returns','Raises','Warns'):
+            if section in ('Parameters', 'Returns', 'Raises', 'Warns',
+                           'Attributes', 'Methods'):
                 self[section] = self._parse_param_list(content)
+                self.section_order.append(section)
             elif section.startswith('.. index::'):
                 self['index'] = self._parse_index(section, content)
+                self.section_order.append('index')
             elif section.lower() == 'see also':
                 self['See Also'] = self._parse_see_also(content)
+                self.section_order.append('See Also')
             else:
                 self[section] = content
+                self.section_order.append(section)
 
     # string conversion routines
 
@@ -282,7 +301,9 @@ class NumpyDocString(object):
         return out
 
     def _str_signature(self):
-        return [self['Signature'].replace('*','\*')] + ['']
+        if not self['Signature']:
+            return []
+        return ["*%s*" % self['Signature'].replace('*','\*')] + ['']
 
     def _str_summary(self):
         return self['Summary'] + ['']
@@ -312,9 +333,10 @@ class NumpyDocString(object):
         if not self['See Also']: return []
         out = []
         out += self._str_header("See Also")
-        last_had_desc = False
+        last_had_desc = True
         for func, desc in self['See Also']:
-            if last_had_desc or desc or not len(out) <= 1:
+            if desc or last_had_desc:
+                out += ['']
                 out += ["`%s`_" % func]
             else:
                 out[-1] += ", `%s`_" % func
@@ -341,7 +363,7 @@ class NumpyDocString(object):
         out += self._str_signature()
         out += self._str_summary()
         out += self._str_extended_summary()
-        for param_list in ('Parameters','Returns','Raises'):
+        for param_list in ('Parameters','Returns','Raises','Warns'):
             out += self._str_param_list(param_list)
         out += self._str_see_also()
         for s in ('Notes','References','Examples'):
@@ -349,6 +371,29 @@ class NumpyDocString(object):
         out += self._str_index()
         return '\n'.join(out)
 
+    # --
+    
+    def get_errors(self, check_order=True):
+        errors = []
+        self._doc.reset()
+        for j, line in enumerate(self._doc):
+            if len(line) > 75:
+                errors.append("Line %d too long: \"%s\"..." % (j+1, line[:30]))
+
+        if check_order:
+            canonical_order = ['Signature', 'Summary', 'Extended Summary',
+                               'Attributes', 'Methods',
+                               'Parameters', 'Returns', 'Raises', 'Warns',
+                               'See Also', 'Notes', 'References', 'Examples',
+                               'index']
+            
+            for s in self.section_order:
+                while canonical_order and s != canonical_order[0]:
+                    canonical_order.pop(0)
+                    if not canonical_order:
+                        errors.append("Sections in wrong order (starting at %s)" % s)
+        
+        return errors
 
 def indent(str,indent=4):
     indent_str = ' '*indent
@@ -356,6 +401,103 @@ def indent(str,indent=4):
         return indent_str
     lines = str.split('\n')
     return '\n'.join(indent_str + l for l in lines)
+
+class NumpyFunctionDocString(NumpyDocString):
+    def _parse(self):
+        self._parsed_data = {
+            'Signature': '',
+            'Summary': '',
+            'Extended Summary': [],
+            'Parameters': [],
+            'Returns': [],
+            'Raises': [],
+            'Warns': [],
+            'See Also': [],
+            'Notes': [],
+            'References': '',
+            'Examples': '',
+            'index': {},
+            }
+        return NumpyDocString._parse(self)
+
+    def get_errors(self):
+        errors = NumpyDocString.get_errors(self)
+
+        if not self['Signature']:
+            errors.append("No function signature")
+        
+        if not self['Summary']:
+            errors.append("No function summary line")
+
+        if len(self['Summary']) > 1:
+            errors.append("Function summary line spans multiple lines")
+
+        if not (re.match('^\w+\(\)$', self['Signature']) or self['Parameters']):
+            errors.append("No Parameters section")
+        
+        return errors
+
+class NumpyClassDocString(NumpyDocString):
+    def _parse(self):
+        self._parsed_data = {
+            'Signature': '',
+            'Summary': '',
+            'Extended Summary': [],
+            'Parameters': [],
+            'Raises': [],
+            'Warns': [],
+            'See Also': [],
+            'Notes': [],
+            'References': '',
+            'Examples': '',
+            'index': {},
+            'Attributes': [],
+            'Methods': [],
+            }
+        return NumpyDocString._parse(self)
+
+    def __str__(self):
+        out = []
+        out += self._str_signature()
+        out += self._str_summary()
+        out += self._str_extended_summary()
+        for param_list in ('Attributes', 'Methods', 'Parameters', 'Raises',
+                           'Warns'):
+            out += self._str_param_list(param_list)
+        out += self._str_see_also()
+        for s in ('Notes','References','Examples'):
+            out += self._str_section(s)
+        out += self._str_index()
+        return '\n'.join(out)
+
+    def get_errors(self):
+        errors = NumpyDocString.get_errors(self)
+        return errors
+
+class NumpyModuleDocString(NumpyDocString):
+    def __setitem__(self,key,val):
+        self._parsed_data[key] = val
+
+    def _parse(self):
+        return NumpyDocString._parse(self)
+
+    def __str__(self):
+        out = []
+        out += self._str_summary()
+        out += self._str_extended_summary()
+        for s in self.section_order:
+            if s == 'See Also':
+                out += self._str_see_also()
+            elif s == 'index':
+                pass
+            else:
+                out += self._str_section(s)
+        out += self._str_see_also()
+        return '\n'.join(out)
+
+    def get_errors(self):
+        errors = NumpyDocString.get_errors(self, check_order=False)
+        return errors
 
 def header(text, style='-'):
     return text + '\n' + style*len(text) + '\n'
@@ -417,7 +559,7 @@ class SphinxDocString(NumpyDocString):
         out = []
         out += self._str_summary()
         out += self._str_extended_summary()
-        for param_list in ('Parameters','Returns','Raises'):
+        for param_list in ('Parameters','Returns','Raises','Warns'):
             out += self._str_param_list(param_list)
         for s in ('Notes','References','Examples'):
             out += self._str_section(s)

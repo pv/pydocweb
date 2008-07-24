@@ -9,7 +9,9 @@
 {% regroup entries by status as status_list %}
 
 {% for status in status_list %}
-<h3>{{status.grouper|escape}}</h3>
+
+<h3>{{status.grouper.0|escape}}</h3>
+
 {% as_table_rows 3 status.list as rows %}
 <table class="content-list">
   {% for row in rows %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load docstring %}
+
+{% block title %}Status{% endblock %}
+{% block pagetitle %}Status{% endblock %}
+
+{% block content %}
+
+<div id="block">
+  <h2>Overview</h2>
+
+  <p>With thanks to all
+     <a href="{% url pydocweb.doc.views.contributors %}">contributors</a>.
+  </p><br/>
+
+  <div style="float:left; margin-right:2em;margin-bottom:2ex;">
+  <h3 style="margin-top:0;">Weekly</h3>
+  <div style="padding-top:1ex;margin-top:-1px;">
+    {% for period in stats %}
+    <div style="padding:0; margin:0; width: 3.5em; float:left;">
+      {% for block in period.blocks %}
+      <div style="height: {{block.height|escape}}px; overflow:hidden; text-align:center; font-weight: bold; border-right: 1px solid #ccc; {% if forloop.first %}border-top: solid 1px #ccc;{% endif %}{% if forloop.last %}border-bottom: solid 1px #ccc;{% endif %}{% if forloop.parentloop.first %}border-left: 1px solid #ccc;{% endif %}" class="{{block.code|escape}}">{{block.percentage|escape}}%</div>
+      {% endfor %}
+      <div style="padding-bottom: 1ex;">{{period.start_time|date:"Y- m-d"}}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="clear:both;"></div>
+  </div>
+ 
+  <div>
+    <h3>Current</h3>
+    <table>
+      <tr>
+	<th></th>
+	<th>%</th>
+	<th>Count</th>
+      </tr>
+      {% for block in current_period.blocks %}
+      <tr>
+	<td class="{{block.code|escape}}">{{block.name|escape}}</td>
+	<td>{{block.percentage|escape}}</td>
+	<td>{{block.count|escape}}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+	<td class="unimportant">Unimportant</td>
+	<td>&ndash;</td>
+	<td>{{current_period.unimportant_count|escape}}</td>
+    </table>
+  </div>
+
+  {% for period in stats reversed %}
+  <h2 style="clear:both;">
+    {% if forloop.first %}
+    This week ({{period.start_time|date:"Y-m-d"}}&mdash;{{period.end_time|date:"Y-m-d"}})
+    {% else %}
+    {{period.start_time|date:"Y-m-d"}}&mdash;{{period.end_time|date:"Y-m-d"}}
+    {% endif %}
+  </h2>
+  <table style="float:left;margin-right:2em;" id="period-{{forloop.counter}}">
+    <tr>
+      <th>Churning docstrings</th>
+      <th>{{period.total_edits|floatformat:"0"}} word{{period.total_edits|pluralize}}</th>
+    </tr>
+    {% for item in period.docstring_info|dictsort:"edits" reversed %}
+    {% ifequal forloop.counter0 6 %}
+    <tr><td></td><td><a href="#" onclick="toggle_period('period-{{forloop.parentloop.counter}}'); return false;">...</a></td></tr>
+    {% endifequal %}
+    {% if forloop.counter0|greater:"5" %}
+    <tr class="extra-row">
+    {% else %}
+    <tr>
+    {% endif %}  
+      <td class="{{item.review|escape}}"><a href="{% url pydocweb.doc.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
+      <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table>
+    <th>Active editors</th>
+    {% for item in period.author_edits %}
+    <tr>
+      <td>{{item.0|escape}}</td>
+      <td>{{item.1|floatformat:"-0"}} word{{item.1|pluralize}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endfor %}
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+function toggle_period(period_id) {
+    $("#" + period_id + " .extra-row").toggle()
+}
+</script>
+{% endblock %}

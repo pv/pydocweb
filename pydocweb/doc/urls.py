@@ -20,6 +20,7 @@ urlpatterns = patterns(
     (r'^doc/$', 'docstring_index'),
     (r'^merge/$', 'merge'),
     (r'^patch/$', 'patch'),
+    (r'^dump/$', 'dump'),
     (r'^control/$', 'control'),
     (r'^source/(?P<file_name>.+)$', 'source'),
     (r'^accounts/login/$', 'login'),
@@ -27,6 +28,8 @@ urlpatterns = patterns(
     (r'^accounts/register/$', 'register'),
     (r'^changes/$', 'changes'),
     (r'^search/$', 'search'),
+    (r'^stats/$', 'stats'),
+    (r'^contributors/$', 'contributors'),
 )
 
 urlpatterns += patterns(

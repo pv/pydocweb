@@ -27,10 +27,20 @@ LATEX_TEMPLATE = r"""
 """
 LATEX_ARGS = ["--interaction=nonstopmode"]
 DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1",
-               "--truecolor"
-               # NOTE: PIL doesn't handle indexed PNG alpha gracefully,
-               #       hence truecolor...
                ]
+
+# NOTE: PIL rounds indexed PNG alpha channel to [0, 1],
+#       so we should use truecolor in dvipng, if available.
+#       So, check dvipng capabilities first.
+
+def _check_dvipng_caps():
+    r = subprocess.Popen([DVIPNG, '--help'], 
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = r.communicate()
+    if '--truecolor' in out+err:
+        DVIPNG_ARGS.append('--truecolor')
+
+_check_dvipng_caps()
 
 # -----------------------------------------------------------------------------
 # Running LaTeX safely

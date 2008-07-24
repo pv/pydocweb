@@ -27,12 +27,13 @@ h2 {
 
 h3 { 
   color: #445;
-  font-size: 14pt;
+  font-size: 12pt;
+  margin-bottom: 1ex;
 }
 
 h4 { 
   color: #445;
-  font-size: 12pt;
+  font-size: 10pt;
 }
 
 p { 
@@ -40,6 +41,14 @@ p {
   margin-bottom: 1ex;
   line-height: 1.2;
   text-align: justify;
+}
+
+p.first { 
+  margin-top: 0;
+}
+
+p.last { 
+  margin-bottom: 0;
 }
 
 pre { 
@@ -246,12 +255,18 @@ dl dt {
   vertical-align: middle;
 }
 
-#review-status.none { background: #fff; }
-#review-status.needs-work { background: #fcc; }
-#review-status.old-reviewed { background: #dda; }
-#review-status.reviewed { background: #ffc; }
-#review-status.old-proofed { background: #ada; }
-#review-status.proofed { background: #cfc; }
+/*
+ * Review states
+ */
+
+.unimportant   { background: #999; }
+.needs-editing { background: #fff; }
+.being-written { background: #ddd; }
+.needs-review  { background: #faa; }
+.revised       { background: #fca; }
+.needs-work    { background: #ff5; }
+.reviewed      { background: #bfb; }
+.proofed       { background: #ccf; }
 
 /*
  * Revision header
@@ -279,6 +294,11 @@ dl dt {
   margin-top: 1ex;
   margin-bottom: 0;
   padding: 0;
+}
+
+#document h1.title {
+  font-size: 14pt;
+  text-decoration: underline;
 }
 
 #document h2 { 
@@ -357,8 +377,10 @@ dl dt {
 #comments #hide-resolved { 
   float: right;
 }
-#comments .resolved { 
+table.changes#comments .resolved { 
   display: none;
+  background-color: #ddd;
+  color: #555;
 }
 .comment div.author { 
   margin: 0;
@@ -395,6 +417,25 @@ dl dt {
 .comment .edit-tools form { 
   display: inline;
 }
+.comment .slug { 
+  display: none;
+}
+.comment.resolved .author { 
+  background: #eee;
+}
+.comment.resolved .edit-tools { 
+  display: none;
+}
+.comment.resolved .text { 
+  display: none;
+}
+.comment.resolved .slug { 
+  display: inline;
+  padding-left: 2em;
+  color: #445;
+  overflow: hidden;
+  white-space: nowrap;
+}
 
 /*
  * Content list
@@ -412,12 +453,6 @@ dl dt {
   border: solid 1px #ccc;
 }
 
-.content-list td.none { background: #fff; }
-.content-list td.needs-work { background: #fcc; }
-.content-list td.old-reviewed { background: #dda; }
-.content-list td.reviewed { background: #ffc; }
-.content-list td.old-proofed { background: #ada; }
-.content-list td.proofed { background: #cfc; }
 
 /*
  * Merge info
@@ -429,12 +464,6 @@ dl dt {
 /*
  * Patch selection
  */
-#patch-select td.none { background: #fff; }
-#patch-select td.needs-work { background: #fcc; }
-#patch-select td.old-reviewed { background: #dda; }
-#patch-select td.reviewed { background: #ffc; }
-#patch-select td.old-proofed { background: #ada; }
-#patch-select td.proofed { background: #cfc; }
 
 #patch-select td.ok { background: #fff; }
 #patch-select td.merged { background: #ffc; }
@@ -566,3 +595,7 @@ table.footnote tr {
     white-space: nowrap;
 }
 
+/*
+ * Stats
+ */
+#block .extra-row { display:none; }
