@@ -5,19 +5,131 @@ import matplotlib
 matplotlib.use('Agg.png')
 import matplotlib.pyplot
 
-BAD_ATTRS = [r'_.*', r'im_.*', r'co_.*', '.*file.*',
-             '.*save.*', 'test.*', 'rc', 'rcParamsDefault', 'rcdefaults',
-             'pylab.*', 'memmap']
-OK_MODULES = """
-re
-numpy numpy.fft numpy.linalg
-scipy scipy.optimize scipy.integrate scipy.interpolate scipy.fftpack
-matplotlib.pyplot
-StringIO
+#------------------------------------------------------------------------------
+# Settings
+#------------------------------------------------------------------------------
+
+def glob_prefixes(v):
+    prefix = ""
+    new_v = []
+    for x in v:
+        if x.startswith('#'):
+            prefix = x[1:]
+        else:
+            new_v.append(prefix + x)
+    return new_v
+
+OK_NAMES = r"""
+numpy matplotlib\.pyplot numpy\.linalg numpy\.fft numpy\.random
+
+#numpy\.
+CLIP abs absolute add alen all allclose alltrue amax amin
+angle any append apply_along_axis apply_over_axes arange arccos
+arccosh arcsin arcsinh arctan arctan2 arctanh argmax argmin argsort
+argwhere around array array2string array_equal array_equiv array_repr
+array_split array_str asanyarray asarray asarray_chkfinite
+ascontiguousarray asfarray asfortranarray asmatrix asscalar atleast_1d
+atleast_2d atleast_3d average bartlett base_repr binary_repr bincount
+bitwise_and bitwise_not bitwise_or bitwise_xor blackman bmat bool
+bool8 bool_ broadcast broadcast_arrays byte byte_bounds c_ can_cast
+cast cdouble ceil cfloat char character chararray choose clip
+clongdouble clongfloat column_stack common_type compare_chararrays
+complex complex128 complex192 complex64 complex_ complexfloating
+compress concatenate conj conjugate convolve copy corrcoef correlate
+cos cosh cov cross csingle cumprod cumproduct cumsum degrees delete
+diag diagflat diagonal diff digitize divide dot double dsplit dstack
+dtype e ediff1d emath empty empty_like equal errstate exp expand_dims
+expm1 extract eye fabs fft find_common_type finfo fix flatiter
+flatnonzero flexible fliplr flipud float float32 float64 float96
+float_ floating floor floor_divide fmod format_parser frexp
+fromfunction fromiter frompyfunc fromstring fv generic
+get_printoptions getbuffer getbufsize geterr geterrcall geterrobj
+gradient greater greater_equal hamming hanning histogram histogram2d
+histogramdd hsplit hstack hypot i0 identity iinfo imag index_exp
+indices inexact inf info infty inner insert int int0 int16 int32 int64
+int8 int_ int_asbuffer intc integer interp intersect1d intersect1d_nu
+intp invert ipmt irr iscomplex iscomplexobj isfinite isfortran isinf
+isnan isneginf isposinf isreal isrealobj isscalar issctype issubclass_
+issubdtype issubsctype iterable ix_ kaiser kron ldexp left_shift less
+less_equal lexsort linalg linspace little_endian log log10 log1p log2
+logical_and logical_not logical_or logical_xor logspace long
+longcomplex longdouble longfloat longlong lookfor ma mat math matrix
+max maximum maximum_sctype may_share_memory mean median meshgrid mgrid
+min minimum mintypecode mirr mod modf msort multiply nan nan_to_num
+nanargmax nanargmin nanmax nanmin nansum nbytes ndarray ndenumerate
+ndim ndindex negative newaxis nonzero not_equal nper npv number
+obj2sctype ogrid ones ones_like outer packbits pi piecewise place pmt
+poly poly1d polyadd polyder polydiv polyfit polyint polymul polysub
+polyval power ppmt prod product ptp put putmask pv r_ radians random
+rank rate ravel real real_if_close recarray reciprocal record
+remainder repeat require reshape resize right_shift rint roll rollaxis
+roots rot90 round round_ row_stack s_ sctype2char sctypeDict sctypeNA
+sctypes searchsorted select setdiff1d setmember1d setxor1d shape short
+sign signbit signedinteger sin sinc single singlecomplex sinh size
+sometrue sort sort_complex split sqrt square squeeze std str str_
+string0 string_ subtract sum swapaxes take tan tanh tensordot tile
+trace transpose trapz tri tril trim_zeros triu true_divide typeDict
+typeNA typecodes typename ubyte ufunc uint uint0 uint16 uint32 uint64
+uint8 uintc uintp ulonglong unicode unicode0 unicode_ union1d unique
+unique1d unpackbits unravel_index unsignedinteger unwrap ushort vander
+var vdot vectorize version void void0 vsplit vstack where who zeros
+zeros_like
+
+#numpy\.ndarray\.
+all any argmax argmin argsort astype base byteswap choose clip compress
+conj conjugate copy cumprod cumsum diagonal dtype fill flags flat flatten
+getfield imag item itemset itemsize max mean min nbytes ndim newbyteorder
+nonzero prod ptp put ravel real repeat reshape resize round searchsorted
+setfield setflags shape size sort squeeze std strides sum swapaxes take
+tolist tostring trace transpose var view
+
+#numpy\.linalg\.
+cholesky cond det eig eigh eigvals eigvalsh inv lstsq
+matrix_power norm pinv qr solve svd tensorinv tensorsolve
+
+#numpy\.fft\.
+fft fft2 fftfreq fftn fftshift hfft ifft ifft2 ifftn
+ifftshift ihfft irefft irefft2 irefftn irfft irfft2 irfftn refft
+refft2 refftn rfft rfft2 rfftn
+
+#numpy\.random\.
+beta binomial bytes chisquare dirichlet exponential f
+gamma geometric get_state gumbel hypergeometric laplace logistic
+lognormal logseries mtrand multinomial multivariate_normal
+negative_binomial noncentral_chisquare noncentral_f normal pareto
+permutation poisson power rand randint randn random random_integers
+random_sample ranf rayleigh sample seed set_state shuffle
+standard_cauhcy standard_exponential standard_gamma standard_normal
+standard_t triangular uniform vonmises wald weibull zipf
+
+#matplotlib\.pyplot\.
+acorr annotate arrow autumn axes axhline axhspan
+axis axvline axvspan bar barh bone box boxplot broken_barh cla clabel
+clf clim cm cohere colorbar colormaps colors contour contourf cool
+copper csd dedent delaxes errorbar figaspect figimage figlegend
+figtext fill flag gca gcf gci get_cmap gray grid hexbin hist hlines
+hold hot hsv imshow is_numlike is_string_like ishold isinteractive jet
+legend loglog matshow normalize over pcolor pcolormesh pie pink plot
+plot_date polar prism psd quiver quiverkey rgrids scatter sci semilogx
+semilogy show silent_list specgram spectral spring spy stem step
+subplot subplots_adjust summer table text thetagrids title twinx twiny
+vlines winter xcorr xlabel xlim xscale xticks ylabel ylim yscale
+yticks
 """.split()
+
+OK_MODULES = """
+numpy numpy\.fft numpy\.linalg matplotlib\.pyplot
+""".split()
+
+OK_NAMES = glob_prefixes(OK_NAMES)
+OK_MODULES = glob_prefixes(OK_MODULES)
 
 IMG_PREFIX = "image"
 IMG_COUNTER = 1
+
+#------------------------------------------------------------------------------
+# Main
+#------------------------------------------------------------------------------
 
 MAX_RUN_TIME = 15 # sec
 os.environ['openin_any'] = 'p' # for Latex (if ran by matplotlib)
@@ -63,6 +175,11 @@ def main():
     runner = RestrictedDocTestRunner(verbose=verbose, optionflags=optionflags)
     test = parser.get_doctest(text, globs, name, filename, 0)
 
+    import numpy
+    import matplotlib.pyplot
+    runner.policy['np'] = numpy
+    runner.policy['plt'] = matplotlib.pyplot
+    
     tmpdir = tempfile.mkdtemp()
     cwd = os.getcwd()
     try:
@@ -114,9 +231,23 @@ def _write_guard(obj):
     raise RestrictionError("bad setattr: %s" % name)
 
 def _restrict_getattr(obj, name):
-    for attr_re in BAD_ATTRS:
-        if re.match(attr_re, name):
-            raise RestrictionError("bad getattr: %s" % name)
+    if inspect.ismodule(obj):
+        full_name = ".".join([obj.__name__, name])
+    elif hasattr(obj, '__class__'):
+        full_name = ".".join([obj.__class__.__module__,
+                              obj.__class__.__name__,
+                              name])
+    else:
+        raise RestrictionError("bad getattr (?): %s" % name)
+    
+    ok = False
+    for name_re in OK_NAMES:
+        if re.match("^%s$" % name_re, full_name):
+            ok = True
+            break
+    if not ok:
+        raise RestrictionError("bad getattr: %s" % name)
+    
     res = getattr(obj, name)
     if inspect.ismodule(res):
         if res.__name__ not in OK_MODULES:
