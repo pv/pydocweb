@@ -2,3 +2,4 @@ numpy
 scipy
 media/math/*
 data.db
+modules/*
