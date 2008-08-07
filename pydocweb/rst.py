@@ -202,6 +202,6 @@ docutils.parsers.rst.directives.register_directive('index', index_directive)
 #------------------------------------------------------------------------------
 # Math
 #------------------------------------------------------------------------------
-import moin_rst_latex
-moin_rst_latex.OUT_PATH = settings.MATH_ROOT
-moin_rst_latex.OUT_URI_BASE = settings.MATH_URL
+import rst_latex
+rst_latex.OUT_PATH = settings.MATH_ROOT
+rst_latex.OUT_URI_BASE = settings.MATH_URL
