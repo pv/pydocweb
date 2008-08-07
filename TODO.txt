@@ -7,6 +7,8 @@ Short term:
 
 Longer term:
 
+  * Refactor: views.py has grown too long and messy; ditto for models.py
+
   * ..image:: directive
   * Support running plot scripts & capturing output images.
   * Fix Recent changes to show only "recent" changes
