@@ -12,9 +12,8 @@ def relative_dir(path):
     return os.path.abspath(os.path.join(os.path.dirname(__file__),
                                         path))
 
-SVN_DIRS = (relative_dir("modules/numpy"),
-            )#relative_dir("modules/scipy")
-MODULES = ("numpy",)# "scipy")
+SVN_DIRS = (relative_dir("modules/numpy"),)
+MODULES = ("numpy",)
 ADDNEWDOCS_FILES = (relative_dir("modules/numpy/numpy/add_newdocs.py"),
                     relative_dir("modules/numpy/numpy/core/code_generators/docstrings.py"),)
 PYREX_FILES = (relative_dir("modules/numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand"),)
@@ -37,7 +36,7 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # although not all variations may be possible on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'Europe/Helsinki'
+TIME_ZONE = 'Europe/Paris'
 
 # Language code for this installation. All choices can be found here:
 # http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
@@ -67,7 +66,7 @@ MATH_URL = MEDIA_URL + '/math/'
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '2@_(dq4n9tt86zo&vlx1*-x@=p95no8cgthr+-f)3he*)i)1r2'
+SECRET_KEY = ''
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
