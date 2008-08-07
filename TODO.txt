@@ -3,15 +3,21 @@ Short term:
 
   * "Next" and "Previous" buttons for easily browsing docstrings with the
     same preview state.
+
   * Plot directive? Merge the sandbox branch?
+
+  * Better documentation.
 
 Longer term:
 
   * Refactor: views.py has grown too long and messy; ditto for models.py
 
   * ..image:: directive
+
   * Support running plot scripts & capturing output images.
+
   * Fix Recent changes to show only "recent" changes
     (+ browse old changes?)
+
   * Sandboxing Python so that doctests producing images can be run?
 
