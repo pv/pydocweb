@@ -909,7 +909,7 @@ class Documentation(object):
                 raise AttributeError()
         except AttributeError:
             stream.write(doctype + "\n")
-        self.tree.write(stream, 'utf-8')
+        self.tree.write(stream, encoding='utf-8')
 
     @classmethod
     def load(cls, stream):
