@@ -542,7 +542,13 @@ def _update_docstrings_from_xml(stream):
         if el.text:
             docstring = strip_spurious_whitespace(el.text.decode('string-escape'))
         else:
-            docstring = ""
+            docstring = u""
+
+        if not isinstance(docstring, unicode):
+            try:
+                docstring = docstring.decode('utf-8')
+            except UnicodeError:
+                docstring = docstring.decode('iso-8859-1')
 
         try:
             line = int(el.get('line'))
