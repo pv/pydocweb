@@ -577,6 +577,7 @@ def _update_docstrings_from_xml(stream):
             doc.save()
             doc.get_merge() # update merge status
 
+        doc.dirty = (doc.source_doc != doc.text)
         doc.contents.all().delete()
         doc.save()
 
