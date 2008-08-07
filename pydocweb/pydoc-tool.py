@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-# vim:textwidth=75
 r"""
-pydoc_moin COMMAND [options] [ARGS...]
+pydoc-tool COMMAND [options] [ARGS...]
 
-Bidirectional conversion of ReST-formatted docstrings and Moinmoin wiki pages.
+Getting Python docstring to XML from sources, and vice versa.
 """
 # Copyright (c) 2008 Pauli Virtanen <pav@iki.fi>
 # 
@@ -38,7 +37,6 @@ import os, shutil, copy, glob, subprocess, re
 import sys, cgi, math, pkgutil, cPickle as pickle
 import inspect, imp, textwrap, re, pydoc, compiler, difflib
 from optparse import make_option, OptionParser
-import editmoin
 from StringIO import StringIO
 
 try:
@@ -107,7 +105,7 @@ def _default_optparse(cmd, args, option_list=[], infile=False, outfile=False, fr
         ]
 
     head, tail = pydoc.splitdoc(pydoc.getdoc(cmd))
-    p = OptionParser(usage="pydoc_moin.py %s\n\n%s" % (head, tail),
+    p = OptionParser(usage="pydoc-tool.py %s\n\n%s" % (head, tail),
                      option_list=option_list)
     opts, args = p.parse_args(args)
 
@@ -264,202 +262,6 @@ def cmd_list(args):
                 print >> opts.outfile, "%s%s %s" % (indent, el.tag, el.get('id'))
             list_xml(el, indent + "    ")
     list_xml(doc.root)
-
-def cmd_moin_collect_local(args):
-    """moin-collect-local CONFDIR > docs.xml
-
-    Collect documentation from locally running MoinMoin wiki.
-
-    CONFDIR is the directory where MoinMoin's config files are.
-    """
-    options_list = [
-        make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
-                    help="prefix for the wiki pages (default: Docstrings)")
-    ]
-    opts, args, p = _default_optparse(cmd_moin_collect_local, args, options_list, outfile=True, nargs=1)
-    dest, = args
-
-    sys.path.append(dest)
-    from MoinMoin.Page import Page
-    from MoinMoin.PageEditor import PageEditor
-    from MoinMoin.request import RequestCLI
-    from MoinMoin.user import User
-    from MoinMoin.wikiutil import quoteWikinameFS, unquoteWikiname
- 
-    request = RequestCLI()
-    request.user = User(request=request, auth_username='PyDocMoin')
-    request.form = {}
-    
-    data_dir = os.path.abspath(os.path.join(request.cfg.data_dir, "pages"))
-    underlay_dir = os.path.abspath(os.path.join(request.cfg.data_underlay_dir, "pages"))
-
-    pages = {}
-    page_text = []
-
-    # collect page names
-    for d in glob.glob('%s/%s(2f)*' % (data_dir, opts.prefix)):
-        pages[unquoteWikiname(os.path.basename(d))] = True
-    for d in glob.glob('%s/%s(2f)*' % (underlay_dir, opts.prefix)):
-        pages[unquoteWikiname(os.path.basename(d))] = True
-
-    # collect page text
-    for page_name in pages.iterkeys():
-        page = Page(request, page_name)
-        page_text.append(page.get_raw_body().encode('utf-8'))
-
-    # parse output
-    doc = Documentation()
-    name = None
-    docstring = ""
-    for text in page_text:
-        name = None
-        docstring = []
-        for line in text.split("\n"):
-            if line.startswith('.. BEGIN DOCSTRING '):
-                name = line[19:].strip()
-            elif line.startswith('.. END DOCSTRING') and name:
-                el = etree.SubElement(doc.root, 'object', {'id': name})
-                el.text = escape_text("\n".join(docstring))
-                name = None
-                docstring = []
-            elif name:
-                docstring.append(line)
-
-    doc.dump(opts.outfile)
- 
-def cmd_moin_upload_local(args):
-    """moin-upload-local CONFDIR < docs.xml
-
-    Upload documents to MoinMoin running on local machine, as current user.
-    CONFDIR is the directory where MoinMoin's config files are.
-
-    This will:
-      - Put pages that have never been modified to the underlay
-      - Not touch pages that are up-to-date
-      - Replace modified pages as per usual edits
-      - Not delete any pages
-    """
-    options_list = [
-        make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
-                    help="prefix for the wiki pages (default: Docstrings)"),
-        make_option("-m", "--message", action="store", type=str, dest="message",
-                    default="Replaced docstring from sources",
-                    help="edit message"),
-        make_option("--src-url-fmt", action="store", dest="src_url_fmt",
-                    type="str", default="/",
-                    help="Prefix for file source urls. %(file)s is replaced by relative path and %(line)d by line number"
-                    ),
-        make_option("--underlay-only", action="store_true", dest="underlay_only", default=False,
-                    help="Replace underlay pages only"),
-    ]
-    opts, args, p = _default_optparse(cmd_moin_upload_local, args, options_list, infile=True, frontpagefile=True, syspath=True, nargs=1)
-    dest, = args
-
-    opts.prefix = os.path.basename(opts.prefix)
-
-    sys.path.append(dest)
-    from MoinMoin.Page import Page
-    from MoinMoin.PageEditor import PageEditor
-    from MoinMoin.request import RequestCLI
-    from MoinMoin.user import User
-    from MoinMoin.wikiutil import quoteWikinameFS, unquoteWikiname
-    
-    # XXX: moin could use the url parameter to choose a wiki in a farm
-    request = RequestCLI()
-    request.user = User(request=request, auth_username='PyDocMoin')
-    request.form = {}
-    
-    data_dir = os.path.abspath(os.path.join(request.cfg.data_dir, "pages"))
-    underlay_dir = os.path.abspath(os.path.join(request.cfg.data_underlay_dir, "pages"))
-
-    doc = Documentation.load(opts.infile)
-    valid_pages = []
-    moin_formatter = MoinFormatter(opts.prefix, doc,
-                                   src_url_fmt=opts.src_url_fmt)
-
-    for el in doc.root:
-        page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
-        if el.tag == 'module' and el.attrib['id'] == doc.root.attrib['modules'] and opts.frontpagefile:
-            page_text = moin_formatter.fmt_title(el, el.attrib['id'], opts.frontpagefile)
-        else:
-            page_text = moin_formatter.format(el)
-
-        #print "\n\n\n\n********************* %s *****************" % page_name
-        #print page_text
-
-        valid_pages.append(quoteWikinameFS(page_name))
-
-        # XXX: new request for each edit. Why is this needed?
-        #      Is this a successful work-around around the .formatter missing issue?
-        request = RequestCLI()
-        request.user = User(request=request, auth_username='PyDocMoin')
-        request.form = {}
-
-        page = Page(request, page_name)
-        if page.exists() and page.isStandardPage() and not opts.underlay_only:
-            ed = PageEditor(request, page_name, trivial=1)
-            try:
-                if strip_trailing_whitespace(page.get_raw_body()).strip() \
-                        == strip_trailing_whitespace(page_text).strip():
-                    raise ValueError()
-                ed.saveText(page_text, 0, comment=unicode(opts.message))
-            except (PageEditor.Unchanged, ValueError):
-                pass
-            else:
-                print "EDIT", page_name
-        _moin_upload_underlay_page(underlay_dir, page_name, page_text)
-
-        # Upload a sample discussion page
-        _moin_upload_underlay_page(underlay_dir, page_name + "/Discussion",
-            "=== Discussion ===\n\n[[Action(edit)]]\n")
-
-    # XXX: leave deleting pages for the site maintainers to do manually.
-    #      It's too unsafe to do here.
-
-def cmd_moin_upload_remote(args):
-    """
-    Remote uploading
-    """
-    options_list = [
-        make_option("-p", "--prefix", action="store", dest="prefix", type="str", default="Docstrings",
-                    help="prefix for the wiki pages (default: Docstrings)")
-    ]
-    opts, args, p = _default_optparse(cmd_moin_upload_remote, args, options_list, infile=True, nargs=1)
-    url, = args
-
-    doc = Documentation.load(opts.infile)
-    valid_pages = []
-    moin_formatter = MoinFormatter(opts.prefix, doc)
-    for el in doc.root:
-        page_name = '%s/%s' % (opts.prefix, el.attrib['id'].replace('.', '/').replace('_', '-'))
-        page_text = moin_formatter.format(el)
-        fn_url = os.path.join(url, page_name)
-        mf = MoinPage(fn_url)
-        file = open('temp','w')
-        file.write(page_text)
-        file.close()
-        mf.write_file('temp')
-
-        # XXX: how to upload discussion pages without overwriting them?
-
-def _moin_upload_underlay_page(dest, page_name, page_text):
-    from MoinMoin.wikiutil import quoteWikinameFS
-    page_dir = os.path.join(dest, quoteWikinameFS(page_name))
-    rev_dir = os.path.join(page_dir, 'revisions')
-    cur_fn = os.path.join(page_dir, 'current')
-    rev_no = '00000001'
-    rev_fn = os.path.join(rev_dir, rev_no)
-
-    if not os.path.isdir(rev_dir):
-        os.makedirs(rev_dir)
-
-    f = open(rev_fn, 'w')
-    f.write(page_text)
-    f.close()
-
-    f = open(cur_fn, 'w')
-    f.write(rev_no)
-    f.close()
 
 def cmd_numpy_docs(args):
     """numpy-docs < docs.xml > docs2.xml
@@ -691,8 +493,7 @@ def cmd_bzr(args):
             print >> sys.stderr, out + err
             raise RuntimeError("bzr commit failed")
 
-COMMANDS = [cmd_collect, cmd_moin_upload_local,
-            cmd_mangle, cmd_prune, cmd_list, cmd_moin_collect_local, cmd_patch,
+COMMANDS = [cmd_collect, cmd_mangle, cmd_prune, cmd_list, cmd_patch,
             cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs]
 
 #------------------------------------------------------------------------------
@@ -993,208 +794,6 @@ def strip_sys_path(fn):
         if fn.startswith(pth + os.path.sep):
             return fn[len(pth)+1:]
     return fn
-
-#------------------------------------------------------------------------------
-# MoinMoin page generation
-#------------------------------------------------------------------------------
-
-class MoinFormatter(object):
-    def __init__(self, prefix, doc, src_url_fmt=None):
-        self.prefix = prefix
-        self.doc = doc
-        self.src_url_fmt = src_url_fmt
-
-    def target(self, name):
-        return "%s/%s" % (self.prefix, name.replace('.', '/').replace('_', '-'))
-
-    def link(self, name, text, anchor=""):
-        if self.doc.get(name) is None:
-            return text
-        if anchor: anchor = "#" + anchor
-        return "[:%s%s:%s]" % (self.target(name), anchor, text)
-    
-    def partlink(self, name, use_last_as_anchor=False):
-        parts = name.split('.')
-        links = [self.link('.'.join(parts[:(j+1)]), parts[j])
-                 for j in xrange(0, len(parts))]
-        
-        if use_last_as_anchor:
-            links.pop()
-            links += [self.link('.'.join(parts[:-1]), parts[-1], parts[-1])]
-        
-        if links:
-            return "%s" % '.'.join(links)
-        else:
-            return ""
-    
-    def title(self, el, titlechar="=", typename=""):
-        if el.tag == 'module':
-            title = el.attrib['id']
-        else:
-            title = el.attrib['id'].split('.')[-1]
-        argspec = el.attrib.get('argspec')
-        if argspec:
-            full_title = typename + title + argspec
-        else:
-            full_title = typename + title
-        t = ""
-        t += "[[Anchor(%s)]]\n%s %s %s\n" % (title, titlechar, full_title, titlechar)
-        t += "\n"
-        return t
-    
-    def docstring(self, el):
-        t = ""
-        t += "{{{#!rst\n"
-        t += ".. BEGIN DOCSTRING %s\n\n" % el.attrib['id']
-        if el.text:
-            t += el.text.decode('string-escape')
-        t += "\n\n.. END DOCSTRING\n"
-        t += "}}}\n"
-        if 'real-id' in el.attrib:
-            real_from = '.'.join(el.attrib['real-id'].split('.')[:-1])
-            t += "(from %s) " % self.partlink(real_from)
-        return t
-    
-    def additional_docs(self, el):
-        t = ""
-        if self.src_url_fmt and 'file' in el.attrib:
-            try:
-                line = int(el.attrib['line'])
-            except (KeyError, ValueError, TypeError):
-                line = 0
-            fn = strip_sys_path(el.attrib['file'])
-            if not fn.startswith('/'):
-                t += "\n[%s Source]\n\n" % (
-                        self.src_url_fmt % dict(file=fn, line=line))
-        t += "\n[[Include(%s/Discussion)]]" % self.target(el.attrib['id'])
-        return t
-    
-    def child_list(self, el, child_tag, title, titlechar="=", always_ref=False):
-        t = ""
-        els = self.doc.get_targets(el.findall('ref'))
-        children = [x for x in els if x[1] is not None and x[1].tag == child_tag]
-        if children:
-            t += "\n\n%s %s %s\n\n" % (titlechar, title, titlechar)
-            t += self.children(el, children, titlechar, always_ref=always_ref)
-        return t
-    
-    def children(self, parent, children, titlechar="=", always_ref=False):
-        name_parts = parent.attrib['id'].split('.')
-    
-        from_here = []
-        from_elsewhere = []
-    
-        for name, c in sorted(children):
-            parts = c.attrib['id'].split('.')
-            
-            if parts[:-1] == name_parts and not always_ref:
-                # from here
-                from_here.append(
-                    "[[Include(%s)]]" % (self.target(c.attrib['id']))
-                )
-                from_elsewhere.append("[#%s %s]*" % (name, name))
-            else:
-                # from elsewhere
-                from_elsewhere.append(self.link(c.attrib['id'], name))
-    
-                if 'real-id' in c.attrib:
-                    parts = c.attrib['real-id'].split('.')
-                if parts[:-1] == name_parts:
-                    from_elsewhere[-1] += "*"
-    
-        t = ""
-        
-        if from_elsewhere:
-            for j, s in enumerate(from_elsewhere):
-                t += "|| %s " % s
-                if j % 6 == 5:
-                    t += "||\n"
-            if not t.endswith("||\n"):
-                t += "||\n"
-    
-        if from_here:
-            for s in from_here:
-                t += s + "\n"
-    
-        return t
-    
-    def fmt_module(self, el, titlechar="="):
-        t = ""
-        t += self.title(el, titlechar)
-        t += self.docstring(el)
-        t += "\n"
-        t += self.additional_docs(el)
-    
-        ## 
-        t += self.child_list(el, 'module', 'Modules', always_ref=True)
-        t += self.child_list(el, 'class', 'Classes', always_ref=True)
-        t += self.child_list(el, 'callable', 'Functions', always_ref=True)
-        t += self.child_list(el, 'object', 'Objects', always_ref=True)
-        return t
-    
-    def fmt_class(self, el, titlechar="="):
-        t = ""
-        t += self.title(el, titlechar, "class ")
-    
-    
-        bases = [self.partlink(x.attrib['ref'])
-                 for x in el.findall('bases')]
-        if bases:
-            t += "Derived from %s\n" % ", ".join(bases)
-    
-        t += self.docstring(el)
-        t += "\n"
-        t += self.additional_docs(el)
-    
-        ## 
-    
-        t += self.child_list(el, 'class', 'Classes', always_ref=True)
-        t += self.child_list(el, 'callable', 'Methods', always_ref=False)
-        t += self.child_list(el, 'object', 'Properties', always_ref=False)
-        return t
-    
-    def fmt_callable(self, el, titlechar="=="):
-        t = ""
-        t += self.title(el, titlechar)
-        t += self.docstring(el)
-        t += "[[Action(edit)]]\n"
-        t += self.additional_docs(el)
-        return t
-    
-    def fmt_object(self, el, titlechar="=="):
-        t = ""
-        t += self.title(el, titlechar)
-        if 'type' in el.attrib:
-            t += "Type: %s\n" % self.partlink(el.attrib['type'])
-        t += self.docstring(el)
-        t += "[[Action(edit)]]\n"
-        t += self.additional_docs(el)
-        return t
-    
-    def fmt_title(self, el, title_str, frontpagefile=None, titlechar="="):
-        t = ""
-        t += self.title(el, titlechar)
-        #t=+""" Welcome to the Marathon """
-        if frontpagefile is not None:
-            t+=open(frontpagefile).read()
-        t += self.child_list(el, 'callable', 'Functions', always_ref=True)
-        t += self.child_list(el, 'class', 'Classes', always_ref=True)
-        t += self.child_list(el, 'module', 'Modules', always_ref=True)
-        return t
-
-    def format(self, el):
-        t = ("## NOTE: This page is automatically generated.\n"
-             "##       Only edit portions between BEGIN DOCSTRING and END DOCSTRING.\n"
-             "##       To discuss this documentation, edit the discussion page\n")
-        if el.tag == "module":
-            t += self.fmt_module(el)
-        elif el.tag == "class":
-            t += self.fmt_class(el)
-        elif el.tag == "callable":
-            t += self.fmt_callable(el)
-        elif el.tag == "object":
-            t += self.fmt_object(el)
-        return t
 
 
 #------------------------------------------------------------------------------
@@ -1600,38 +1199,8 @@ def escape_text(text):
 
 
 #------------------------------------------------------------------------------
-# Remote uploading
-#------------------------------------------------------------------------------
- 
-class MoinPage(object):
-
-    def __init__(self,url):
-        self.url = url
-
-
-    def write_file(self,sourcefile, id = None):
-        template = None
-        urlopener = editmoin.get_urlopener(self.url, id)
-        moinfile = editmoin.fetchfile(urlopener, self.url, id, template)
-        geturl = self.url+"?action=edit"
-        filename, headers = urlopener.retrieve(geturl)
-        mf = editmoin.MoinFile(filename, id)
-        mf.read_raw(sourcefile)
-        editmoin.sendfile(urlopener, self.url, mf)
-        #editmoin.sendcancel(urlopener, self.url, mf)
-
-    def retrieve_docstring(self):
-        template = None
-        urlopener = editmoin.get_urlopener(self.url, id)
-        moinfile = editmoin.fetchfile(urlopener, self.url, id, template)
-        dump = StringIO()
-        moinfile.write_file(dump)
-        dump.seek(0)
-        lines = dump.readlines()
-        return string.join(lines[5:-1],"").strip() #Needs better parsing of course !!
-
-#------------------------------------------------------------------------------
 
 if __name__ == "__main__": main()
 
-# vim:sw=4 expandtab smarttab
+# vim:sw=4 expandtab smarttab textwidth=75
+
