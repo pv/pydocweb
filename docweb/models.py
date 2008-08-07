@@ -632,7 +632,7 @@ def update_docstrings(update_svn=True):
             if update_svn:
                 _exec_cmd(['svn', 'up'])
                 _exec_cmd(['svn', 'revert', '-R', '.'])
-            _exec_cmd([sys.executable, 'setupegg.py', 'install',
+            _exec_cmd([sys.executable, 'setup.py', 'install',
                        '--prefix=%s' % dist_dir])
         finally:
             os.chdir(cwd)
