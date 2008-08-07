@@ -15,9 +15,9 @@ def relative_dir(path):
 SVN_DIRS = (relative_dir("modules/numpy"),
             )#relative_dir("modules/scipy")
 MODULES = ("numpy",)# "scipy")
-ADDNEWDOCS_FILES = (relative_dir("modules/numpy/add_newdocs.py"),
-                    relative_dir("modules/numpy/core/code_generators/docstrings.py"),)
-PYREX_FILES = (relative_dir("modules/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand"),)
+ADDNEWDOCS_FILES = (relative_dir("modules/numpy/numpy/add_newdocs.py"),
+                    relative_dir("modules/numpy/numpy/core/code_generators/docstrings.py"),)
+PYREX_FILES = (relative_dir("modules/numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand"),)
 
 MAX_DOCSTRING_WIDTH = 79
 
