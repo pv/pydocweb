@@ -1,7 +1,6 @@
 
 Short term:
 
-  * Relax the 80 char summary line requirement.
   * "Next" and "Previous" buttons for easily browsing docstrings with the
     same preview state.
   * Plot directive? Merge the sandbox branch?
@@ -13,6 +12,4 @@ Longer term:
   * Fix Recent changes to show only "recent" changes
     (+ browse old changes?)
   * Sandboxing Python so that doctests producing images can be run?
-
-
 
