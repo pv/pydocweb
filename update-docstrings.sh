@@ -1,3 +1,3 @@
 #!/bin/sh
 umask 0002
-DJANGO_SETTINGS_MODULE="settings" python -c 'import docweb.models; docweb.models.update_docstrings()'
+PYTHONPATH="$PWD/..:$PYTHONPATH" DJANGO_SETTINGS_MODULE="pydocweb.settings" python -c 'import pydocweb.docweb.models; pydocweb.docweb.models.update_docstrings()'
