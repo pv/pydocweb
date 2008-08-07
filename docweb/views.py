@@ -17,7 +17,7 @@ from django.views.decorators.vary import vary_on_cookie
 from django import newforms as forms
 
 
-from pydocweb.doc.models import *
+from pydocweb.docweb.models import *
 import rst
 
 def render_template(request, template, vardict):
@@ -63,7 +63,7 @@ class EditForm(forms.Form):
         self.cleaned_data['text'] = "\n".join(self.cleaned_data['text'].splitlines())
         return self.cleaned_data
 
-@permission_required('doc.change_wikipage')
+@permission_required('docweb.change_wikipage')
 def edit_wiki(request, name):
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
@@ -188,10 +188,10 @@ def docstring_index(request):
     review_map = {}
     from django.db import connection
     cursor = connection.cursor()
-    cursor.execute("""SELECT name, review FROM doc_docstring""")
+    cursor.execute("""SELECT name, review FROM docweb_docstring""")
     for name, review in cursor.fetchall():
         review_map[name] = review
-    cursor.execute("""SELECT docstring_id, review FROM doc_docstringrevision
+    cursor.execute("""SELECT docstring_id, review FROM docweb_docstringrevision
                       GROUP BY docstring_id ORDER BY timestamp""")
     for name, review in cursor.fetchall():
         review_map[name] = review
@@ -286,7 +286,7 @@ def _get_author_map():
                                                    user.last_name)
     return author_map
 
-@permission_required('doc.change_docstring')
+@permission_required('docweb.change_docstring')
 def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
 
@@ -354,12 +354,12 @@ class CommentEditForm(forms.Form):
         self.cleaned_data['text']="\n".join(self.cleaned_data['text'].splitlines())
         return self.cleaned_data
 
-@permission_required('doc.change_reviewcomment')
+@permission_required('docweb.change_reviewcomment')
 def comment_edit(request, name, comment_id):
     doc = get_object_or_404(Docstring, name=name)
     try:
         comment_id = int(comment_id)
-        if request.user.has_perm('doc.can_review'):
+        if request.user.has_perm('docweb.can_review'):
             comment = doc.comments.get(id=comment_id)
         else:
             comment = doc.comments.get(id=comment_id,
@@ -487,7 +487,7 @@ def diff_prev(request, name, rev2):
 
     return diff(request, name, rev1, rev2)
 
-@permission_required('doc.change_docstring')
+@permission_required('docweb.change_docstring')
 def review(request, name):
     if request.method == 'POST':
         doc = get_object_or_404(Docstring, name=name)
@@ -498,7 +498,7 @@ def review(request, name):
             def _valid_review(r, extra=[]):
                 return r in ([REVIEW_NEEDS_EDITING, REVIEW_BEING_WRITTEN,
                               REVIEW_NEEDS_REVIEW, REVIEW_NEEDS_WORK] + extra)
-            if not request.user.has_perm('doc.can_review') and not (
+            if not request.user.has_perm('docweb.can_review') and not (
                 _valid_review(doc.review, [REVIEW_REVISED]) and
                 _valid_review(form.cleaned_data['status'])):
                 return HttpResponseRedirect(reverse(docstring, args=[name]))
@@ -561,7 +561,7 @@ def dump(request):
     dump_docs_as_xml(response)
     return response
 
-@permission_required('doc.change_docstring')
+@permission_required('docweb.change_docstring')
 def merge(request):
     """
     Review current merge status
@@ -583,7 +583,7 @@ def merge(request):
                            dict(conflicts=conflicts, merged=merged,
                                 errors=errors))
 
-@permission_required('doc.can_update_from_source')
+@permission_required('docweb.can_update_from_source')
 def control(request):
     if request.method == 'POST':
         if 'update-docstrings' in request.POST.keys():

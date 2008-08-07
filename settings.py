@@ -12,17 +12,12 @@ def relative_dir(path):
     return os.path.abspath(os.path.join(os.path.dirname(__file__),
                                         path))
 
-SVN_DIRS = ("/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/numpy",
-            )#"/home/pauli/koodi/proj/numpy-doc/numpydoc_pauli/scipy")
+SVN_DIRS = (relative_dir("modules/numpy"),
+            )#relative_dir("modules/scipy")
 MODULES = ("numpy",)# "scipy")
-ADDNEWDOCS_FILES = (
-    SVN_DIRS[0] + "/numpy/add_newdocs.py",
-    SVN_DIRS[0] + "/numpy/core/code_generators/docstrings.py",
-)
-PYREX_FILES = (
-    SVN_DIRS[0] + "/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand",
-)
-PYDOCMOIN = relative_dir("../pydoc_moin.py")
+ADDNEWDOCS_FILES = (relative_dir("modules/numpy/add_newdocs.py"),
+                    relative_dir("modules/numpy/core/code_generators/docstrings.py"),)
+PYREX_FILES = (relative_dir("modules/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand"),)
 
 MAX_DOCSTRING_WIDTH = 79
 
@@ -85,7 +80,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.auth",
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
-    "pydocweb.doc.context_processors.media_url",
+    "pydocweb.docweb.context_processors.media_url",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -110,5 +105,5 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
-    'pydocweb.doc',
+    'pydocweb.docweb',
 )

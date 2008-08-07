@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns(
-    'pydocweb.doc.views',
+    'pydocweb.docweb.views',
     # --
     (r'^$', 'frontpage'),
     (r'^wiki/(?P<name>.+)/edit/$', 'edit_wiki'),

@@ -1,10 +1,12 @@
-import datetime, cgi
+import datetime, cgi, os
 
 from django.db import models
 from django.db import transaction
 from django.conf import settings
 
 MAX_NAME_LEN = 256
+
+PYDOCTOOL = os.path.join(os.path.dirname(__file__), '../scripts/pydoc-tool.py')
 
 # -- Editing Docstrings
 
@@ -140,7 +142,7 @@ class Docstring(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
-        SELECT a.alias FROM doc_docstringalias AS a, doc_docstring AS d
+        SELECT a.alias FROM docweb_docstringalias AS a, docweb_docstring AS d
         WHERE d.name = a.target AND a.parent_id = %s AND d.type_ = %s""",
         [self.name, type_code])
         names = [n[0] for n in cursor.fetchall()]
@@ -351,14 +353,14 @@ class Docstring(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
-        SELECT d.name FROM doc_docstring AS d
-        LEFT JOIN doc_docstringrevision AS r WHERE d.name = r.docstring_id
+        SELECT d.name FROM docweb_docstring AS d
+        LEFT JOIN docweb_docstringrevision AS r WHERE d.name = r.docstring_id
         GROUP BY d.name HAVING %s %s (d.name LIKE %%s OR r.text LIKE %%s)
         """ % (where_, not_,), [s, s])
         res =  cursor.fetchall()
         cursor.execute("""\
-        SELECT name FROM doc_docstring
-        WHERE name NOT IN (SELECT docstring_id FROM doc_docstringrevision)
+        SELECT name FROM docweb_docstring
+        WHERE name NOT IN (SELECT docstring_id FROM docweb_docstringrevision)
         AND %s %s (name LIKE %%s OR source_doc LIKE %%s)
         """ % (where_, not_,), [s, s])
         return res + cursor.fetchall()
@@ -373,14 +375,14 @@ class Docstring(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
-        SELECT d.name FROM doc_docstring AS d
-        LEFT JOIN doc_docstringrevision AS r WHERE d.name = r.docstring_id
+        SELECT d.name FROM docweb_docstring AS d
+        LEFT JOIN docweb_docstringrevision AS r WHERE d.name = r.docstring_id
         GROUP BY d.name HAVING r.review = %%s %s
         """ % where_, [review])
         res =  cursor.fetchall()
         cursor.execute("""\
-        SELECT name FROM doc_docstring
-        WHERE name NOT IN (SELECT docstring_id FROM doc_docstringrevision)
+        SELECT name FROM docweb_docstring
+        WHERE name NOT IN (SELECT docstring_id FROM docweb_docstringrevision)
         AND review = %%s %s
         """ % where_, [review])
         return res + cursor.fetchall()
@@ -463,7 +465,7 @@ class WikiPage(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
-        SELECT page_id FROM doc_wikipagerevision
+        SELECT page_id FROM docweb_wikipagerevision
         GROUP BY page_id HAVING %s (page_id LIKE %%s OR text LIKE %%s)
         """ % (not_,), [s, s])
         return cursor.fetchall()
@@ -700,7 +702,7 @@ def patch_against_source(revs=None):
     base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
 
     err = tempfile.TemporaryFile()
-    patch = _exec_chainpipe([[settings.PYDOCMOIN, 'patch',
+    patch = _exec_chainpipe([[PYDOCTOOL, 'patch',
                               '-s', _site_path(),
                               base_xml_fn, new_xml_file.name]],
                             stderr=err)
@@ -714,19 +716,19 @@ def regenerate_base_xml():
     """
     cmds = []
     cmds.append(
-        [settings.PYDOCMOIN, 'collect', '-s', _site_path()]
+        [PYDOCTOOL, 'collect', '-s', _site_path()]
         + list(settings.MODULES)
     )
-    cmds.append([settings.PYDOCMOIN, 'prune'])
+    cmds.append([PYDOCTOOL, 'prune'])
     try:
-        cmds.append([settings.PYDOCMOIN, 'numpy-docs', '-s', _site_path()])
+        cmds.append([PYDOCTOOL, 'numpy-docs', '-s', _site_path()])
         for fn in settings.ADDNEWDOCS_FILES:
             if os.path.isfile(fn):
                 cmds[-1] += ['-f', fn]
     except KeyError:
         pass
 
-    cmds.append([settings.PYDOCMOIN, 'pyrex-docs', '-s', _site_path()])
+    cmds.append([PYDOCTOOL, 'pyrex-docs', '-s', _site_path()])
     for fn in settings.PYREX_FILES:
         cmds[-1] += ['-f', fn]
 

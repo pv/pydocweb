@@ -1,8 +1,8 @@
 import urllib, cgi
 from django import template
 
-from pydocweb.doc.models import Docstring, WikiPage, REVIEW_STATUS_CODES
-import pydocweb.doc.rst as rst
+from pydocweb.docweb.models import Docstring, WikiPage, REVIEW_STATUS_CODES
+import pydocweb.docweb.rst as rst
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import stringfilter
 
@@ -16,7 +16,7 @@ def docstring_name_link(name, all_links=False):
     namelinks = []
     for j in xrange(1, len(parts)+1):
         partial = '.'.join(parts[:j])
-        target = reverse('pydocweb.doc.views.docstring', args=[partial])
+        target = reverse('pydocweb.docweb.views.docstring', args=[partial])
         if j < len(parts) or all_links:
             namelinks.append("<a href=\"%s\">%s</a>" % (
                 urllib.quote(target), cgi.escape(parts[j-1])))
@@ -36,7 +36,7 @@ def docstring_status_code(name):
 @register.simple_tag
 def help_page(page_name):
     html = rst.render_html(WikiPage.fetch_text(page_name))
-    html += "<p><a href=\"%s\">Edit help</a></p>" % reverse('pydocweb.doc.views.wiki', args=[page_name])
+    html += "<p><a href=\"%s\">Edit help</a></p>" % reverse('pydocweb.docweb.views.wiki', args=[page_name])
     return html
 
 

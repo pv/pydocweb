@@ -17,7 +17,7 @@
   {% for row in rows %}
   <tr>
     {% for doc in row %}
-    <td class="{{doc.statuscode|escape}}"><a href="{% url pydocweb.doc.views.docstring doc.name %}">{{doc.name|escape}}</a></td>
+    <td class="{{doc.statuscode|escape}}"><a href="{% url pydocweb.docweb.views.docstring doc.name %}">{{doc.name|escape}}</a></td>
     {% endfor %}
   </tr>
   {% endfor %}

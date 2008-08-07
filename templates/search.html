@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<form action="{% url pydocweb.doc.views.search %}" 
+<form action="{% url pydocweb.docweb.views.search %}" 
       method="post">
   <ul>
     {{ form.as_ul }}
@@ -26,7 +26,7 @@
   {% for row in rows %}
   <tr>
     {% for item in row %}
-    <td><a href="{% url pydocweb.doc.views.docstring item.0 %}">{{item.0|escape}}</a></td>
+    <td><a href="{% url pydocweb.docweb.views.docstring item.0 %}">{{item.0|escape}}</a></td>
     {% endfor %}
   </tr>
   {% endfor %}
@@ -40,7 +40,7 @@
   {% for row in rows %}
   <tr>
     {% for item in row %}
-    <td><a href="{% url pydocweb.doc.views.wiki item.0 %}">{{item.0|escape}}</a></td>
+    <td><a href="{% url pydocweb.docweb.views.wiki item.0 %}">{{item.0|escape}}</a></td>
     {% endfor %}
   </tr>
   {% endfor %}

@@ -11,28 +11,28 @@
     {% block extra_headers %}{% endblock %}
   </head>
   <body>
-    <div id="header"><h1><a href="{% url pydocweb.doc.views.frontpage %}">Scipy Documentation Editor</a></h1></div>
+    <div id="header"><h1><a href="{% url pydocweb.docweb.views.frontpage %}">Scipy Documentation Editor</a></h1></div>
     <div id="navbar">
       <ul>
-	<li class="button"><a href="{% url pydocweb.doc.views.frontpage %}">Wiki</a></li>
-	<li class="button"><a href="{% url pydocweb.doc.views.docstring_index %}">Docstrings</a></li>
-	<li class="button"><a href="{% url pydocweb.doc.views.changes %}">Changes</a></li>
-	<li class="button"><a href="{% url pydocweb.doc.views.search %}">Search</a></li>
-	<li class="button"><a href="{% url pydocweb.doc.views.stats %}">Stats</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.frontpage %}">Wiki</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.docstring_index %}">Docstrings</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.changes %}">Changes</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.search %}">Search</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.stats %}">Stats</a></li>
 {% if perms.doc.change_docstring %}
-	<li class="button"><a href="{% url pydocweb.doc.views.merge %}">Merge</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.merge %}">Merge</a></li>
 {% endif %}
-	<li class="button"><a href="{% url pydocweb.doc.views.patch %}">Patch</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.patch %}">Patch</a></li>
 {% if user.is_superuser %}
-	<li class="button"><a href="{% url pydocweb.doc.views.control %}">Control</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.control %}">Control</a></li>
 {% endif %}
 	<li>&mdash;</li>
 {% if user.is_authenticated %}
 	<li><b>{{user.first_name|escape}} {{user.last_name|escape}}</b>:</li>
-	<li class="button"><a href="{% url pydocweb.doc.views.password_change %}">Profile</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.password_change %}">Profile</a></li>
 	<li class="button"><a href="{% url django.contrib.auth.views.logout %}">Log out</a></li>
 {% else %}
-	<li class="button"><a href="{% url pydocweb.doc.views.login %}">Log in</a></li>
+	<li class="button"><a href="{% url pydocweb.docweb.views.login %}">Log in</a></li>
 {% endif %}
       </ul>
     </div>

@@ -6,7 +6,7 @@ urlpatterns = patterns(
     '',
     # --
     (r'^admin/', include('django.contrib.admin.urls')),
-    (r'^', include('pydocweb.doc.urls')),
+    (r'^', include('pydocweb.docweb.urls')),
 )
 
 if settings.DEBUG:

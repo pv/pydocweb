@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 
-import pydocweb.doc.models as models
+import pydocweb.docweb.models as models
 
 #------------------------------------------------------------------------------
 # Rendering
@@ -57,12 +57,12 @@ class RstWriter(docutils.writers.html4css1.Writer):
         for prefix in [''] + self.resolve_prefixes:
             try:
                 doc = models.Docstring.resolve(prefix + name)
-                return reverse('pydocweb.doc.views.docstring',
+                return reverse('pydocweb.docweb.views.docstring',
                                kwargs=dict(name=doc.name))
             except models.Docstring.DoesNotExist:
                 pass
         if self.resolve_to_wiki:
-            return reverse('pydocweb.doc.views.wiki', args=[name])
+            return reverse('pydocweb.docweb.views.wiki', args=[name])
         else:
             raise ValueError()
     
