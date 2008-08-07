@@ -1195,7 +1195,7 @@ class Documentation(object):
 def escape_text(text):
     """Escape text so that it can be included within double quotes or XML"""
     text = text.encode('string-escape')
-    return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)\\n", "\n", text))
+    return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)(|\\\\|\\\\\\\\)?\\n", "\\1\n", text))
 
 
 #------------------------------------------------------------------------------
