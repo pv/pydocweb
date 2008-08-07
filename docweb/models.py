@@ -823,9 +823,9 @@ def merge_3way(mine, base, other):
     f1 = tempfile.NamedTemporaryFile()
     f2 = tempfile.NamedTemporaryFile()
     f3 = tempfile.NamedTemporaryFile()
-    f1.write(mine)
-    f2.write(base)
-    f3.write(other)
+    f1.write(mine.encode('iso-8859-1'))
+    f2.write(base.encode('iso-8859-1'))
+    f3.write(other.encode('iso-8859-1'))
     f1.flush()
     f2.flush()
     f3.flush()
@@ -838,9 +838,9 @@ def merge_3way(mine, base, other):
                          stdout=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-        return out, True
+        return out.decode('iso-8859-1'), True
     else:
-        return out, False
+        return out.decode('iso-8859-1'), False
 
 def diff_text(text_a, text_b, label_a="previous", label_b="current"):
     lines_a = text_a.splitlines(1)
