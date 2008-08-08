@@ -900,8 +900,7 @@ def _get_weekly_stats(edits):
         docstring_edits = {}
 
         while remaining_edits and remaining_edits[0][0] < end_time:
-            timestamp, n_edits, rev = remaining_edits.pop(0)
-            if n_edits <= 0: continue
+            timestamp, rev = remaining_edits.pop(0)
 
             docstring_end_rev[rev.docstring.name] = rev.revno
 
@@ -914,10 +913,10 @@ def _get_weekly_stats(edits):
 
             author = author_map.get(rev.author, rev.author)
             author_edits.setdefault(author, 0)
-            author_edits[author] += n_edits
+            author_edits[author] += 1
 
             docstring_edits.setdefault(rev.docstring.name, 0)
-            docstring_edits[rev.docstring.name] += n_edits
+            docstring_edits[rev.docstring.name] += 1
             docstring_status[rev.docstring.name] = rev.review_code
 
         period_stats.append(PeriodStats(start_time, end_time,
@@ -956,26 +955,7 @@ class PeriodStats(object):
 def _get_edits():
     revisions = DocstringRevision.objects.all().order_by('docstring',
                                                          'timestamp')
-
-    last_text = None
-    last_docstring = None
-
     edits = []
-
-    nonjunk_re = re.compile("[^a-zA-Z \n]")
-
     for rev in revisions:
-        if last_docstring != rev.docstring or last_text is None:
-            last_text = rev.docstring.source_doc
-
-        a = nonjunk_re.sub('', last_text).split()
-        b = nonjunk_re.sub('', rev.text).split()
-        sm = difflib.SequenceMatcher(a=a, b=b)
-        ratio = sm.quick_ratio()
-        n_edits = len(b) - (len(a) + len(b))*.5*ratio
-
-        edits.append((rev.timestamp, n_edits, rev))
-        last_text = rev.text
-        last_docstring = rev.docstring
-
+        edits.append((rev.timestamp, rev))
     return edits

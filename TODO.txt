@@ -1,5 +1,5 @@
-
-Short term:
+Short term
+==========
 
   * "Next" and "Previous" buttons for easily browsing docstrings with the
     same preview state.
@@ -21,7 +21,21 @@ Short term:
     So, mostly Pyrex bugs?
 
 
-Longer term:
+Longer term
+===========
+
+  * Refactor: the "stats" page does not always reflect the actual history,
+    because the database does not contain full history. Missing information
+    contains eg.:
+
+        - The original SVN version on which the work was based:
+          this messes up word counts after merging docstrings back to SVN.
+
+          Counting word count changes in revisions is not really possible
+          before this information is in the database.
+
+        - We don't keep track of separate review history; review status
+          change is always associated with a docstring revision.
 
   * Refactor: views.py has grown too long and messy; ditto for models.py
 
