@@ -21,3 +21,6 @@ Longer term:
 
   * Sandboxing Python so that doctests producing images can be run?
 
+  * Better merging? RCS `merge` is not so intelligent when BASE and MINE
+    differ much from each other, but MINE and OTHER are quite similar.
+
