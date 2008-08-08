@@ -24,6 +24,23 @@ Short term
 Longer term
 ===========
 
+  * Refactor: The database structure needs refactoring. The following issues
+    should be fixed:
+
+        - Review status should be in a separate table, so that we would
+          have history about who did what and when.
+
+        - SVN docstrings perhaps should be kept in the DocstringRevision
+          table; this would simplify several parts of the code that work
+          with SQL.
+
+        - When a first revision is made, we probably should create
+          also a "base" revision that contains the version that was in SVN
+          at that time. This would enable constructing the full history
+          about what was done using pydocweb.
+
+          So, "old" SVN revision as revno 0, "current" SVN rev as revno -1?
+
   * Refactor: the "stats" page does not always reflect the actual history,
     because the database does not contain full history. Missing information
     contains eg.:
@@ -36,6 +53,11 @@ Longer term
 
         - We don't keep track of separate review history; review status
           change is always associated with a docstring revision.
+
+        - In general, the history shown on the stats page should never change
+          after the fact.
+
+    These problems pretty much show that the "Stats" page was an afterthought...
 
   * Refactor: views.py has grown too long and messy; ditto for models.py
 
