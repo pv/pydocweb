@@ -2,10 +2,10 @@ import os, sys, shutil, tempfile, subprocess, os, random, glob, compiler.ast
 import xml.etree.ElementTree as etree
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                      '..', 'pydoc_moin.py'))
+                                      '..', 'scripts', 'pydoc-tool.py'))
 
 sys.path.insert(0, os.path.dirname(PYDOCM))
-pydoc_moin = __import__('pydoc_moin')
+pydoc_moin = __import__('pydoc-tool')
 sys.path.pop(0)
 
 SAMPLE_MODULE = os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -28,7 +28,7 @@ class TestRoundtrip(object):
 
         ret = subprocess.call([PYDOCM, 'numpy-docs', '-s', cwd,
                                '-o', 'base.xml', '-i', 'base0.xml',
-                               '-m', 'sample_module.add_newdocs'])
+                               '-f', 'sample_module/add_newdocs.py'])
         assert ret == 0
 
         # -- check if something is missing
@@ -94,10 +94,11 @@ class TestRoundtrip(object):
 
             name = el.attrib['id']
 
-            assert el.text is not None, "%s\n%s" % (name, patch)
-            assert el.text.strip() == new_item_docstrings[name].strip(), \
+            doc_there = el.text.decode('string-escape')
+
+            assert doc_there.strip() == new_item_docstrings[name].strip(), \
                    "%s\n%s\n----------\n%s\n-------\n%s\n----" % (
-                name, patch, new_item_docstrings[name].strip(), el.text.strip())
+                name, patch, new_item_docstrings[name].strip(), doc_there.strip())
 
 
     def setUp(self):
