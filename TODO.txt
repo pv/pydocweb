@@ -8,6 +8,19 @@ Short term:
 
   * Better documentation.
 
+  * Fix the "Source location for %s known, but failed to find a place for the docstring"
+    errors in pydoc-tool.py; appeared to occur in:
+
+        ERROR: Source location for numpy.lib.function_base.iterable known, but failed to find a place for the docstring
+        ERROR: Source location for numpy.random.mtrand.RandomState.bytes known, but failed to find a place for the docstring
+        ERROR: Source location for numpy.random.mtrand.RandomState.dirichlet known, but failed to find a place for the docstring
+        ERROR: Source location for numpy.random.mtrand.RandomState.multinomial known, but failed to find a place for the docstring
+        ERROR: Source location for numpy.random.mtrand.RandomState.permutation known, but failed to find a place for the docstring
+        ERROR: Source location for numpy.random.mtrand.RandomState.shuffle known, but failed to find a place for the docstring
+
+    So, mostly Pyrex bugs?
+
+
 Longer term:
 
   * Refactor: views.py has grown too long and messy; ditto for models.py
@@ -23,4 +36,17 @@ Longer term:
 
   * Better merging? RCS `merge` is not so intelligent when BASE and MINE
     differ much from each other, but MINE and OTHER are quite similar.
+
+  * Can something be done about stuff whose docstring location is not known at all?
+
+        ERROR: numpy.broadcast: source location for docstring is not known
+        ERROR: numpy.core.multiarray.dot: source location for docstring is not known
+        ERROR: numpy.core.umath.ldexp: source location for docstring is not known
+        ERROR: numpy.e: source location for docstring is not known
+        ERROR: numpy.lib._compiled_base.bincount: source location for docstring is not known
+        ERROR: numpy.lib._compiled_base.digitize: source location for docstring is not known
+        ERROR: numpy.lib._compiled_base.packbits: source location for docstring is not known
+        ERROR: numpy.lib._compiled_base.unpackbits: source location for docstring is not known
+        ERROR: numpy.ma.core.all: source location for docstring is not known
+        ERROR: numpy.newaxis: source location for docstring is not known
 
