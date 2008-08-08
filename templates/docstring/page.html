@@ -12,7 +12,7 @@
 <span id="revision-header">Revision {{revision.revno|escape}}</span>
 {% else %}
 <span id="review-status" class="{{status_code|escape}}">
-  {% if perms.doc.change_docstring %}
+  {% if perms.docweb.change_docstring %}
   <form action="{% url pydocweb.docweb.views.review name %}" method="post">
     <ul>
       {{review_form.as_ul}}
@@ -51,7 +51,7 @@
       <span class="author">{{comment.author|escape}}</span>
       <span class="slug">{{comment.text|truncatewords:8|escape}}</span>
     </div>
-    {% if perms.doc.change_reviewcomment %}
+    {% if perms.docweb.change_reviewcomment %}
     {% ifequal comment.author_username user.username %}
     <div class="edit-tools">
       <form action="{% url pydocweb.docweb.views.comment_edit name,comment.id %}" method="GET">
@@ -70,7 +70,7 @@
 	<input type=submit name="button_delete" value="Delete" />
       </form>
     </div>
-    {% else %}{% if perms.doc.can_review %}
+    {% else %}{% if perms.docweb.can_review %}
     <div class="edit-tools">
       {% if comment.resolved %}
       <form action="{% url pydocweb.docweb.views.comment_edit name,comment.id %}" method="POST">
@@ -90,7 +90,7 @@
     <div class="text">{{ comment.html|safe }}</div>
   </div>
   {% endfor %}
-  {% if perms.doc.change_reviewcomment %}
+  {% if perms.docweb.change_reviewcomment %}
   <form action="{% url pydocweb.docweb.views.comment_edit name,"new" %}" method="GET">
     <input type=submit value="New comment"/>
   </form>
@@ -202,7 +202,7 @@ function toggle_resolved() {
     }
 }
 
-{% if perms.doc.can_review %}{% else %}
+{% if perms.docweb.can_review %}{% else %}
 $(document).ready(function () {
     if ($("#id_status [value=-1]").attr("selected") ||
         $("#id_status [value=5]").attr("selected") ||

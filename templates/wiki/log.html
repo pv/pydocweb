@@ -27,7 +27,7 @@
           {% if forloop.first %}checked{% endif %} />
     </td>
     <td>
-      {% if perms.doc.change_wikipage %}
+      {% if perms.docweb.change_wikipage %}
       <a href="{% url pydocweb.docweb.views.edit_wiki name %}?revision={{rev.id|escape}}">Revert</a>
       {% endif %}
     </td>

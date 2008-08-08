@@ -6,7 +6,7 @@
 {% block actions %}
 <div id="actions">
   <a href="{% url pydocweb.docweb.views.wiki name %}">View</a>
-  {% if perms.doc.change_wikipage %}
+  {% if perms.docweb.change_wikipage %}
   <a href="{% url pydocweb.docweb.views.edit_wiki name %}">Edit</a>
   {% endif %}
   <a href="{% url pydocweb.docweb.views.log_wiki name %}">Log</a>

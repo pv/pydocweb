@@ -19,7 +19,7 @@
 	<li class="button"><a href="{% url pydocweb.docweb.views.changes %}">Changes</a></li>
 	<li class="button"><a href="{% url pydocweb.docweb.views.search %}">Search</a></li>
 	<li class="button"><a href="{% url pydocweb.docweb.views.stats %}">Stats</a></li>
-{% if perms.doc.change_docstring %}
+{% if perms.docweb.change_docstring %}
 	<li class="button"><a href="{% url pydocweb.docweb.views.merge %}">Merge</a></li>
 {% endif %}
 	<li class="button"><a href="{% url pydocweb.docweb.views.patch %}">Patch</a></li>

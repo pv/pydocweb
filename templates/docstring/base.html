@@ -10,7 +10,7 @@
 <div id="actions">
   {% block actions_items %}
   <a href="{% url pydocweb.docweb.views.docstring name %}">View</a>
-  {% if perms.doc.change_docstring %}
+  {% if perms.docweb.change_docstring %}
   <a href="{% url pydocweb.docweb.views.edit name %}">Edit</a>
   {% endif %}
   <a href="{% url pydocweb.docweb.views.log name %}">Log</a>

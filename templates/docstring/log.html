@@ -28,7 +28,7 @@
           {% if forloop.first %}checked{% endif %} />
     </td>
     <td>
-      {% if perms.doc.change_docstring %}
+      {% if perms.docweb.change_docstring %}
       <a href="{% url pydocweb.docweb.views.edit name %}?revision={{rev.id|escape}}">Revert</a>
       {% endif %}
     </td>
