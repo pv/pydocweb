@@ -17,6 +17,7 @@ from django.views.decorators.vary import vary_on_cookie
 from django import newforms as forms
 
 
+import pydocweb.settings
 from pydocweb.docweb.models import *
 import rst
 
@@ -53,8 +54,8 @@ def wiki(request, name):
                                dict(name=name))
 
 class EditForm(forms.Form):
-    text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30,
-                                                            wrap='off')),
+    text = forms.CharField(widget=forms.Textarea(attrs=dict(
+        cols=pydocweb.settings.MAX_DOCSTRING_WIDTH, rows=30, wrap='off')),
                            required=False)
     comment = forms.CharField(required=True)
 
