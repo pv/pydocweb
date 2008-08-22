@@ -806,7 +806,7 @@ def stats(request):
     HEIGHT = 200
 
     if not edits:
-        stats = None
+        stats = []
     else:
         stats = _get_weekly_stats(edits)
 
@@ -901,7 +901,9 @@ def _get_weekly_stats(edits):
         docstring_edits = {}
 
         while remaining_edits and remaining_edits[0][0] < end_time:
-            timestamp, rev = remaining_edits.pop(0)
+            timestamp, n_edits, rev = remaining_edits.pop(0)
+
+            if rev.review_code == REVIEW_UNIMPORTANT: n_edits = 0
 
             docstring_end_rev[rev.docstring.name] = rev.revno
 
@@ -912,12 +914,14 @@ def _get_weekly_stats(edits):
                 review_status[rev.docstring.name] = rev.review_code
             review_counts[review_status[rev.docstring.name]] += 1
 
+            if n_edits <= 0: n_edits = 0
+
             author = author_map.get(rev.author, rev.author)
             author_edits.setdefault(author, 0)
-            author_edits[author] += 1
+            author_edits[author] += n_edits
 
             docstring_edits.setdefault(rev.docstring.name, 0)
-            docstring_edits[rev.docstring.name] += 1
+            docstring_edits[rev.docstring.name] += n_edits
             docstring_status[rev.docstring.name] = rev.review_code
 
         period_stats.append(PeriodStats(start_time, end_time,
@@ -956,7 +960,28 @@ class PeriodStats(object):
 def _get_edits():
     revisions = DocstringRevision.objects.all().order_by('docstring',
                                                          'timestamp')
+
+    last_text = None
+    last_docstring = None
+
     edits = []
+
+    nonjunk_re = re.compile("[^a-zA-Z \n]")
+
     for rev in revisions:
-        edits.append((rev.timestamp, rev))
+        if last_docstring != rev.docstring or last_text is None:
+            last_text = rev.text
+            last_docstring = rev.docstring
+            continue
+
+        a = nonjunk_re.sub('', last_text).split()
+        b = nonjunk_re.sub('', rev.text).split()
+        sm = difflib.SequenceMatcher(a=a, b=b)
+        ratio = sm.ratio()
+        n_edits = len(b) - (len(a) + len(b))*.5*ratio
+
+        edits.append((rev.timestamp, n_edits, rev))
+        last_text = rev.text
+        last_docstring = rev.docstring
+
     return edits
