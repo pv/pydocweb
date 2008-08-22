@@ -185,6 +185,17 @@ class Docstring(models.Model):
 
         self.dirty = (self.source_doc != new_text)
         self.save()
+
+        if self.revisions.count() == 0:
+            # Store the SVN revision the initial edit was based on,
+            # for making statistics later on.
+            base_rev = DocstringRevision(docstring=self,
+                                         text=self.source_doc,
+                                         author="Source",
+                                         comment="Initial source revision",
+                                         review_code=self.review)
+            base_rev.save()
+
         rev = DocstringRevision(docstring=self,
                                 text=new_text,
                                 author=author,
