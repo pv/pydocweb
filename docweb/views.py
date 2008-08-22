@@ -682,7 +682,7 @@ def register(request):
         if form.is_valid():
             data = form.cleaned_data
             count = User.objects.filter(username=data['username']).count()
-            if count == 0:
+            if count == 0 and data['username'].lower() not in ('xml-import', 'source'):
                 user = User.objects.create_user(data['username'],
                                                 data['email'],
                                                 data['password'])
