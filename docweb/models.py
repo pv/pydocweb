@@ -194,6 +194,7 @@ class Docstring(models.Model):
                                          author="Source",
                                          comment="Initial source revision",
                                          review_code=self.review)
+            base_rev.timestamp = self.timestamp
             base_rev.save()
 
         rev = DocstringRevision(docstring=self,
