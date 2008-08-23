@@ -230,7 +230,12 @@ class ReviewForm(forms.Form):
         )
 
 def docstring(request, name):
-    doc = get_object_or_404(Docstring, name=name)
+    try:
+        doc = Docstring.resolve(name)
+        if doc.name != name:
+            return HttpResponseRedirect(reverse(docstring, args=[doc.name]))
+    except Docstring.DoesNotExist:
+        raise Http404()
 
     try:
         text, revision = doc.get_rev_text(request.GET.get('revision'))
