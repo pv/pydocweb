@@ -13,6 +13,7 @@ from django.contrib.auth.models import User, Group
 from django.views.decorators.cache import cache_page, cache_control
 from django.views.decorators.vary import vary_on_cookie
 
+from django.core.cache import cache
 
 from django import newforms as forms
 
@@ -801,10 +802,33 @@ def contributors(request):
 #------------------------------------------------------------------------------
 import datetime, difflib, re
 
-@cache_page(60*15)
 @vary_on_cookie
 @cache_control(max_age=60*15, public=True)
 def stats(request):
+    # Get statistic information
+    stats_cached = cache.get('stats__get_stats_info')
+    if stats_cached is not None:
+        stats, height = stats_cached
+    else:
+        stats, height = _get_stats_info()
+        cache.set('stats__get_stats_info', (stats, height), 60*15)
+
+    # Render
+    try:
+        current_period = stats[-1]
+    except IndexError:
+        current_period = None
+
+    return render_template(request, 'stats.html',
+                           dict(stats=stats,
+                                current_period=current_period,
+                                height=height,
+                                ))
+
+def _get_stats_info():
+    """
+    Generate information needed by the stats page.
+    """
     # Basic history statistics
     edits = _get_edits()
 
@@ -839,9 +863,11 @@ def stats(request):
         total_count = sum(float(b['count']) for b in blocks)
         for b in blocks:
             ratio = float(b['count']) / total_count
-            b['height'] = "%.2f" % (HEIGHT * ratio)
-            b['percentage'] = '%d' % (round(100*ratio),)
+            b['height'] = int(round(HEIGHT * ratio))
+            b['percentage'] = int(round(100*ratio))
         unimportant_count = period.review_counts[REVIEW_UNIMPORTANT]
+
+        blocks[0]['height'] += HEIGHT - sum(b['height'] for b in blocks)
 
         period.blocks = blocks
         period.unimportant_count = unimportant_count
@@ -857,20 +883,11 @@ def stats(request):
                                if n > 0]
         period.author_edits.sort(key=lambda x: -x[1])
         period.total_edits = sum(x[1] for x in period.docstring_edits.items())
-
-    # Render
-    try:
-        current_period = stats[-1]
-    except IndexError:
-        current_period = None
-
-    return render_template(request, 'stats.html',
-                           dict(stats=stats,
-                                current_period=current_period,
-                                height=HEIGHT,
-                                ))
+    
+    return stats, HEIGHT
 
 def _get_weekly_stats(edits):
+    """Return a list of PeriodStats summarizing weekly statistics"""
     review_status = {}
     review_counts = {}
     docstring_status = {}
@@ -964,6 +981,7 @@ class PeriodStats(object):
                                                      self.review_counts)
 
 def _get_edits():
+    """Return a list of tuples (timestamp, n_words, docstringrevision)"""
     revisions = DocstringRevision.objects.all().order_by('docstring',
                                                          'timestamp')
 
