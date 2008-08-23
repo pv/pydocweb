@@ -34,31 +34,6 @@ Longer term
           table; this would simplify several parts of the code that work
           with SQL.
 
-        - When a first revision is made, we probably should create
-          also a "base" revision that contains the version that was in SVN
-          at that time. This would enable constructing the full history
-          about what was done using pydocweb.
-
-          So, "old" SVN revision as revno 0, "current" SVN rev as revno -1?
-
-  * Refactor: the "stats" page does not always reflect the actual history,
-    because the database does not contain full history. Missing information
-    contains eg.:
-
-        - The original SVN version on which the work was based:
-          this messes up word counts after merging docstrings back to SVN.
-
-          Counting word count changes in revisions is not really possible
-          before this information is in the database.
-
-        - We don't keep track of separate review history; review status
-          change is always associated with a docstring revision.
-
-        - In general, the history shown on the stats page should never change
-          after the fact.
-
-    These problems pretty much show that the "Stats" page was an afterthought...
-
   * Refactor: views.py has grown too long and messy; ditto for models.py
 
   * ..image:: directive
