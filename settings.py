@@ -13,7 +13,7 @@ def relative_dir(path):
                                         path))
 
 SVN_DIRS = (relative_dir("modules/numpy"),)
-MODULES = ("numpy",)
+MODULES = ("numpy", "numpy.doc")
 ADDNEWDOCS_FILES = (relative_dir("modules/numpy/numpy/add_newdocs.py"),
                     relative_dir("modules/numpy/numpy/core/code_generators/docstrings.py"),)
 PYREX_FILES = (relative_dir("modules/numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand"),)
