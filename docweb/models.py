@@ -856,6 +856,11 @@ def merge_3way(mine, base, other):
         return out.decode('iso-8859-1'), False
 
 def diff_text(text_a, text_b, label_a="previous", label_b="current"):
+    if isinstance(text_a, unicode):
+        text_a = text_a.encode('utf-8')
+    if isinstance(text_b, unicode):
+        text_b = text_b.encode('utf-8')
+    
     lines_a = text_a.splitlines(1)
     lines_b = text_b.splitlines(1)
     if not lines_a: lines_a = [""]
@@ -868,6 +873,11 @@ def diff_text(text_a, text_b, label_a="previous", label_b="current"):
 
 
 def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
+    if isinstance(text_a, unicode):
+        text_a = text_a.encode('utf-8')
+    if isinstance(text_b, unicode):
+        text_b = text_b.encode('utf-8')
+    
     lines_a = text_a.splitlines(1)
     lines_b = text_b.splitlines(1)
     if not lines_a: lines_a = [""]

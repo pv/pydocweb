@@ -307,7 +307,7 @@ def edit(request, name):
             data = form.cleaned_data
             if request.POST.get('button_preview'):
                 preview_html = rst.render_docstring_html(doc, data['text'])
-                diff_html = html_diff_text(doc.text.decode('utf-8'), data['text'],
+                diff_html = html_diff_text(doc.text, data['text'],
                                            'previous revision',
                                            'current text')
                 return render_template(request, 'docstring/edit.html',
