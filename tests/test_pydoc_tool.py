@@ -27,8 +27,13 @@ class TestRoundtrip(object):
         assert ret == 0
 
         ret = subprocess.call([PYDOCM, 'numpy-docs', '-s', cwd,
-                               '-o', 'base.xml', '-i', 'base0.xml',
+                               '-o', 'base1.xml', '-i', 'base0.xml',
                                '-f', 'sample_module/add_newdocs.py'])
+        assert ret == 0
+
+        ret = subprocess.call([PYDOCM, 'sphinx-docs',
+                               '-o', 'base.xml', '-i', 'base1.xml',
+                               'sample_module/doc'])
         assert ret == 0
 
         # -- check if something is missing
@@ -54,7 +59,8 @@ class TestRoundtrip(object):
         stripall = lambda x: pydoc_moin.strip_trailing_whitespace(x).strip()
 
         for el in doc.getroot():
-            if el.tag not in ('object', 'callable', 'class', 'module'): continue
+            if el.tag not in ('object', 'callable', 'class', 'module', 'file'):
+                continue
             if el.get('line') is None: continue
 
             name = el.attrib['id']
@@ -78,6 +84,13 @@ class TestRoundtrip(object):
 
         patch = open('out.patch', 'r').read()
 
+        # -- check that the patch touches the plain-text document files
+
+        assert '\n+++ sample_module/doc/index.rst' in patch
+        assert '\n+++ sample_module/doc/quux.rst' in patch
+        assert '\n-Bar-ish documentation.' in patch
+        assert '\n-Foo-ish documentation.' in patch
+
         # -- collect them again
 
         ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
@@ -89,7 +102,8 @@ class TestRoundtrip(object):
         doc2 = etree.parse(open('base2.xml', 'r'))
 
         for el in doc2.getroot():
-            if el.tag not in ('object', 'callable', 'class', 'module'): continue
+            if el.tag not in ('object', 'callable', 'class', 'module', 'file'):
+                continue
             if el.get('line') is None: continue
 
             name = el.attrib['id']
@@ -98,8 +112,8 @@ class TestRoundtrip(object):
 
             assert doc_there.strip() == new_item_docstrings[name].strip(), \
                    "%s\n%s\n----------\n%s\n-------\n%s\n----" % (
-                name, patch, new_item_docstrings[name].strip(), doc_there.strip())
-
+                name, patch, new_item_docstrings[name].strip(),
+                doc_there.strip())
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()

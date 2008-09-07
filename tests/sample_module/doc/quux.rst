@@ -1,0 +1,5 @@
+*******************
+Quux implementation
+*******************
+
+Quuxish work.

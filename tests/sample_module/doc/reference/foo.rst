@@ -1,0 +1,6 @@
+***
+Foo
+***
+
+Foo-ish documentation.
+

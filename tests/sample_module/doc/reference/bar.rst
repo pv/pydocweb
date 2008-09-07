@@ -1,0 +1,6 @@
+***
+Bar
+***
+
+Bar-ish documentation.
+

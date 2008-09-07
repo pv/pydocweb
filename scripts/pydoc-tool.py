@@ -81,27 +81,25 @@ def main():
     else:
         cmd(args)
 
-def _default_optparse(cmd, args, option_list=[], infile=False, outfile=False, frontpagefile=False,
+def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
                       nargs=None, syspath=False):
-    if infile:
+    if indoc:
         option_list += [
             make_option("-i", action="store", dest="infile", type="str",
-                        help="input file, '-' means stdin (default)", default="-")
-        ]
-    if frontpagefile:
-        option_list += [
-            make_option("-f", action="store", dest="frontpagefile", type="str",
-                        help="front page file", default=None)
+                        help="input file, '-' means stdin (default), '--' means empty input file",
+                        default="-")
         ]
     if outfile:
         option_list += [
             make_option("-o", action="store", dest="outfile", type="str",
-                        help="output file, '-' means stdout (default)", default="-")
+                        help="output file, '-' means stdout (default)",
+                        default="-")
         ]
     if syspath:
         option_list += [
-            make_option("-s", "--sys-path", action="store", dest="path", type="str",
-                        help="prepend paths to sys.path", default=None)
+            make_option("-s", "--sys-path", action="store", dest="path",
+                        type="str", default=None,
+                        help="prepend paths to sys.path")
         ]
 
     head, tail = pydoc.splitdoc(pydoc.getdoc(cmd))
@@ -112,13 +110,25 @@ def _default_optparse(cmd, args, option_list=[], infile=False, outfile=False, fr
     if nargs is not None:
         if len(args) != nargs:
             p.error("wrong number of arguments")
+    
     if outfile:
-        opts.outfile = _open_file(opts.outfile, 'w')
-    if infile:
-        opts.infile = _open_file(opts.infile, 'r')
+        if opts.outfile == '-':
+            opts.outfile = sys.stdout
+        else:
+            opts.outfile = open(opts.outfile, 'w')
+    
+    if indoc:
+        if opts.infile == '--':
+            opts.indoc = Documentation()
+        elif opts.infile == '-':
+            opts.indoc = Documentation.load(sys.stdin)
+        else:
+            opts.indoc = Documentation.load(open(opts.infile, 'r'))
+    
     if syspath:
         if opts.path is not None:
-            sys.path = [os.path.abspath(x) for x in opts.path.split(os.path.pathsep)] + sys.path
+            sys.path = [os.path.abspath(x)
+                        for x in opts.path.split(os.path.pathsep)] + sys.path
     return opts, args, p
 
 def _open_file(filename, mode):
@@ -133,10 +143,12 @@ def _open_file(filename, mode):
 def cmd_collect(args):
     """collect MODULENAMES... > docs.xml
 
-    Dump docstrings from named modules
+    Dump docstrings from named modules.
+    
     """
     options_list = [
-        make_option("-a", "--all", action="store_true", dest="all", default=False,
+        make_option("-a", "--all", action="store_true", dest="all",
+                    default=False,
                     help="include docstrings also from other modules"),
     ]
     opts, args, p = _default_optparse(cmd_collect, args, options_list,
@@ -172,9 +184,10 @@ def cmd_mangle(args):
     Mangle entries so that they appear to originate from
     the topmost module they were imported into.
     """
-    opts, args, p = _default_optparse(cmd_mangle, args, outfile=True, infile=True, nargs=0)
+    opts, args, p = _default_optparse(cmd_mangle, args, outfile=True,
+                                      indoc=True, nargs=0)
 
-    doc = Documentation.load(opts.infile)
+    doc = opts.indoc
 
     def common_prefix_length(a, b):
         for j in xrange(min(len(a), len(b))):
@@ -212,9 +225,10 @@ def cmd_prune(args):
     Prune entries that are not listed in __all__ or whose name
     begins with an underscore.
     """
-    opts, args, p = _default_optparse(cmd_prune, args, outfile=True, infile=True, nargs=0)
+    opts, args, p = _default_optparse(cmd_prune, args, outfile=True,
+                                      indoc=True, nargs=0)
 
-    doc = Documentation.load(opts.infile)
+    doc = opts.indoc
 
     prunelist = []
     all_alls = {}
@@ -250,9 +264,10 @@ def cmd_list(args):
 
     List docstrings in the dump
     """
-    opts, args, p = _default_optparse(cmd_list, args, outfile=True, infile=True, nargs=0)
+    opts, args, p = _default_optparse(cmd_list, args, outfile=True,
+                                      indoc=True, nargs=0)
 
-    doc = Documentation.load(opts.infile)
+    doc = opts.indoc
 
     def list_xml(root, indent=""):
         for el in sorted(root.getchildren(), key=lambda x: (x.tag, x.get('id'), x.get('name'))):
@@ -274,8 +289,10 @@ def cmd_numpy_docs(args):
                     help="files to look in")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
-                                      infile=True, outfile=True, nargs=0,
+                                      indoc=True, outfile=True, nargs=0,
                                       syspath=True)
+    
+    doc = opts.indoc
     
     new_info = {}
     
@@ -299,7 +316,6 @@ def cmd_numpy_docs(args):
     for file_name in opts.files:
         ast_parse_file(file_name, open(file_name, 'r').read())
     
-    doc = Documentation.load(opts.infile)
     for name, (file, line) in new_info.iteritems():
         el = doc.resolve(name)
         if el is not None:
@@ -332,8 +348,10 @@ def cmd_pyrex_docs(args):
                     help="FILE:MODULE, files to look in and corresponding modules")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
-                                      infile=True, outfile=True, nargs=0,
+                                      indoc=True, outfile=True, nargs=0,
                                       syspath=True)
+    
+    doc = opts.indoc
     
     def pyrex_parse_source(source):
         Pyrex.Compiler.Main.Errors.num_errors = 0
@@ -368,7 +386,6 @@ def cmd_pyrex_docs(args):
         tree = pyrex_parse_source(file_name)
         pyrex_walk_tree(tree, file_name, module_name, locations)
     
-    doc = Documentation.load(opts.infile)
     for name, (file, line, offset) in locations.iteritems():
         el = doc.resolve(name)
         if el is not None:
@@ -385,6 +402,75 @@ def cmd_pyrex_docs(args):
             el.attrib['char-offset'] = str(offset)
         else:
             print >> sys.stderr, "%s: unknown object" % name
+    doc.dump(opts.outfile)
+
+def cmd_sphinx_docs(args):
+    """sphinx-docs -n NAME -e .rst PATH < docs.xml > docs2.xml
+
+    Get documentation from files in a Sphinx documentation tree, looking
+    for files recursively in PATH.
+    
+    """
+    options_list = [
+        make_option("-n", "--name", action="store", dest="name", type="string",
+                    default="docs",
+                    help=("name for the virtual namespace of "
+                          "the documentation (default: docs)")),
+        make_option("-e", "--extension", action="append", dest="exts",
+                    default=[],
+                    help="extension for documentation files (default: .rst)"),
+    ]
+    opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
+                                      indoc=True, outfile=True, nargs=1,
+                                      syspath=False)
+
+
+    doc = opts.indoc
+
+    if not opts.exts:
+        opts.exts = ['.rst']
+    
+    # -- find files and inject nodes
+
+    path = os.path.realpath(args[0])
+    
+    seen = {}
+
+    for root, dirs, files in os.walk(path):
+        text_files = [fn for fn in files
+                      if os.path.splitext(fn)[1] in opts.exts]
+
+        if not text_files: continue
+        
+        dir_node = etree.SubElement(doc.root, "dir")
+        dir_node.attrib['id'] = root.replace(path, opts.name)
+        dir_node.attrib['file'] = path
+
+        for basename in text_files:
+            name = os.path.join(root, basename)
+
+            node = etree.SubElement(doc.root, "file")
+            node.attrib['id'] = name.replace(path, opts.name)
+            node.attrib['file'] = name
+            node.attrib['line'] = '1'
+
+            ref = etree.SubElement(dir_node, "ref")
+            ref.attrib['name'] = basename
+            ref.attrib['ref'] = node.attrib['id']
+
+            try:
+                f = open(name, 'r')
+                try:
+                    content = f.read()
+                finally:
+                    f.close()
+            except IOError:
+                print >> sys.stderr, "Failed to open file %s" % file_name
+                continue
+
+            node.text = escape_text(content)
+
+    # -- done
     doc.dump(opts.outfile)
 
 def cmd_patch(args):
@@ -494,7 +580,7 @@ def cmd_bzr(args):
             raise RuntimeError("bzr commit failed")
 
 COMMANDS = [cmd_collect, cmd_mangle, cmd_prune, cmd_list, cmd_patch,
-            cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs]
+            cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs, cmd_sphinx_docs]
 
 #------------------------------------------------------------------------------
 # Source code replacement
@@ -603,8 +689,15 @@ class SourceReplacer(object):
         
         indent = None
         pre_stuff, post_stuff = "", "\n"
-        
-        if el.attrib.get('is-addnewdoc') == '1':
+
+        if el.tag == 'file':
+            # text file
+            start_line, start_pos = 0, 0
+            if lines:
+                end_line, end_pos = len(lines)-1, len(lines[-1])
+            else:
+                end_line, end_pos = 0, 0
+        elif el.attrib.get('is-addnewdoc') == '1':
             # add_newdoc
             try:
                 pre_stuff, post_stuff = self._parse_addnewdoc(statements[0][0])
@@ -654,14 +747,17 @@ class SourceReplacer(object):
             indent = get_indent(pre_stuff)
         
         # Format new doc
-        new_doc = escape_text(strip_trailing_whitespace(new_doc.strip()))
-        new_doc = new_doc.replace('"""', r'\"\"\"')
-        new_doc = new_doc.strip()
+        if el.tag == 'file':
+            fmt_doc = strip_trailing_whitespace(new_doc.strip())
+        else:
+            new_doc = escape_text(strip_trailing_whitespace(new_doc.strip()))
+            new_doc = new_doc.replace('"""', r'\"\"\"')
+            new_doc = new_doc.strip()
 
-        fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
-            indent, new_doc.replace("\n", "\n"+indent), indent, indent)
-        fmt_doc = strip_trailing_whitespace(fmt_doc)
-            
+            fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
+                indent, new_doc.replace("\n", "\n"+indent), indent, indent)
+            fmt_doc = strip_trailing_whitespace(fmt_doc)
+        
         # Replace
         lines[start_line:(end_line+1)] = [""] * (end_line - start_line + 1)
         if end_line > start_line:
@@ -915,7 +1011,10 @@ class Documentation(object):
     def load(cls, stream):
         """Load XML document from given stream"""
         self = cls()
-        self.tree = etree.parse(stream)
+        try:
+            self.tree = etree.parse(stream)
+        except etree.XMLSyntaxError:
+            raise IOError("Failed to parse XML tree from %s" % stream.name)
         self.root = self.tree.getroot()
         self.recache()
         return self
