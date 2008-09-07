@@ -234,10 +234,29 @@ def docstring(request, name):
     try:
         doc = Docstring.resolve(name)
         if doc.name != name:
+            # resolve non-canonical names
             return HttpResponseRedirect(reverse(docstring, args=[doc.name]))
     except Docstring.DoesNotExist:
         raise Http404()
 
+    # redirect 'dir' entries to a master document
+    index_names = ['index.rst', 'contents.rst', 'index.txt', 'contents.txt']
+
+    if doc.type_code == 'dir' and request.session.get('last-dir-name') != name:
+        for part in index_names:
+            try:
+                doc = Docstring.resolve(name + '/' + part)
+                request.session['last-dir-name'] = name
+                return HttpResponseRedirect(reverse(docstring, args=[doc.name]))
+            except Docstring.DoesNotExist:
+                pass
+    elif doc.type_code == 'file' and name.split('/')[-1] in index_names:
+        request.session['last-dir-name'] = '/'.join(name.split('/')[:-1])
+    else:
+        try: del request.session['last-dir-name']
+        except KeyError: pass
+
+    # display the entry
     try:
         text, revision = doc.get_rev_text(request.GET.get('revision'))
         if not request.GET.get('revision'): revision = None
