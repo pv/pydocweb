@@ -10,7 +10,7 @@ fi
 
 set -e
 
-# 1. Fetch/update sources from SVN
+# 1. Fetch/update sources from Bzr
 
 if test ! -d ipython; then
     bzr branch lp:ipython ipython
@@ -34,7 +34,7 @@ export SITEPATH=$PWD/ipython/dist/lib/python2.5/site-packages
 
 python2.5 $PYDOCTOOL collect -s $SITEPATH \
     IPython \
-| $PYDOCTOOL prune \
-| $PYDOCTOOL sphinx-docs -n ipython-docs -e .txt \
+| $PYDOCTOOL prune -i - \
+| $PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
     ipython/docs/source \
 > "$1"

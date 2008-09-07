@@ -86,8 +86,8 @@ def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
     if indoc:
         option_list += [
             make_option("-i", action="store", dest="infile", type="str",
-                        help="input file, '-' means stdin (default), '--' means empty input file",
-                        default="-")
+                        help="input file, '-' means stdin, '--' means empty input file (default)",
+                        default="--")
         ]
     if outfile:
         option_list += [
@@ -152,9 +152,10 @@ def cmd_collect(args):
                     help="include docstrings also from other modules"),
     ]
     opts, args, p = _default_optparse(cmd_collect, args, options_list,
-                                      outfile=True, syspath=True)
+                                      indoc=True, outfile=True, syspath=True)
 
-    doc = Documentation()
+    doc = opts.indoc
+
     for m in args:
         doc.add_module(m)
 

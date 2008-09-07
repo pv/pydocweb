@@ -7,7 +7,7 @@ INSERT INTO "docweb_wikipage" VALUES ('Help Merge Docstring');
 INSERT INTO "docweb_wikipage" VALUES ('Help Registration Done');
 
 INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Front Page',
-'Insert text for you front page here.
+'Insert text for your front page here.
 
 You may want to:
 

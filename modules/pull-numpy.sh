@@ -34,11 +34,11 @@ export SITEPATH=$PWD/numpy/dist/lib/python2.5/site-packages
 
 python2.5 $PYDOCTOOL collect -s $SITEPATH \
     numpy numpy.doc numpy.core.records \
-| $PYDOCTOOL prune \
-| $PYDOCTOOL numpy-docs -s $SITEPATH \
+| $PYDOCTOOL prune -i - \
+| $PYDOCTOOL numpy-docs -i - -s $SITEPATH \
     -f numpy/numpy/add_newdocs.py \
     -f numpy/numpy/core/code_generators/docstrings.py \
-| $PYDOCTOOL pyrex-docs -s $SITEPATH \
+| $PYDOCTOOL pyrex-docs -i - -s $SITEPATH \
     -f numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand \
 > "$1"
 
