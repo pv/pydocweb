@@ -1,8 +1,9 @@
 """
 Support for Sphinx directives and roles.
 
-These are mostly rendered as 'placeholders'; I have no intention of
-reimplementing Sphinx's cross-reference handling etc.
+These are mostly rendered as 'placeholders'.
+
+XXX: cross-reference generation is missing, etc.
 
 """
 import re
@@ -35,8 +36,6 @@ def _nested_parse(state, text, node):
 
 def toctree_directive(dirname, arguments, options, content, lineno,
                       content_offset, block_text, state, state_machine):
-
-    print state.document.settings.resolve_prefixes
     lines = [".. admonition:: Toctree", ""]
     for line in content:
         line = line.strip()
@@ -57,44 +56,85 @@ register_directive('toctree', toctree_directive)
 #------------------------------------------------------------------------------
 # Variable setters
 #------------------------------------------------------------------------------
+
+# XXX: these should affect reference resolution
+
 # module::
 # currentmodule::
 
 #------------------------------------------------------------------------------
 # Dummy-rendered directives
 #------------------------------------------------------------------------------
-# moduleauthor::
-# cfunction::
-# cmember::
-# cmacro::
-# ctype::
-# cvar::
-# data::
-# exception::
-# function::
-# class::
-# attribute::
-# method::
-# staticmethod::
-# opcode::
-# cmdoption::
-# envvar::
-# describe::
-# versionadded::
-# versionchanged::
-# seealso::
-# rubric::
-# centered::
-# index::
-# glossary::
-# productionlist::
-# sectionauthor::
-# literalinclude::
-# code-block::
+
+# XXX: some of these should be cross-reference generating
+
+def admonition_directive(dirname, arguments, options, content, lineno,
+                         content_offset, block_text, state, state_machine):
+    lines = [".. admonition:: .. %s" % dirname, ""]
+    for line in content:
+        line = line.strip()
+        if not line or line.startswith(':'): continue
+        lines.append("   %s" % line)
+
+    node = nodes.paragraph()
+    _nested_parse(state, lines, node)
+    return [node]
+
+admonition_directive.arguments = (0, 0, False)
+admonition_directive.options = {}
+admonition_directive.content = True
+
+def lit_admonition_directive(dirname, arguments, options, content, lineno,
+                         content_offset, block_text, state, state_machine):
+    lines = [".. admonition:: .. %s" % dirname, "", "   ::", ""]
+    for line in content:
+        line = line.strip()
+        if not line or line.startswith(':'): continue
+        lines.append("       %s" % line)
+
+    node = nodes.paragraph()
+    _nested_parse(state, lines, node)
+    return [node]
+
+lit_admonition_directive.arguments = (0, 0, False)
+lit_admonition_directive.options = {}
+lit_admonition_directive.content = True
+
+register_directive('moduleauthor', admonition_directive)
+register_directive('cfunction', admonition_directive)
+register_directive('cmember', admonition_directive)
+register_directive('cmacro', admonition_directive)
+register_directive('ctype', admonition_directive)
+register_directive('cvar', admonition_directive)
+register_directive('data', admonition_directive)
+register_directive('exception', admonition_directive)
+register_directive('function', admonition_directive)
+register_directive('class', admonition_directive)
+register_directive('attribute', admonition_directive)
+register_directive('method', admonition_directive)
+register_directive('staticmethod', admonition_directive)
+register_directive('opcode', admonition_directive)
+register_directive('cmdoption', admonition_directive)
+register_directive('envvar', admonition_directive)
+register_directive('describe', admonition_directive)
+register_directive('versionadded', admonition_directive)
+register_directive('versionchanged', admonition_directive)
+register_directive('seealso', admonition_directive)
+register_directive('rubric', admonition_directive)
+register_directive('centered', admonition_directive)
+register_directive('glossary', admonition_directive)
+register_directive('productionlist', admonition_directive)
+register_directive('sectionauthor', admonition_directive)
+
+register_directive('literalinclude', lit_admonition_directive)
+register_directive('code-block', lit_admonition_directive)
+register_directive('sourcecode', lit_admonition_directive)
 
 #------------------------------------------------------------------------------
 # Dummy-rendered roles
 #------------------------------------------------------------------------------
+
+# XXX: some of these should be reference-generating
 
 register_generic_role('envvar', nodes.literal)
 register_generic_role('token', nodes.literal)
@@ -120,12 +160,19 @@ register_generic_role('samp', nodes.literal)
 # Reference-generating (+ alt-text)
 #------------------------------------------------------------------------------
 
+# XXX: :ref: does not work properly
+
 def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    link = text
+    
     m = re.match('^(.*)<(.*?)>\s*$', text)
     if m:
-        ref = nodes.reference(rawtext, m.group(1), refname=m.group(2))
-    else:
-        ref = nodes.reference(rawtext, text, refname=text)
+        text, link = m.group(1), m.group(2)
+    elif text.startswith('~'):
+        link = text[1:]
+        text = text[1:].split('.')[-1]
+    
+    ref = nodes.reference(rawtext, text, refname=link)
     return [ref], []
 
 register_local_role('mod', ref_role)
@@ -143,20 +190,29 @@ register_local_role('cmacro', ref_role)
 register_local_role('ctype', ref_role)
 register_local_role('ref', ref_role)
 
-#register_local_role('pep', ...)
-#register_local_role('rfc', ...)
-#register_directive('autosummary', ...)
+# XXX: these are missing: 
+# XXX: register_local_role('pep', ...)
+# XXX: register_local_role('rfc', ...)
+# XXX: register_directive('autosummary', ...)
 
 #------------------------------------------------------------------------------
 # Content-inserting
 #------------------------------------------------------------------------------
-# |release|
-# |version|
-# |today|
+# XXX: |release|
+# XXX: |version|
+# XXX: |today|
 
 #------------------------------------------------------------------------------
 # Skipped
 #------------------------------------------------------------------------------
 
-#register_directive('highlight', ...)
-#register_directive('tabularcolumns', ...)
+# XXX: register_directive('highlight', ...)
+# XXX: register_directive('tabularcolumns', ...)
+
+#------------------------------------------------------------------------------
+# Matplotlib extensions
+#------------------------------------------------------------------------------
+
+# XXX: we might actually want a real implementation of the plot directive.
+
+register_directive('plot', lit_admonition_directive)
