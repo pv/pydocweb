@@ -71,7 +71,7 @@ register_directive('toctree', toctree_directive)
 
 # XXX: some of these should be cross-reference generating
 
-def blurb_directive(blurb_func):
+def blurb_directive(blurb_func, classes=[]):
     def new_directive(dirname, arguments, options, content, lineno,
                       content_offset, block_text, state, state_machine):
         if not content:
@@ -79,6 +79,15 @@ def blurb_directive(blurb_func):
         lines = blurb_func(dirname, content)
         node = nodes.paragraph()
         _nested_parse(state, lines, node)
+        for cls in classes:
+            if isinstance(cls, str):
+                node['classes'].append(cls)
+            else:
+                n = node
+                while len(cls) > 1:
+                    n = n[cls[0]]
+                    cls = cls[1:]
+                n['classes'].append(cls[0])
         return [node]
     new_directive.arguments = (0, 0, False)
     new_directive.options = {}
@@ -114,7 +123,8 @@ register_directive('versionadded', blurb_directive(
 register_directive('versionchanged', blurb_directive(
     lambda d, c: ["    *Changed in version %s*:" % c[0]] + _indent(c[1:])))
 register_directive('seealso', blurb_directive(
-    lambda d, c: ["    .. admonition:: See also", ""] + _indent(c, 7)))
+    lambda d, c: ["    .. admonition:: See also", ""] + _indent(c, 7),
+    classes=[(0,0,'seealso')]))
 register_directive('rubric', blurb_directive(
     lambda d, c: ["**%s**" % u" ".join(c)]))
 register_directive('centered', admonition_directive)
