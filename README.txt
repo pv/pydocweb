@@ -28,8 +28,8 @@ Setting up
 
    - Fill in ADMINS (they get mail when DEBUG=False and something fails)
 
-3. Create a "pull script" for your project. You can see some examples
-   under modules/
+3. Create a "pull script" for your project. See "settings.py" for
+   an explanation, and check the examples under modules/
 
 4. Create database by running::
 

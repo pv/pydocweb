@@ -33,7 +33,7 @@ popd
 export SITEPATH=$PWD/ipython/dist/lib/python2.5/site-packages
 
 python2.5 $PYDOCTOOL collect -s $SITEPATH \
-    IPython \
+    IPython IPython.kernel \
 | $PYDOCTOOL prune -i - \
 | $PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
     ipython/docs/source \
