@@ -30,6 +30,9 @@ def _nested_parse(state, text, node):
             result.append(line, '<nested>')
     state.nested_parse(result, 0, node)
 
+def _indent(lines, nindent=4):
+    return [u" "*nindent + line for line in lines]
+    
 #------------------------------------------------------------------------------
 # toctree::
 #------------------------------------------------------------------------------
@@ -68,37 +71,26 @@ register_directive('toctree', toctree_directive)
 
 # XXX: some of these should be cross-reference generating
 
-def admonition_directive(dirname, arguments, options, content, lineno,
-                         content_offset, block_text, state, state_machine):
-    lines = [".. admonition:: .. %s" % dirname, ""]
-    for line in content:
-        line = line.strip()
-        if not line or line.startswith(':'): continue
-        lines.append("   %s" % line)
+def blurb_directive(blurb_func):
+    def new_directive(dirname, arguments, options, content, lineno,
+                      content_offset, block_text, state, state_machine):
+        if not content:
+            content = [u""]
+        lines = blurb_func(dirname, content)
+        node = nodes.paragraph()
+        _nested_parse(state, lines, node)
+        return [node]
+    new_directive.arguments = (0, 0, False)
+    new_directive.options = {}
+    new_directive.content = True
+    return new_directive
 
-    node = nodes.paragraph()
-    _nested_parse(state, lines, node)
-    return [node]
+admonition_directive = blurb_directive(
+    lambda d, c: ["    .. admonition:: %s" % d, ""] + _indent(c, 7))
 
-admonition_directive.arguments = (0, 0, False)
-admonition_directive.options = {}
-admonition_directive.content = True
-
-def lit_admonition_directive(dirname, arguments, options, content, lineno,
-                         content_offset, block_text, state, state_machine):
-    lines = [".. admonition:: .. %s" % dirname, "", "   ::", ""]
-    for line in content:
-        line = line.strip()
-        if not line or line.startswith(':'): continue
-        lines.append("       %s" % line)
-
-    node = nodes.paragraph()
-    _nested_parse(state, lines, node)
-    return [node]
-
-lit_admonition_directive.arguments = (0, 0, False)
-lit_admonition_directive.options = {}
-lit_admonition_directive.content = True
+lit_admonition_directive = blurb_directive(
+    lambda d, c: (["    .. admonition:: %s" % d, "", "       ::", ""]
+                  + _indent(c, 4+3+4)))
 
 register_directive('moduleauthor', admonition_directive)
 register_directive('cfunction', admonition_directive)
@@ -117,18 +109,24 @@ register_directive('opcode', admonition_directive)
 register_directive('cmdoption', admonition_directive)
 register_directive('envvar', admonition_directive)
 register_directive('describe', admonition_directive)
-register_directive('versionadded', admonition_directive)
-register_directive('versionchanged', admonition_directive)
-register_directive('seealso', admonition_directive)
-register_directive('rubric', admonition_directive)
+register_directive('versionadded', blurb_directive(
+    lambda d, c: ["    *New in version %s*:" % c[0]] + _indent(c[1:])))
+register_directive('versionchanged', blurb_directive(
+    lambda d, c: ["    *Changed in version %s*:" % c[0]] + _indent(c[1:])))
+register_directive('seealso', blurb_directive(
+    lambda d, c: ["    .. admonition:: See also", ""] + _indent(c, 7)))
+register_directive('rubric', blurb_directive(
+    lambda d, c: ["**%s**" % u" ".join(c)]))
 register_directive('centered', admonition_directive)
 register_directive('glossary', admonition_directive)
 register_directive('productionlist', admonition_directive)
 register_directive('sectionauthor', admonition_directive)
 
 register_directive('literalinclude', lit_admonition_directive)
-register_directive('code-block', lit_admonition_directive)
-register_directive('sourcecode', lit_admonition_directive)
+register_directive('code-block', blurb_directive(
+    lambda d, c: ["::", ""] + _indent(c[1:], 4)))
+register_directive('sourcecode', blurb_directive(
+    lambda d, c: ["::", ""] + _indent(c[1:], 4)))
 
 #------------------------------------------------------------------------------
 # Dummy-rendered roles
@@ -172,7 +170,8 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         link = text[1:]
         text = text[1:].split('.')[-1]
     
-    ref = nodes.reference(rawtext, text, refname=link)
+    ref = nodes.reference(rawtext, text, name=link,
+                          refname=':ref:`%s`' % link)
     return [ref], []
 
 register_local_role('mod', ref_role)
@@ -210,9 +209,31 @@ register_local_role('ref', ref_role)
 # XXX: register_directive('tabularcolumns', ...)
 
 #------------------------------------------------------------------------------
+# sphinx.ext.autodoc
+#------------------------------------------------------------------------------
+
+auto_directive = blurb_directive(
+    lambda d, c: ["    .. admonition:: %s :ref:`%s`" % (d, c[0].strip()),
+                  ""] + _indent(c[1:], 4+3))
+
+register_directive('automodule', auto_directive)
+register_directive('autoclass', auto_directive)
+register_directive('automethod', auto_directive)
+register_directive('autoattribute', auto_directive)
+register_directive('autofunction', auto_directive)
+
+#------------------------------------------------------------------------------
 # Matplotlib extensions
 #------------------------------------------------------------------------------
 
 # XXX: we might actually want a real implementation of the plot directive.
 
 register_directive('plot', lit_admonition_directive)
+
+register_directive('deprecated', blurb_directive(
+    lambda d, c: ["    *Deprecated in %s*:" % c[0]] + _indent(c[1:])))
+
+register_directive('inheritance-diagram', lit_admonition_directive)
+
+register_directive('htmlonly', admonition_directive)
+register_directive('latexonly', admonition_directive)
