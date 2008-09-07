@@ -20,41 +20,46 @@ Setting up
    - LaTeX
    - 'merge' tool from RCS
 
-2. Perform a SVN checkout of the module whose docstrings you want to edit
-   in the 'modules/' directory.
+2. Edit 'settings.py' to match your setup.
 
-3. Edit 'settings.py' to match your setup.
-
-   - Adjust SVN_DIRS, MODULES, ADDNEWDOCs_FILES, and PYREX_FILES to match
-     the module you are documenting
+   - Adjust PULL_SCRIPTS to match the Python module you are documenting
    - Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
      accordingly.
    - Remember to set DEBUG=False before going production
    - Fill in ADMINS (they get mail when DEBUG=False and something fails)
 
-4. Run ./manage.py syncdb
+3. Create a "pull script" for your project. You can see some examples
+   under modules/
 
-5. Log in as superuser, go to "Control", and create "Editor" and "Reviewer"
+4. Create database by running::
+
+       ./manage.py syncdb
+
+5. If you want to get some template wiki help pages, run::
+
+       sqlite3 data.db < scripts/help-pages.sql
+
+6. Log in as superuser, go to "Control", and create "Editor" and "Reviewer"
    groups with appropriate permissions.
 
-6. Run "Pull from SVN" on the "Control" tab.
+7. Run "Pull from" on the "Control" tab.
    Note that this compiles your module, imports it, and collects its docstrings
    (in a separate process).
 
    If this fails with a server timeout, run ./update-docstrings.sh instead.
 
-7. Set up regular backups of your database.
+8. Write a proper front page and modify the "registration" page, if needed.
 
-8. Write something useful to the wiki start and help pages.
-   XXX: need to extract generic help pages out from Numpy's pydocweb.
+9. Set up regular backups of your database.
 
-9. Start writing!
+10. Start writing!
 
 
 Administration
 --------------
 
-- Add registered new users regularly to the groups to allow them to write + review
+- Add registered new users regularly to the groups to allow them to
+  write + review
 - Pull from SVN regularly and merge any conflicts (or leave merging to users)
 - Generate patches and put the docs back to SVN
 - Fix any bugs you find :)
@@ -119,4 +124,3 @@ When a user goes to a web page with an unresolved merge, he has the options
 Note that the only place where base_doc is modified is in Docstring.edit,
 which creates a new DocstringRevision. Docstring.edit is never called
 when pulling from SVN.
-
