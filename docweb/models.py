@@ -141,6 +141,14 @@ class Docstring(models.Model):
     def child_classes(self):
         return self._get_contents('class')
 
+    @property
+    def child_dirs(self):
+        return self._get_contents('dir')
+
+    @property
+    def child_files(self):
+        return self._get_contents('file')
+
     def _get_contents(self, type_code):
         from django.db import connection
         cursor = connection.cursor()
@@ -546,11 +554,11 @@ def _update_docstrings_from_xml(domain, stream):
 
     known_entries = {}
     for el in root:
-        if el.tag not in ('module', 'class', 'callable', 'object'): continue
+        if el.tag not in ('module', 'class', 'callable', 'object', 'dir', 'file'): continue
         known_entries[el.attrib['id']] = True
 
     for el in root:
-        if el.tag not in ('module', 'class', 'callable', 'object'): continue
+        if el.tag not in ('module', 'class', 'callable', 'object', 'dir', 'file'): continue
 
         bases = []
         for b in el.findall('base'):
@@ -720,7 +728,8 @@ def patch_against_source(domain, revs=None):
     # -- Generate patch
     base_xml_fn = base_xml_file_name(domain)
 
-    p = subprocess.Popen([PYDOCTOOL, 'patch', base_xml_fn, new_xml_file.name],
+    p = subprocess.Popen([PYDOCTOOL, 'patch', '-s', settings.MODULE_DIR,
+                          base_xml_fn, new_xml_file.name],
                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = p.communicate()
     return err + "\n" + out

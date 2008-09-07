@@ -272,6 +272,9 @@ def docstring(request, name):
                   revision=revision,
                   )
 
+    if doc.type_code == 'dir':
+        return render_template(request, 'docstring/page_dir.html', params)
+
     if revision is None and doc.merge_status == MERGE_CONFLICT:
         conflict = doc.get_merge()
         params['merge_type'] = 'conflict'
@@ -525,7 +528,8 @@ def source(request, file_name):
     src = get_source_file_content(file_name)
     if src is None:
         raise Http404()
-    if not (file_name.endswith('.py') or file_name.endswith('.pyx')):
+    if not (file_name.endswith('.py') or file_name.endswith('.pyx')
+            or file_name.endswith('.txt') or file_name.endswith('.rst')):
         raise Http404()
     lines = src.splitlines()
     return render_template(request, 'source.html',

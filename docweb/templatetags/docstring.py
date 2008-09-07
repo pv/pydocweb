@@ -12,18 +12,22 @@ register = template.Library()
 @register.simple_tag
 def docstring_name_link(name, all_links=False):
     from django.core.urlresolvers import reverse
-    parts = str(name).split('.')
+    name = str(name)
+    if '/' in name:
+        sep = '/'
+    else:
+        sep = '.'
+    parts = str(name).split(sep)
     namelinks = []
     for j in xrange(1, len(parts)+1):
-        partial = '.'.join(parts[:j])
+        partial = sep.join(parts[:j])
         target = reverse('pydocweb.docweb.views.docstring', args=[partial])
         if j < len(parts) or all_links:
             namelinks.append("<a href=\"%s\">%s</a>" % (
                 urllib.quote(target), cgi.escape(parts[j-1])))
         else:
             namelinks.append("%s" % cgi.escape(parts[j-1]))
-    return '.'.join(namelinks)
-
+    return sep.join(namelinks)
 
 @register.simple_tag
 def docstring_status_code(name):

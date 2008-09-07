@@ -181,6 +181,33 @@
 </div>
 {% endifequal %}
 
+{% ifequal doc.type_code "dir" %}
+<div id="contents">
+  <h1>Subdirectories</h1>
+  {% as_table_rows 5 doc.child_dirs as rows %}
+  <table class="content-list">
+    {% for row in rows %}
+    <tr>
+      {% for alias in row %}
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+
+  <h1>Files</h1>
+  {% as_table_rows 5 doc.child_files as rows %}
+  <table class="content-list">
+    {% for row in rows %}
+    <tr>
+      {% for alias in row %}
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+{% endifequal %}
+
 {% endblock %}
 
 {% endblock %}
