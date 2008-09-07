@@ -1,4 +1,4 @@
-<!ELEMENT pydoc (module|class|callable|object)*>
+<!ELEMENT pydoc (module|class|callable|object|dir|file)*>
 <!ATTLIST pydoc modules CDATA #REQUIRED>
 
 <!ELEMENT module (#PCDATA|ref)*>
@@ -37,6 +37,15 @@
 <!ATTLIST object line CDATA #IMPLIED>
 <!ATTLIST object char-offset CDATA #IMPLIED>
 <!ATTLIST object is-addnewdoc (0|1) #IMPLIED>
+
+<!ELEMENT dir (ref)*>
+<!ATTLIST dir id ID #REQUIRED>
+<!ATTLIST dir file CDATA #IMPLIED>
+
+<!ELEMENT file (#PCDATA)*>
+<!ATTLIST file id ID #REQUIRED>
+<!ATTLIST file file CDATA #IMPLIED>
+<!ATTLIST file line CDATA "1">
 
 <!ELEMENT base EMPTY>
 <!ATTLIST base ref CDATA #REQUIRED>
