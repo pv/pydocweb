@@ -452,6 +452,9 @@ table.changes#comments .resolved {
 .content-list td { 
   border: solid 1px #ccc;
 }
+.content-list .child-marker { 
+  color: #ccc;
+}
 
 
 /*

@@ -109,7 +109,7 @@
     {% for row in rows %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -121,7 +121,7 @@
     {% for row in rows %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -133,7 +133,7 @@
     {% for row in rows %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -145,7 +145,7 @@
     {% for row in rows %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -161,7 +161,7 @@
     {% for row in rows %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -173,7 +173,7 @@
     {% for row in rows %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views.docstring alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}

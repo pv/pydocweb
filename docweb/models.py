@@ -157,9 +157,13 @@ class Docstring(models.Model):
         WHERE d.name = a.target AND a.parent_id = %s AND d.type_ = %s""",
         [self.name, type_code])
         names = [n[0] for n in cursor.fetchall()]
-        return DocstringAlias.objects.filter(parent=self,
+        objs = DocstringAlias.objects.filter(parent=self,
                                              alias__in=names)
-    
+        objs = list(objs)
+        for obj in objs:
+            obj.direct_child = obj.target and obj.target.startswith(self.name)
+        return objs
+
     def edit(self, new_text, author, comment):
         """
         Create a new revision of the docstring with given content.
