@@ -23,9 +23,14 @@ Setting up
 2. Edit 'settings.py' to match your setup.
 
    - Adjust PULL_SCRIPTS to match the Python module you are documenting
+
+   - Fill in a random string to SECRET_KEY
+
    - Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
      accordingly.
+
    - Remember to set DEBUG=False before going production
+
    - Fill in ADMINS (they get mail when DEBUG=False and something fails)
 
 3. Create a "pull script" for your project. You can see some examples
@@ -37,10 +42,14 @@ Setting up
 
 5. If you want to get some template wiki help pages, run::
 
-       sqlite3 data.db < scripts/help-pages.sql
+       sqlite3 data.db < scripts/template-pages.sql
 
-6. Log in as superuser, go to "Control", and create "Editor" and "Reviewer"
-   groups with appropriate permissions.
+6. Add sample "Editor" and "Reviewer" groups::
+
+       sqlite3 data.db < scripts/template-groups.sql
+
+   or, log in as superuser, go to "Control", and create groups with
+   appropriate permissions yourself.
 
 7. Run "Pull from" on the "Control" tab.
    Note that this compiles your module, imports it, and collects its docstrings
@@ -58,11 +67,16 @@ Setting up
 Administration
 --------------
 
-- Add registered new users regularly to the groups to allow them to
-  write + review
-- Pull from SVN regularly and merge any conflicts (or leave merging to users)
-- Generate patches and put the docs back to SVN
-- Fix any bugs you find :)
+- Add registered new users regularly to the "Editor" or "Reviewer" groups
+  to allow them to write + review. (Newly registered users are not able
+  to edit anything, by default.)
+
+- Pull docstrings from version control regularly and merge any conflicts
+  (or leave merging to users)
+
+- Generate patches and put the docs back to version control
+
+- Fix any bugs in Pydocweb you find during this :)
 
 
 Internals
