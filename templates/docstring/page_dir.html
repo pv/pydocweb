@@ -1,0 +1,6 @@
+{% extends "docstring/page.html" %}
+{% load docstring %}
+
+{% block actions_items %}
+  <a href="{% url docweb.views.docstring name %}#discussion-sec">Discussion</a>
+{% endblock %}
