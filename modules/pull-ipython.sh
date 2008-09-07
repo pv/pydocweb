@@ -38,3 +38,8 @@ python2.5 $PYDOCTOOL collect -s $SITEPATH \
 | $PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
     ipython/docs/source \
 > "$1"
+
+## 3b. Another possibility: just the Sphinx docs
+#$PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
+#    ipython/docs/source \
+#> "$1"
