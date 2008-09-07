@@ -180,7 +180,7 @@ def cmd_collect(args):
     doc.dump(opts.outfile)
 
 def cmd_mangle(args):
-    """mangle < docs.xml > docs2.xml
+    """mangle -i docs.xml > docs2.xml
 
     Mangle entries so that they appear to originate from
     the topmost module they were imported into.
@@ -221,7 +221,7 @@ def cmd_mangle(args):
     doc.dump(opts.outfile)
 
 def cmd_prune(args):
-    """prune < docs.xml > docs2.xml
+    """prune -i docs.xml > docs2.xml
 
     Prune entries that are not listed in __all__ or whose name
     begins with an underscore.
@@ -261,7 +261,7 @@ def cmd_prune(args):
     doc.dump(opts.outfile)
 
 def cmd_list(args):
-    """list < docs.xml
+    """list -i docs.xml
 
     List docstrings in the dump
     """
@@ -280,7 +280,7 @@ def cmd_list(args):
     list_xml(doc.root)
 
 def cmd_numpy_docs(args):
-    """numpy-docs < docs.xml > docs2.xml
+    """numpy-docs -i docs.xml > docs2.xml
 
     Get source line information for docstrings added by numpy.add_newdoc
     function calls.
@@ -336,7 +336,7 @@ def cmd_numpy_docs(args):
     doc.dump(opts.outfile)
 
 def cmd_pyrex_docs(args):
-    """pyrex-docs < docs.xml > docs2.xml
+    """pyrex-docs -i docs.xml > docs2.xml
 
     Get source line information from Pyrex source files.
     """
@@ -406,7 +406,7 @@ def cmd_pyrex_docs(args):
     doc.dump(opts.outfile)
 
 def cmd_sphinx_docs(args):
-    """sphinx-docs -n NAME -e .rst PATH < docs.xml > docs2.xml
+    """sphinx-docs -n NAME -e .rst PATH -i docs.xml > docs2.xml
 
     Get documentation from files in a Sphinx documentation tree, looking
     for files recursively in PATH.
