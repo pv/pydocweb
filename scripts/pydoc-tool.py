@@ -956,6 +956,13 @@ class Documentation(object):
                 except:
                     print >> sys.stderr, "Failed to import module %s" % nm
                     pass
+
+        cname = self._canonical_name(mod, self.root, None)
+        if cname in self._id_cache:
+            # re-visit the module, in case more sub-packages can be seen
+            self.root.remove(self._id_cache[cname])
+            del self._id_cache[cname]
+
         self._visit(mod, self.root, None)
         if 'modules' not in self.root.attrib:
             self.root.attrib['modules'] = module_name
@@ -1144,7 +1151,10 @@ class Documentation(object):
         return entry
 
     def _getmembers(self, obj):
-        members = inspect.getmembers(obj)
+        try:
+            members = inspect.getmembers(obj)
+        except AttributeError:
+            members = []
         members.sort(key=lambda x: (not inspect.ismodule(x[1]),
                                     not inspect.isclass(x[1]),
                                     not callable(x[1]),
