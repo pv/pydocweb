@@ -237,3 +237,6 @@ register_directive('inheritance-diagram', lit_admonition_directive)
 
 register_directive('htmlonly', admonition_directive)
 register_directive('latexonly', admonition_directive)
+
+register_directive('math_symbol_table', blurb_directive(
+    lambda d, c: [".. admonition:: Math symbol table", "", "   ..."]))
