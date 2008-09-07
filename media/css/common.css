@@ -331,6 +331,9 @@ dl dt {
 #document .admonition { 
   border: 1px solid black;
 }
+#document .admonition-toctree.admonition { 
+  border: none;
+}
 
 
 /*
