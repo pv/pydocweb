@@ -267,7 +267,7 @@ def docstring(request, name):
                   status_code=REVIEW_STATUS_CODES[doc.review],
                   comments=comments,
                   body_html=body,
-                  file_name=strip_svn_dir_prefix(doc.file_name),
+                  file_name=strip_module_dir_prefix(doc.file_name),
                   line_number=doc.line_number,
                   revision=revision,
                   )
@@ -539,8 +539,10 @@ def source(request, file_name):
 def patch(request):
     if request.method == "POST":
         included_docs = request.POST.keys()
-        patch = patch_against_source(
-            Docstring.objects.filter(name__in=included_docs))
+        patch = ""
+        for domain in settings.PULL_SCRIPTS.keys():
+            patch += patch_against_source(
+                domain, Docstring.objects.filter(name__in=included_docs))
         return HttpResponse(patch, mimetype="text/plain")
 
     docs = Docstring.objects.filter(dirty=True)
@@ -592,12 +594,18 @@ def merge(request):
 
 @permission_required('docweb.can_update_from_source')
 def control(request):
+
+    domains = settings.PULL_SCRIPTS.keys()
+    
     if request.method == 'POST':
         if 'update-docstrings' in request.POST.keys():
-            update_docstrings()
+            domain = request.POST.get('domain')
+            if domain in domains:
+                update_docstrings(domain)
 
     return render_template(request, 'control.html',
-                           dict(users=User.objects.filter()))
+                           dict(users=User.objects.filter(),
+                                domains=domains))
 
 #------------------------------------------------------------------------------
 # User management

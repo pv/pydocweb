@@ -1,4 +1,4 @@
-import datetime, cgi, os
+import datetime, cgi, os, tempfile
 
 from django.db import models
 from django.db import transaction
@@ -57,6 +57,9 @@ MERGE_STATUS_CODES = {
 class Docstring(models.Model):
     name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")
+
+    domain      = models.CharField(max_length=MAX_NAME_LEN,
+                                   help_text="Source file domain")
 
     type_code   = models.CharField(max_length=16, db_column="type_",
                                    help_text="module, class, callable, object")
@@ -120,7 +123,7 @@ class Docstring(models.Model):
 
     @property
     def is_obsolete(self):
-        return (self.timestamp != Docstring.objects.order_by('-timestamp')[0].timestamp)
+        return (self.timestamp != Docstring.objects.filter(domain=self.domain).order_by('-timestamp')[0].timestamp)
 
     @property
     def child_objects(self):
@@ -519,18 +522,18 @@ import tempfile, os, subprocess, sys, shutil, traceback, difflib
 class MalformedPydocXML(RuntimeError): pass
 
 @transaction.commit_on_success
-def update_docstrings_from_xml(stream):
+def update_docstrings_from_xml(domain, stream):
     """
     Read XML from stream and update database accordingly.
 
     """
     try:
-        _update_docstrings_from_xml(stream)
+        _update_docstrings_from_xml(domain, stream)
     except (TypeError, ValueError, AttributeError, KeyError), e:
         msg = traceback.format_exc()
         raise MalformedPydocXML(str(e) + "\n\n" +  msg)
 
-def _update_docstrings_from_xml(stream):
+def _update_docstrings_from_xml(domain, stream):
     tree = etree.parse(stream)
     root = tree.getroot()
 
@@ -576,6 +579,7 @@ def _update_docstrings_from_xml(stream):
         doc.file_name = el.get('file')
         doc.line_number = line
         doc.timestamp = timestamp
+        doc.domain = domain
 
         if created:
             # New docstring
@@ -602,6 +606,30 @@ def _update_docstrings_from_xml(stream):
             alias.alias = ref.attrib['name']
             alias.save()
 
+def update_docstrings(domain):
+    """
+    Update docstrings from sources.
+
+    """
+
+    base_xml_fn = base_xml_file_name(domain)
+    os.environ['PYDOCTOOL'] = PYDOCTOOL
+    pwd = os.getcwd()
+    try:
+        os.chdir(settings.MODULE_DIR)
+        _exec_cmd([settings.PULL_SCRIPTS[domain], base_xml_fn])
+    finally:
+        os.chdir(pwd)
+    
+    f = open(base_xml_fn, 'r')
+    try:
+        update_docstrings_from_xml(domain, f)
+    finally:
+        f.close()
+
+def base_xml_file_name(domain):
+    return os.path.join(settings.MODULE_DIR, 'base-%s.xml' % domain)
+    
 @transaction.commit_on_success
 def import_docstring_revisions_from_xml(stream):
     """
@@ -630,39 +658,6 @@ def _import_docstring_revisions_from_xml(stream):
             doc.edit(strip_spurious_whitespace(el.text.decode('string-escape')),
                      "xml-import",
                      comment="Imported")
-
-def update_docstrings(update_svn=True):
-    """
-    Update docstrings from SVN sources.
-
-    Fetches new revisions from SVN, builds the module, and introspects the
-    result.
-    """
-    for svn_dir in settings.SVN_DIRS:
-        svn_dir = os.path.realpath(svn_dir)
-        dist_dir = os.path.join(svn_dir, 'dist')
-
-        if os.path.isdir(dist_dir):
-            shutil.rmtree(dist_dir)
-
-        cwd = os.getcwd()
-        os.chdir(svn_dir)
-        try:
-            if update_svn:
-                _exec_cmd(['svn', 'up'])
-                _exec_cmd(['svn', 'revert', '-R', '.'])
-            _exec_cmd([sys.executable, 'setup.py', 'install',
-                       '--prefix=%s' % dist_dir])
-        finally:
-            os.chdir(cwd)
-
-    base_xml_fn = regenerate_base_xml()
-
-    f = open(base_xml_fn, 'r')
-    try:
-        update_docstrings_from_xml(f)
-    finally:
-        f.close()
 
 def dump_docs_as_xml(stream, revs=None, only_text=False):
     """
@@ -707,7 +702,7 @@ def dump_docs_as_xml(stream, revs=None, only_text=False):
     stream.write('<?xml version="1.0" encoding="utf-8"?>')
     new_xml.write(stream)
 
-def patch_against_source(revs=None):
+def patch_against_source(domain, revs=None):
     """
     Generate a patch against source files, for the given docstrings.
 
@@ -718,65 +713,12 @@ def patch_against_source(revs=None):
     new_xml_file.flush()
     
     # -- Generate patch
-    base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
+    base_xml_fn = base_xml_file_name(domain)
 
-    err = tempfile.TemporaryFile()
-    patch = _exec_chainpipe([[PYDOCTOOL, 'patch',
-                              '-s', _site_path(),
-                              base_xml_fn, new_xml_file.name]],
-                            stderr=err)
-    err.seek(0)
-    return err.read() + "\n" + patch
-
-def regenerate_base_xml():
-    """
-    Re-generates base.xml containing SVN source docstrings
-
-    """
-    cmds = []
-    cmds.append(
-        [PYDOCTOOL, 'collect', '-s', _site_path()]
-        + list(settings.MODULES)
-    )
-    cmds.append([PYDOCTOOL, 'prune'])
-    try:
-        cmds.append([PYDOCTOOL, 'numpy-docs', '-s', _site_path()])
-        for fn in settings.ADDNEWDOCS_FILES:
-            if os.path.isfile(fn):
-                cmds[-1] += ['-f', fn]
-    except KeyError:
-        pass
-
-    cmds.append([PYDOCTOOL, 'pyrex-docs', '-s', _site_path()])
-    for fn in settings.PYREX_FILES:
-        cmds[-1] += ['-f', fn]
-
-    base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
-    base_xml = open(base_xml_fn, 'w')
-    _exec_chainpipe(cmds, final_out=base_xml)
-    base_xml.close()
-    return base_xml_fn
-
-def _site_path():
-    site_dirs = [os.path.join(os.path.realpath(svn_dir),
-                    'dist/lib/python%d.%d/site-packages' % sys.version_info[:2])
-                 for svn_dir in settings.SVN_DIRS]
-    return os.path.pathsep.join(site_dirs)
-
-def _exec_chainpipe(cmds, final_out=None, stderr=sys.stderr):
-    procs = []
-    inp = open('/dev/null', 'r')
-    outp = subprocess.PIPE
-    for j, cmd in enumerate(cmds):
-        if j == len(cmds)-1 and final_out is not None: outp = final_out
-        p = subprocess.Popen(cmd, stdin=inp, stdout=outp, stderr=stderr)
-        inp = p.stdout
-        procs.append(p)
-    if final_out is not None:
-        procs[-1].communicate()
-        return None
-    else:
-        return procs[-1].communicate()[0]
+    p = subprocess.Popen([PYDOCTOOL, 'patch', base_xml_fn, new_xml_file.name],
+                         stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    out, err = p.communicate()
+    return err + "\n" + out
 
 def _exec_cmd(cmd, ok_return_value=0, **kw):
     """
@@ -797,19 +739,20 @@ def _exec_cmd(cmd, ok_return_value=0, **kw):
                            % (' '.join(cmd), p.returncode, out + err))
     return out + err
 
-def strip_svn_dir_prefix(file_name):
+def strip_module_dir_prefix(file_name):
     if not file_name:
         return None
-    for svn_dir in settings.SVN_DIRS:
+    for svn_dir in [settings.MODULE_DIR]:
         fn_1 = os.path.realpath(os.path.join(svn_dir, file_name))
         fn_2 = os.path.realpath(svn_dir)
+        print fn_1, fn_2
         if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
             return fn_1[len(fn_2)+1:]
     return None
 
 def get_source_file_content(relative_file_name):
     in_svn_dir = False
-    for svn_dir in settings.SVN_DIRS:
+    for svn_dir in [settings.MODULE_DIR]:
         fn_1 = os.path.realpath(os.path.join(svn_dir, relative_file_name))
         fn_2 = os.path.realpath(svn_dir)
         if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):

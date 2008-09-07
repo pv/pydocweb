@@ -12,11 +12,12 @@ def relative_dir(path):
     return os.path.abspath(os.path.join(os.path.dirname(__file__),
                                         path))
 
-SVN_DIRS = (relative_dir("modules/numpy"),)
-MODULES = ("numpy", "numpy.doc")
-ADDNEWDOCS_FILES = (relative_dir("modules/numpy/numpy/add_newdocs.py"),
-                    relative_dir("modules/numpy/numpy/core/code_generators/docstrings.py"),)
-PYREX_FILES = (relative_dir("modules/numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand"),)
+PULL_SCRIPTS = {
+    'numpy': relative_dir("modules/pull-numpy.sh"),
+    'ipython': relative_dir("modules/pull-ipython.sh"),
+}
+
+MODULE_DIR = relative_dir("modules")
 
 MAX_DOCSTRING_WIDTH = 79
 
@@ -61,6 +62,9 @@ IMAGE_ROOT = relative_dir('media/images')
 # Example: "http://media.lawrence.com"
 MEDIA_URL = '/site_media'
 MATH_URL = MEDIA_URL + '/math/'
+
+# Prefix for site URLs
+SITE_PREFIX = ''
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
