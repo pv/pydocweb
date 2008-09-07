@@ -278,43 +278,29 @@ dl dt {
 
 /*
  * Docstrings / wiki pages
+ *
+ * (The rest comes from screen.css!)
  */
 
 #document { 
   border: dashed thin #ccc;
-  padding-left: 1em;
-  padding-right: 1em;
+  padding-left: 10px;
+  padding-right: 10px;
   padding-bottom: 1ex;
   font-family: sans-serif;
 }
-
-#document h1 { 
-  font-size: 12pt;
-  color: #008;
-  margin-top: 1ex;
-  margin-bottom: 0;
+#document div.document { 
   padding: 0;
+  margin: 0;
 }
-
-#document h1.title {
-  font-size: 14pt;
-  text-decoration: underline;
+#document h1 a:hover,
+#document h2 a:hover,
+#document h3 a:hover,
+#document h4 a:hover,
+#document h5 a:hover,
+#document h6 a:hover { 
+  text-decoration: none;
 }
-
-#document h2 { 
-  font-size: 10pt;
-  color: #008;
-  margin-top: 1ex;
-  margin-bottom: 0;
-}
-
-#document h3 { 
-  font-size: 8pt;
-  color: #008;
-  margin-top: 1ex;
-  margin-bottom: 0;
-}
-
 #document div.system-message { 
   font-size: 80%;
   float:right;
@@ -339,30 +325,10 @@ dl dt {
 #document div.system-message p { 
   margin:0
 }
-#document div.note { 
-  border: 2px solid black;
-  margin: 2em;
-  padding: 1em;
-}
-#document div.warning { 
-  border: 2px solid red;
-  margin: 2em;
-  padding: 1em;
-}
-#document div.error { 
-  border: 5px solid red;
-  margin: 2em;
-  padding: 1em;
-}
-#document .admonition-title { 
-  font-weight: bold;
-}
-#document div.error .admonition-title { 
-  color: red;
-}
 #document .func-signature { 
   font-style: italic;
 }
+
 
 /*
  * Comments

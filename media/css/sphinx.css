@@ -1,0 +1,338 @@
+/* This CSS snipped originates from Sphinx (cf. http://sphinx.pocoo.org/) */
+
+#document .docwarning  {
+    background-color: #ffe4e4;
+    padding: 10px;
+    margin: 0px -10px 0 -10px;
+    border-bottom: 1px solid #f66;
+}
+
+#document p.subhead  {
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+#document a  {
+    color: #355f7c;
+    text-decoration: none;
+}
+
+#document a:hover  {
+    text-decoration: underline;
+}
+
+#document h1,
+#document h2,
+#document h3,
+#document h4,
+#document h5,
+#document h6  {
+    font-family: 'Trebuchet MS', sans-serif;
+/*    background-color: #f2f2f2;*/
+    font-weight: normal;
+    color: #20435c;
+/*   border-bottom: 1px solid #ccc; */
+    margin: 5px -10px 0px -10px;
+    padding: 3px 0 3px 10px;
+}
+
+#document h1  { font-size: 140%; }
+#document h2  { font-size: 130%; }
+#document h3  { font-size: 120%; }
+#document h4  { font-size: 110%; }
+#document h5  { font-size: 100%; }
+#document h6  { font-size: 100%; }
+
+#document a.headerlink  {
+    color: #c60f0f;
+    font-size: 0.8em;
+    padding: 0 4px 0 4px;
+    text-decoration: none;
+    visibility: hidden;
+}
+
+h1:hover > a.headerlink,
+h2:hover > a.headerlink,
+h3:hover > a.headerlink,
+h4:hover > a.headerlink,
+h5:hover > a.headerlink,
+h6:hover > a.headerlink,
+#document dt:hover > a.headerlink  {
+    visibility: visible;
+}
+#document a.headerlink:hover  {
+    background-color: #c60f0f;
+    color: white;
+}
+
+#document p, dd, li  {
+    text-align: justify;
+    line-height: 130%;
+}
+
+#document p.caption  {
+    text-align: inherit;
+}
+
+#document td  {
+    text-align: left;
+}
+
+#document ul.fakelist  {
+    list-style: none;
+    margin: 10px 0 10px 20px;
+    padding: 0;
+}
+
+#document .field-list ul  {
+    padding-left: 1em;
+}
+
+#document .first  {
+    margin-top: 0 !important;
+}
+
+/* "Footnotes" heading */
+#document p.rubric  {
+    margin-top: 30px;
+    font-weight: bold;
+}
+
+/* "Topics" */
+
+#document div.topic  {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    padding: 0 7px 0 7px;
+    margin: 10px 0 10px 0;
+}
+
+#document p.topic-title  {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#document div.admonition  {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 7px;
+}
+
+#document div.admonition dt  {
+    font-weight: bold;
+}
+
+#document div.admonition dl  {
+    margin-bottom: 0;
+}
+
+#document div.admonition p  {
+    display: inline;
+}
+
+#document div.seealso  {
+    background-color: #ffc;
+    border: 1px solid #ff6;
+}
+
+#document div.warning  {
+    background-color: #ffe4e4;
+    border: 1px solid #f66;
+}
+
+#document div.note  {
+    background-color: #eee;
+    border: 1px solid #ccc;
+}
+
+#document p.admonition-title  {
+    margin: 0px 10px 5px 0px;
+    font-weight: bold;
+    display: inline;
+}
+
+#document p.admonition-title:after  {
+    content: ":";
+}
+
+#document p.centered  {
+    text-align: center;
+    margin-top: 25px;
+}
+
+#document table.docutils  {
+    border: 0;
+}
+
+#document table.docutils td, table.docutils th  {
+    padding: 1px 8px 1px 0;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid #aaa;
+}
+
+#document table.field-list td, table.field-list th  {
+    border: 0 !important;
+}
+
+#document table.footnote td, table.footnote th  {
+    border: 0 !important;
+}
+#document .field-list ul  {
+    margin: 0;
+    padding-left: 1em;
+}
+
+#document .field-list p  {
+    margin: 0;
+}
+
+#document dl  {
+    margin-bottom: 3px;
+    clear: both;
+}
+
+#document dd p  {
+    margin-top: 0px;
+}
+
+#document dd ul, dd table  {
+    margin-bottom: 10px;
+}
+
+#document dd  {
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 30px;
+}
+
+#document .refcount  {
+    color: #060;
+}
+
+dt:target,
+#document .highlight  {
+    background-color: #fbe54e;
+}
+
+#document dl.glossary dt  {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+#document th  {
+    text-align: left;
+    padding-right: 5px;
+}
+
+#document pre  {
+    padding: 5px;
+    background-color: #efc;
+    color: #333;
+    border: 1px solid #ac9;
+    border-left: none;
+    border-right: none;
+    overflow: auto;
+}
+
+#document td.linenos pre  {
+    padding: 5px 0px;
+    border: 0;
+    background-color: transparent;
+    color: #aaa;
+}
+
+#document table.highlighttable  {
+    margin-left: 0.5em;
+}
+#document table.highlighttable td  {
+    padding: 0 0.5em 0 0.5em;
+}
+
+#document tt  {
+    background-color: #ecf0f3;
+    padding: 0 1px 0 1px;
+    font-size: 0.95em;
+}
+
+#document tt.descname  {
+    background-color: transparent;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+#document tt.descclassname  {
+    background-color: transparent;
+}
+
+#document tt.xref, a tt  {
+    background-color: transparent;
+    font-weight: bold;
+}
+
+#document .footnote:target   { background-color: #ffa }
+
+#document h1 tt, h2 tt, h3 tt, h4 tt, h5 tt, h6 tt  {
+    background-color: transparent;
+}
+
+#document .optional  {
+    font-size: 1.3em;
+}
+
+#document .versionmodified  {
+    font-style: italic;
+}
+
+#document form.comment  {
+    margin: 0;
+    padding: 10px 30px 10px 30px;
+    background-color: #eee;
+}
+
+#document form.comment h3  {
+    background-color: #326591;
+    color: white;
+    margin: -10px -30px 10px -30px;
+    padding: 5px;
+    font-size: 1.4em;
+}
+
+form.comment input,
+#document form.comment textarea  {
+    border: 1px solid #ccc;
+    padding: 2px;
+    font-family: sans-serif;
+    font-size: 100%;
+}
+
+#document form.comment input[type="text"]  {
+    width: 240px;
+}
+
+#document form.comment textarea  {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 10px;
+}
+/*
+#document .system-message  {
+    background-color: #fda;
+    padding: 5px;
+    border: 3px solid red;
+}
+*/
+
+#document div.math  {
+    text-align: center;
+}
+
+#document span.eqno  {
+    float: right;
+}
+
+#document img.logo  {
+    border: 0;
+}
