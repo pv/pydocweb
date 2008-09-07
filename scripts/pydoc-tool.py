@@ -140,6 +140,10 @@ def _open_file(filename, mode):
     else:
         return open(filename, mode)
 
+#------------------------------------------------------------------------------
+# collect
+#------------------------------------------------------------------------------
+
 def cmd_collect(args):
     """collect MODULENAMES... > docs.xml
 
@@ -178,6 +182,10 @@ def cmd_collect(args):
             doc.root.append(el)
 
     doc.dump(opts.outfile)
+
+#------------------------------------------------------------------------------
+# mangle
+#------------------------------------------------------------------------------
 
 def cmd_mangle(args):
     """mangle -i docs.xml > docs2.xml
@@ -220,6 +228,10 @@ def cmd_mangle(args):
 
     doc.dump(opts.outfile)
 
+#------------------------------------------------------------------------------
+# prune
+#------------------------------------------------------------------------------
+
 def cmd_prune(args):
     """prune -i docs.xml > docs2.xml
 
@@ -260,6 +272,10 @@ def cmd_prune(args):
 
     doc.dump(opts.outfile)
 
+#------------------------------------------------------------------------------
+# list
+#------------------------------------------------------------------------------
+
 def cmd_list(args):
     """list -i docs.xml
 
@@ -278,6 +294,10 @@ def cmd_list(args):
                 print >> opts.outfile, "%s%s %s" % (indent, el.tag, el.get('id'))
             list_xml(el, indent + "    ")
     list_xml(doc.root)
+
+#------------------------------------------------------------------------------
+# numpy-docs
+#------------------------------------------------------------------------------
 
 def cmd_numpy_docs(args):
     """numpy-docs -i docs.xml > docs2.xml
@@ -334,6 +354,10 @@ def cmd_numpy_docs(args):
         else:
             print >> sys.stderr, "%s: unknown object" % name
     doc.dump(opts.outfile)
+
+#------------------------------------------------------------------------------
+# pyrex-docs
+#------------------------------------------------------------------------------
 
 def cmd_pyrex_docs(args):
     """pyrex-docs -i docs.xml > docs2.xml
@@ -404,6 +428,10 @@ def cmd_pyrex_docs(args):
         else:
             print >> sys.stderr, "%s: unknown object" % name
     doc.dump(opts.outfile)
+
+#------------------------------------------------------------------------------
+# sphinx-docs
+#------------------------------------------------------------------------------
 
 def cmd_sphinx_docs(args):
     """sphinx-docs -n NAME -e .rst PATH -i docs.xml > docs2.xml
@@ -483,6 +511,10 @@ def cmd_sphinx_docs(args):
     # -- done
     doc.dump(opts.outfile)
 
+#------------------------------------------------------------------------------
+# patch
+#------------------------------------------------------------------------------
+
 def cmd_patch(args):
     """patch OLD.XML NEW.XML > patch
 
@@ -524,6 +556,10 @@ def cmd_patch(args):
         fn = strip_sys_path(file)
         diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
         opts.outfile.writelines(diff)
+
+#------------------------------------------------------------------------------
+# bzr
+#------------------------------------------------------------------------------
 
 def cmd_bzr(args):
     """bzr OLD.XML NEW.XML PATH
@@ -597,6 +633,8 @@ def cmd_bzr(args):
         if p.returncode != 0:
             print >> sys.stderr, out + err
             raise RuntimeError("bzr commit failed")
+
+#------------------------------------------------------------------------------
 
 COMMANDS = [cmd_collect, cmd_mangle, cmd_prune, cmd_list, cmd_patch,
             cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs, cmd_sphinx_docs]
