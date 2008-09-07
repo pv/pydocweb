@@ -21,6 +21,7 @@ pushd ipython
 bzr pull --overwrite
 bzr revert --no-backup .
 
+
 # 2. Build and install the module
 
 rm -rf dist
@@ -28,18 +29,22 @@ python2.5 setup.py install --prefix=dist
 
 popd
 
-# 3. Extract docstrings
 
-export SITEPATH=$PWD/ipython/dist/lib/python2.5/site-packages
+## 3. Extract docstrings
+#
+#export SITEPATH=$PWD/ipython/dist/lib/python2.5/site-packages
+#
+#python2.5 $PYDOCTOOL collect -s $SITEPATH \
+#    IPython IPython.kernel \
+#| $PYDOCTOOL prune -i - \
+#| $PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
+#    ipython/docs/source \
+#> "$1"
 
-python2.5 $PYDOCTOOL collect -s $SITEPATH \
-    IPython IPython.kernel \
-| $PYDOCTOOL prune -i - \
-| $PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
+
+# 3b. Another possibility: just the Sphinx docs
+
+$PYDOCTOOL sphinx-docs -n ipython-docs -e .txt \
     ipython/docs/source \
 > "$1"
 
-## 3b. Another possibility: just the Sphinx docs
-#$PYDOCTOOL sphinx-docs -i - -n ipython-docs -e .txt \
-#    ipython/docs/source \
-#> "$1"
