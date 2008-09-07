@@ -18,6 +18,10 @@ from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import (register_local_role,
                                         register_generic_role)
 
+import models
+
+from docscrape import NumpyDocString
+
 #------------------------------------------------------------------------------
 
 def _nested_parse(state, text, node):
@@ -222,9 +226,31 @@ register_local_role('ref', ref_role)
 # sphinx.ext.autodoc
 #------------------------------------------------------------------------------
 
-auto_directive = blurb_directive(
-    lambda d, c: ["    .. admonition:: %s :ref:`%s`" % (d, c[0].strip()),
-                  ""] + _indent(c[1:], 4+3))
+def auto_directive(dirname, arguments, options, content, lineno,
+                  content_offset, block_text, state, state_machine):
+    if not content:
+        content = [u""]
+
+    target = content[0].strip()
+
+    lines = ["**%s** :ref:`%s`" % (dirname, target), "", ""]
+    
+    try:
+        doc = models.Docstring.resolve(target)
+        text = str(NumpyDocString(doc.text))
+        lines.extend(text.split("\n"))
+    except models.Docstring.DoesNotExist:
+        pass
+
+    lines += [""] + list(content[1:])
+
+    node = nodes.paragraph()
+    _nested_parse(state, lines, node)
+    return [node]
+
+auto_directive.arguments = (0, 0, False)
+auto_directive.options = {}
+auto_directive.content = True
 
 register_directive('automodule', auto_directive)
 register_directive('autoclass', auto_directive)

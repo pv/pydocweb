@@ -1,10 +1,16 @@
 Short term
 ==========
 
+  * Make Sphinx cross-references to work.
+
+  * Respect module::, currentmodule:: and automodule:: in reference resolution.
+
+  * List members etc. properly in auto*:: directives
+
   * "Next" and "Previous" buttons for easily browsing docstrings with the
     same preview state.
 
-  * Plot directive? Merge the sandbox branch?
+  * Working plot directive? Merge the sandbox branch?
 
   * Better documentation.
 
