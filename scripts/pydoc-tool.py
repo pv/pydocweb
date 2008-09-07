@@ -943,7 +943,8 @@ class Documentation(object):
                 nm = "%s.%s" % (module_name, m[1])
                 try:
                     __import__(nm)
-                except ImportError:
+                except:
+                    print >> sys.stderr, "Failed to import module %s" % nm
                     pass
         self._visit(mod, self.root, None)
         if 'modules' not in self.root.attrib:
@@ -1254,7 +1255,10 @@ class Documentation(object):
                 hasattr(obj.im_class, '__bases__')):
             # is this inherited from base classes?
             for b in obj.im_class.__bases__:
-                obj2 = getattr(b, obj.im_func.func_name, None)
+                try:
+                    obj2 = getattr(b, obj.im_func.func_name, None)
+                except AttributeError:
+                    continue
                 if hasattr(obj2, 'im_func') and obj2.im_func is obj.im_func:
                     return self._canonical_name(obj2, parent, name)
 
@@ -1282,7 +1286,7 @@ class Documentation(object):
             f, l = inspect.getsourcefile(obj), inspect.getsourcelines(obj)[1]
             if f is not None:
                 return f, l
-        except (TypeError, IOError):
+        except (TypeError, IOError, AttributeError):
             pass
 
         try: return obj.__file__, None
@@ -1293,6 +1297,8 @@ class Documentation(object):
 
 def escape_text(text):
     """Escape text so that it can be included within double quotes or XML"""
+    if isinstance(text, unicode):
+        text = text.encode('utf-8')
     text = text.encode('string-escape')
     return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)(|\\\\|\\\\\\\\)?\\n", "\\1\n", text))
 
