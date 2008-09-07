@@ -26,11 +26,6 @@ Setting up
 
    - Fill in a random string to SECRET_KEY
 
-   - Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
-     accordingly.
-
-   - Remember to set DEBUG=False before going production
-
    - Fill in ADMINS (they get mail when DEBUG=False and something fails)
 
 3. Create a "pull script" for your project. You can see some examples
@@ -51,17 +46,31 @@ Setting up
    or, log in as superuser, go to "Control", and create groups with
    appropriate permissions yourself.
 
-7. Run "Pull from" on the "Control" tab.
+7. If you want just to "Try it out", run::
+
+       ./manage.py runserver
+
+   For production deployment, see Django's deployment guide at
+   http://docs.djangoproject.com/en/dev/howto/deployment/
+
+   Before going production,
+
+   - Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
+     accordingly.
+
+   - Remember to set DEBUG=False
+
+8. Run "Pull from" on the "Control" tab.
    Note that this compiles your module, imports it, and collects its docstrings
    (in a separate process).
 
    If this fails with a server timeout, run ./update-docstrings.sh instead.
 
-8. Write a proper front page and modify the "registration" page, if needed.
+9. Write a proper front page and modify the "registration" page, if needed.
 
-9. Set up regular backups of your database.
+10. Set up regular backups of your database.
 
-10. Start writing!
+11. Start writing!
 
 
 Administration
