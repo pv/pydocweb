@@ -43,6 +43,10 @@ python2.5 $PYDOCTOOL collect -s $SITEPATH \
     matplotlib/doc \
 > "$1"
 
+# NB: you can consider adding "$PYDOCTOOL mangle -i -" after prune in the pipe
+#     chain to mangle object names so that they appear to originate from
+#     the topmost module they were imported into.
+
 
 ## 3b. Another possibility: just the Sphinx docs
 #

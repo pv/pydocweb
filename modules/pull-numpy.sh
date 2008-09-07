@@ -44,3 +44,8 @@ python2.5 $PYDOCTOOL collect -s $SITEPATH \
     -f numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand \
 > "$1"
 
+# NB: you can consider adding "$PYDOCTOOL mangle -i -" after prune in the pipe
+#     chain to mangle object names so that they appear to originate from
+#     the topmost module they were imported into.
+
+
