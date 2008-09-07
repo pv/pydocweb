@@ -404,8 +404,14 @@ class Docstring(models.Model):
 
     @classmethod
     def get_non_obsolete(cls):
-        current = cls.objects.order_by('-timestamp')[0].timestamp
-        return cls.objects.filter(timestamp=current)
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""\
+        SELECT timestamp FROM docweb_docstring
+        GROUP BY domain ORDER BY timestamp""")
+        current_timestamps = [x[0] for x in cursor.fetchall()]
+        print current_timestamps
+        return cls.objects.filter(timestamp__in=current_timestamps)
 
 
 class DocstringRevision(models.Model):
