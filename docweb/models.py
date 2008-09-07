@@ -410,7 +410,6 @@ class Docstring(models.Model):
         SELECT timestamp FROM docweb_docstring
         GROUP BY domain ORDER BY timestamp""")
         current_timestamps = [x[0] for x in cursor.fetchall()]
-        print current_timestamps
         return cls.objects.filter(timestamp__in=current_timestamps)
 
 
