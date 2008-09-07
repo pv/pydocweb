@@ -323,18 +323,23 @@ class Docstring(models.Model):
             try: return cls.objects.get(name=name)
             except cls.DoesNotExist: return None
 
+        if '/' in name:
+            sep = '/'
+        else:
+            sep = '.'
+
         doc = _get(name)
         if doc is not None: return doc
 
-        parts = name.split('.')
+        parts = name.split(sep)
         parent = None
         seen = {}
         j = 0
         while j < len(parts):
-            try_name = '.'.join(parts[:j+1])
+            try_name = sep.join(parts[:j+1])
             if try_name in seen:
                 # infinite loop: break it
-                parts = name.split('.')
+                parts = name.split(sep)
                 break
             seen[try_name] = True
             doc = _get(try_name)
@@ -343,13 +348,13 @@ class Docstring(models.Model):
             elif parent is not None:
                 try:
                     ref = parent.contents.get(alias=parts[j])
-                    target_parts = ref.target.split('.')
+                    target_parts = ref.target.split(sep)
                     parts = target_parts + parts[(j+1):]
                     j = len(target_parts)
                 except DocstringAlias.DoesNotExist:
                     parent = None
             j += 1
-        return cls.objects.get(name='.'.join(parts))
+        return cls.objects.get(name=sep.join(parts))
 
     def __str__(self):
         return "<Docstring '%s'>" % self.name

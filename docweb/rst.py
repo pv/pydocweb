@@ -83,6 +83,7 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
                                   template='',
                                   default_reference_context='title-reference',
                                   link_base='',
+                                  resolve_prefixes=resolve_prefixes,
                                   )
     )
     return parts['html_body'].encode('utf-8')
@@ -94,6 +95,9 @@ from docscrape import (NumpyFunctionDocString, NumpyModuleDocString,
                        NumpyClassDocString)
 
 def render_docstring_html(doc, text):
+    if doc.type_code == 'file':
+        return render_sphinx_html(doc, text)
+    
     errors = []
     
     # Convert to ASCII
@@ -173,6 +177,30 @@ def render_docstring_html(doc, text):
                                  body_html=err_msg + body_html)))
 
 #------------------------------------------------------------------------------
+# Rendering Sphinx documentation
+#------------------------------------------------------------------------------
+
+def render_sphinx_html(doc, text):
+    # Determine allowed link namespace prefixes
+    parts = doc.name.split('/')
+    prefixes = ['/'.join(parts[:j]) + '/' for j in range(1, len(parts))]
+    prefixes.reverse()
+
+    # Docstring body
+    body_html = render_html(unicode(text),
+                            resolve_to_wiki=False,
+                            resolve_prefixes=prefixes)
+
+    # Full HTML output
+    t = get_template('docstring/body.html')
+    return t.render(Context(dict(name=doc.name,
+                                 bases=[],
+                                 basename=doc.name.split('/')[-1],
+                                 body_html=body_html)))
+
+
+
+#------------------------------------------------------------------------------
 # Index
 #------------------------------------------------------------------------------
 import docutils.nodes
@@ -205,3 +233,8 @@ docutils.parsers.rst.directives.register_directive('index', index_directive)
 import rst_latex
 rst_latex.OUT_PATH = settings.MATH_ROOT
 rst_latex.OUT_URI_BASE = settings.MATH_URL
+
+#------------------------------------------------------------------------------
+# Sphinx
+#------------------------------------------------------------------------------
+import rst_sphinx
