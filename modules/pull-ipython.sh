@@ -25,7 +25,9 @@ bzr revert --no-backup .
 # 2. Build and install the module
 
 rm -rf dist
-python2.5 setup.py install --prefix=dist
+python2.5 setup.py install --prefix=$PWD/dist
+# NB: it's important to give an absolute path to --prefix so that source file
+#     information also contains absolute paths.
 
 popd
 
