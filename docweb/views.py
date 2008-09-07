@@ -15,7 +15,7 @@ from django.views.decorators.vary import vary_on_cookie
 
 from django.core.cache import cache
 
-from django import newforms as forms
+from django import forms
 
 
 import pydocweb.settings

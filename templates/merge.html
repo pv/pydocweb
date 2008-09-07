@@ -19,7 +19,7 @@
 {% if conflicts %}
 <ul>
   {% for entry in conflicts %}
-  <li><a href="{% url pydocweb.docweb.views.docstring entry.name %}">{{entry.name|escape}}</a></li>
+  <li><a href="{% url docweb.views.docstring entry.name %}">{{entry.name|escape}}</a></li>
   {% endfor %}
 </ul>
 {% else %}
@@ -28,14 +28,14 @@
 
 <h2>Merges</h2>
 {% if merged %}
-<form action="{% url pydocweb.docweb.views.merge %}" method="post">
+<form action="{% url docweb.views.merge %}" method="post">
 <input type="submit" value="Accept merges" />
 <a href="" onclick="check_all(); return false;">Select all</a>
 <a href="" onclick="check_none(); return false;">Unselect all</a>
 <ul>
   {% for entry in merged %}
   <li>
-    <input type="checkbox" name="{{entry.name|escape}}" checked /> <a href="{% url pydocweb.docweb.views.docstring entry.name %}">{{entry.name|escape}}</a></li>
+    <input type="checkbox" name="{{entry.name|escape}}" checked /> <a href="{% url docweb.views.docstring entry.name %}">{{entry.name|escape}}</a></li>
   {% endfor %}
 </ul>
 </form>

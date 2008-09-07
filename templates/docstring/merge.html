@@ -8,7 +8,7 @@
     editing the docstring.</p>
   {% else %}
   <p>This docstring can be automatically merged with SVN.
-  <form action="{% url pydocweb.docweb.views.merge name %}" method="post">
+  <form action="{% url docweb.views.merge name %}" method="post">
     <input type=hidden name="{{name|escape}}" value="1" />
     <input type=submit value="Accept merge" />
   </form>

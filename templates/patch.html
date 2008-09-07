@@ -5,7 +5,7 @@
 
 {% block content %}
 {% if changed %}
-<form action="{% url pydocweb.docweb.views.patch %}" method="post">
+<form action="{% url docweb.views.patch %}" method="post">
 <input type="submit" value="Generate patch" />
 <a href="" onclick="check_all_proofed(); return false;">Select proofed</a>
 <a href="" onclick="check_all_reviewed(); return false;">Select reviewed</a>
@@ -30,7 +30,7 @@
       {% endif %}
     </td>
     <td>
-      <a href="{% url pydocweb.docweb.views.diff entry.name,"svn","cur" %}">{{entry.name|escape}}</a>
+      <a href="{% url docweb.views.diff entry.name,"svn","cur" %}">{{entry.name|escape}}</a>
     </td>
     <td class="{{entry.status_code|escape}}">{{entry.status|escape}}</td>
     <td class="{{entry.merge_status_code|escape}}">{{entry.merge_status|escape}}</td>

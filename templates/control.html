@@ -5,19 +5,26 @@
 
 {% block content %}
 <h2>Administrate</h2>
-<a href="{% url django.contrib.admin.views.main.index %}">Enter the admin site</a>
+<a href="{{SITE_PREFIX}}/admin">Enter the admin site</a>
 
 <h2>Update docstrings</h2>
+{% for domain in domains %}
+<li>
+  <form action="{% url docweb.views.control %}" method="post">
+    <input type="hidden" name="domain" value="{{domain}}" />
+    <input type="submit" name="update-docstrings" value="Pull from {{domain}}" />
+  </form>
+</li>
+{% endfor %}
 <p><b>Warning:</b> pulling docstrings from SVN can take several minutes.</p>
 <p><b>Note:</b> pulling docstrings does not result into new docstring
   revisions. You must go to the
-  <a href="{% url pydocweb.docweb.views.merge %}">merge page</a>
+  <a href="{% url docweb.views.merge %}">merge page</a>
   and check the merges listed there manually after pulling.</p>
 <p><b>Note 2:</b> Pulling docstrings from SVN is idempotent. 
   You don't need to resolve merges before pulling again.</p>
-<form action="{% url pydocweb.docweb.views.control %}" method="post">
-<input type="submit" name="update-docstrings" value="Pull from SVN" />
-</form>
+<ul>
+</ul>
 
 <h2>User summary</h2>
 <table>

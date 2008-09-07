@@ -7,7 +7,7 @@
 
 <p>{{message|escape}}</p>
 
-<form action="{% url pydocweb.docweb.views.register %}" method="POST">
+<form action="{% url docweb.views.register %}" method="POST">
   <ul>{{form.as_ul}}
   <li><label></label><input type=submit value="Register" /></li>
   </ul>

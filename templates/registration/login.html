@@ -8,10 +8,10 @@
 <p>{{message|escape}}</p>
 
 <p>
-  You can also <a href="{% url pydocweb.docweb.views.register %}">register a new account</a>.
+  You can also <a href="{% url docweb.views.register %}">register a new account</a>.
 </p>
 
-<form action="{% url pydocweb.docweb.login %}" method="POST">
+<form action="{% url docweb.views.login %}" method="POST">
   <ul>
     {{form.as_ul}}
     <li><label></label><input type=submit value="Login" /></li>

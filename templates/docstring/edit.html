@@ -20,7 +20,7 @@
 
 <p>Edit:</p>
 
-<form action="{% url pydocweb.docweb.views.edit_docstring name=name %}" method="post">
+<form action="{% url docweb.views.edit name %}" method="post">
   <ul>
     {{ form.as_ul }}
     <li><label></label>

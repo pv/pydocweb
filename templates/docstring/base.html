@@ -9,13 +9,13 @@
 {% block actions %}
 <div id="actions">
   {% block actions_items %}
-  <a href="{% url pydocweb.docweb.views.docstring name %}">View</a>
+  <a href="{% url docweb.views.docstring name %}">View</a>
   {% if perms.docweb.change_docstring %}
-  <a href="{% url pydocweb.docweb.views.edit name %}">Edit</a>
+  <a href="{% url docweb.views.edit name %}">Edit</a>
   {% endif %}
-  <a href="{% url pydocweb.docweb.views.log name %}">Log</a>
-  <a href="{% url pydocweb.docweb.views.diff name,"svn","cur" %}">Diff to SVN</a>
-  <a href="{% url pydocweb.docweb.views.docstring name %}#discussion-sec">Discussion</a>
+  <a href="{% url docweb.views.log name %}">Log</a>
+  <a href="{% url docweb.views.diff name,"svn","cur" %}">Diff to SVN</a>
+  <a href="{% url docweb.views.docstring name %}#discussion-sec">Discussion</a>
   {% endblock %}
 </div>
 {% endblock %}
