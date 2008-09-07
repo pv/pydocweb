@@ -328,6 +328,9 @@ dl dt {
 #document .func-signature { 
   font-style: italic;
 }
+#document .admonition { 
+  border: 1px solid black;
+}
 
 
 /*

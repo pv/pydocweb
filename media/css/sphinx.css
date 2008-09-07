@@ -36,6 +36,15 @@
     padding: 3px 0 3px 10px;
 }
 
+#document h1 a,
+#document h2 a,
+#document h3 a,
+#document h4 a,
+#document h5 a,
+#document h6 a
+{ color: #20435c; }
+
+
 #document h1  { font-size: 140%; }
 #document h2  { font-size: 130%; }
 #document h3  { font-size: 120%; }
@@ -113,21 +122,39 @@ h6:hover > a.headerlink,
     margin-top: 10px;
 }
 
-#document div.admonition  {
+/* Admonitions */
+
+#document div.admonition,
+#document div.note,
+#document div.warning,
+#document div.hint,
+#document div.tip {
     margin-top: 10px;
     margin-bottom: 10px;
     padding: 7px;
 }
 
-#document div.admonition dt  {
+#document div.admonition dt,
+#document div.note dt,
+#document div.warning dt,
+#document div.hint dt,
+#document div.tip dt {
     font-weight: bold;
 }
 
-#document div.admonition dl  {
+#document div.admonition dl,
+#document div.note dl,
+#document div.warning dl,
+#document div.hint dl,
+#document div.tip dl {
     margin-bottom: 0;
 }
 
-#document div.admonition p  {
+#document div.admonition p,
+#document div.note p,
+#document div.warning p,
+#document div.hint p,
+#document div.tip p {
     display: inline;
 }
 
