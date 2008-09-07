@@ -775,7 +775,6 @@ def strip_module_dir_prefix(file_name):
     for svn_dir in [settings.MODULE_DIR]:
         fn_1 = os.path.realpath(os.path.join(svn_dir, file_name))
         fn_2 = os.path.realpath(svn_dir)
-        print fn_1, fn_2
         if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
             return fn_1[len(fn_2)+1:]
     return None
