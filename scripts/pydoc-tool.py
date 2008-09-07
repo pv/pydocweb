@@ -511,8 +511,17 @@ def cmd_patch(args):
         old_src = "".join(replacer.old_sources[file]).splitlines(1)
         new_src = "".join(replacer.new_sources[file]).splitlines(1)
 
-        fn = strip_sys_path(file)
+        # Don't mind terminating newlines in the file; works around a bug
+        # in difflib...
+        if old_src:
+            if not old_src[-1].endswith("\n"):
+                old_src[-1] += "\n"
+        if new_src:
+            if not new_src[-1].endswith("\n"):
+                new_src[-1] += "\n"
 
+        # Generate an unified diff
+        fn = strip_sys_path(file)
         diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
         opts.outfile.writelines(diff)
 
