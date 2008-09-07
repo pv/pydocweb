@@ -435,16 +435,25 @@ def cmd_sphinx_docs(args):
     path = os.path.realpath(args[0])
     
     seen = {}
+    dir_nodes = {}
 
     for root, dirs, files in os.walk(path):
         text_files = [fn for fn in files
                       if os.path.splitext(fn)[1] in opts.exts]
 
         if not text_files: continue
-        
+
         dir_node = etree.SubElement(doc.root, "dir")
         dir_node.attrib['id'] = root.replace(path, opts.name)
         dir_node.attrib['file'] = path
+
+        parent = dir_nodes.get(os.path.dirname(root))
+        if parent is not None:
+            ref = etree.SubElement(parent, "ref")
+            ref.attrib['name'] = os.path.basename(root)
+            ref.attrib['ref'] = dir_node.attrib['id']
+        
+        dir_nodes[root] = dir_node
 
         for basename in text_files:
             name = os.path.join(root, basename)
