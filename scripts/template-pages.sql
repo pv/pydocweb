@@ -24,7 +24,7 @@ You may want to:
   - `Help Merge Docstring`_  (shown on merge conflicts)
 
 ',
-'Source','Template revision','2008-09-04 08:34:07.627466');
+'Source','Template revision',datetime('now'));
 
 INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Edit Docstring',
 'See:
@@ -55,7 +55,7 @@ Images::
 
     Use images sparingly. Note that our infrastructure needed in including
     images in the reference manual is not finished yet.',
-'Source','Template','2008-09-04 22:46:51.225502');
+'Source','Template',datetime('now'));
 
 INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Merge',
 'Merging docstrings with SVN can go wrong:
@@ -78,7 +78,7 @@ Sometimes conflicting changes are made in the versions in this system
 and in SVN; also they are listed on this page.
 
 The conflicts must be resolved manually by editing the docstrings.',
-'Source','Template','2008-06-01 01:22:37.999283');
+'Source','Template',datetime('now'));
 
 INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Merge Docstring',
 'Merging docstrings with SVN can go wrong:
@@ -124,12 +124,12 @@ revision of the docstring in this system, and the part between
 ``=======`` and ``>>>>>>>`` is that currently in SVN. The editor
 must now manually remove the conflict markers and combine
 the two versions so that the results make sense.',
-'Source','Template','2008-06-06 00:18:31.825473');
+'Source','Template',datetime('now'));
 
 INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Registration Done',
 'To get **edit permissions**, mail to the administrators.
 
 For more information, see our `Front Page`_.',
-'Source','Template','2008-07-05 18:52:16.643123');
+'Source','Template',datetime('now'));
 
 COMMIT;
