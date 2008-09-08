@@ -1,4 +1,4 @@
-import datetime, cgi, os, tempfile
+import datetime, cgi, os, tempfile, re
 
 from django.db import models
 from django.db import transaction
@@ -218,6 +218,9 @@ class Docstring(models.Model):
                                 comment=comment,
                                 review_code=new_review_code)
         rev.save()
+
+        # Update cross-reference cache
+        LabelCache.cache_docstring(self)
 
     def get_merge(self):
         """
@@ -452,6 +455,31 @@ class DocstringAlias(models.Model):
     target = models.CharField(max_length=MAX_NAME_LEN, null=True)
     alias = models.CharField(max_length=MAX_NAME_LEN)
 
+    
+# -- reStructuredText label cache
+
+class LabelCache(models.Model):
+    """
+    ReStructuredText cross-reference labels
+    
+    """
+    label = models.CharField(max_length=256, primary_key=True)
+    target = models.CharField(max_length=256)
+    title = models.CharField(max_length=256)
+
+    _label_re = re.compile(r'^\.\.\s+_([\w.-]+):\s*$', re.M)
+
+    @classmethod
+    def cache_docstring(cls, docstring):
+        cls.objects.filter(target=docstring.name).all().delete()
+        for name in cls._label_re.findall(docstring.text):
+            label, created = cls.objects.get_or_create(label=name)
+            label.target = docstring.name
+            # XXX: put something more intelligent to the title field...
+            label.title = docstring.name
+            label.save()
+
+
 # -- Wiki pages
 
 class WikiPage(models.Model):
@@ -618,6 +646,11 @@ def _update_docstrings_from_xml(domain, stream):
         doc.dirty = (doc.source_doc != doc.text)
         doc.contents.all().delete()
         doc.save()
+
+        # -- Labels
+
+        if doc.type_code == 'file':
+            LabelCache.cache_docstring(doc)
 
         # -- Contents
 

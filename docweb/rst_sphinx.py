@@ -176,13 +176,23 @@ register_generic_role('samp', nodes.literal)
 
 def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     link = text
-    
-    m = re.match('^(.*)<(.*?)>\s*$', text)
+
+    m = re.compile(r'^(.*)\n*<(.*?)>\s*$', re.S).match(text)
     if m:
-        text, link = m.group(1), m.group(2)
+        text, link = m.group(1).strip(), m.group(2).strip()
     elif text.startswith('~'):
         link = text[1:]
         text = text[1:].split('.')[-1]
+
+    try:
+        models.LabelCache.objects.get(label=link)
+        is_label = True
+    except models.LabelCache.DoesNotExist:
+        is_label = False
+
+    if is_label and link == text:
+        # XXX: Make LabelCache.title more intelligent, and use it here?
+        text = "[Ref:%s]" % link
     
     ref = nodes.reference(rawtext, text, name=link,
                           refname=':ref:`%s`' % link)

@@ -1,9 +1,12 @@
 Short term
 ==========
 
-  * Make Sphinx cross-references to work.
-
   * Respect module::, currentmodule:: and automodule:: in reference resolution.
+
+  * Make Sphinx cross-reference titles to work.
+
+  * Make Sphinx cross-references to function:: etc. to work if they are only
+    specified in the Sphinx docs.
 
   * List members etc. properly in auto*:: directives
 
