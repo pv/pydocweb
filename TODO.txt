@@ -8,6 +8,10 @@ Short term
   * Make Sphinx cross-references to function:: etc. to work if they are only
     specified in the Sphinx docs.
 
+  * The Python docs are very slow. Profile what takes so much time in rendering
+    these pages. (Is it eg. unknown targets that are generated as the
+    function:: et al directives don't work yet?)
+
   * List members etc. properly in auto*:: directives
 
   * "Next" and "Previous" buttons for easily browsing docstrings with the
