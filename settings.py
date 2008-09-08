@@ -42,6 +42,7 @@ PULL_SCRIPTS = {
     'numpy': relative_dir("modules/pull-numpy.sh"),
     'ipython': relative_dir("modules/pull-ipython.sh"),
     'matplotlib': relative_dir("modules/pull-matplotlib.sh"),
+    'python-docs': relative_dir("modules/pull-python-docs.sh"),
 }
 
 MODULE_DIR = relative_dir("modules")
