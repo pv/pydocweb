@@ -446,7 +446,8 @@ def comment_edit(request, name, comment_id):
         form = CommentEditForm(initial=data)
 
     return render_template(request, 'docstring/edit_comment.html',
-                           dict(form=form, name=name, comment=comment))
+                           dict(form=form, name=name, comment=comment,
+                                comment_id=comment_id))
 
 def log(request, name):
     doc = get_object_or_404(Docstring, name=name)
