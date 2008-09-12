@@ -5,7 +5,7 @@
 
 <p>Edit comment:</p>
 
-<form action="{% url docweb.views.edit_comment name,comment_id %}" method="post">
+<form action="{% url docweb.views.comment_edit name,comment_id %}" method="post">
   <ul>
     {{ form.as_ul }}
     <li><label></label>
