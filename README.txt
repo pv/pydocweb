@@ -17,10 +17,36 @@ Setting up
 1. Install requirements:
 
    - Django (SVN or >= 0.97)
-   - LaTeX
    - 'merge' tool from RCS
+   - LaTeX (optional, for math)
+   - Dvipng (optional, for math)
 
-2. Edit 'settings.py' to match your setup.
+2. Create database by running::
+
+       ./manage.py syncdb
+
+3. If you want to get some template wiki help pages, run::
+
+       sqlite3 data.db < scripts/template-pages.sql
+
+4. Add sample "Editor" and "Reviewer" groups::
+
+       sqlite3 data.db < scripts/template-groups.sql
+
+   or, log in as superuser, go to "Control", and create groups with
+   appropriate permissions yourself.
+
+5. If you want just to try it out, run::
+
+       ./manage.py runserver
+
+   For production deployment, see Django's deployment guide at
+   http://docs.djangoproject.com/en/dev/howto/deployment/
+
+6. Create a "pull script" for your project. See "settings.py" for
+   an explanation, and check the examples under modules/
+
+7. Edit 'settings.py' to match your setup.
 
    - Adjust PULL_SCRIPTS to match the Python module you are documenting
 
@@ -28,37 +54,12 @@ Setting up
 
    - Fill in ADMINS (they get mail when DEBUG=False and something fails)
 
-3. Create a "pull script" for your project. See "settings.py" for
-   an explanation, and check the examples under modules/
-
-4. Create database by running::
-
-       ./manage.py syncdb
-
-5. If you want to get some template wiki help pages, run::
-
-       sqlite3 data.db < scripts/template-pages.sql
-
-6. Add sample "Editor" and "Reviewer" groups::
-
-       sqlite3 data.db < scripts/template-groups.sql
-
-   or, log in as superuser, go to "Control", and create groups with
-   appropriate permissions yourself.
-
-7. If you want just to "Try it out", run::
-
-       ./manage.py runserver
-
-   For production deployment, see Django's deployment guide at
-   http://docs.djangoproject.com/en/dev/howto/deployment/
-
    Before going production,
 
    - Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
      accordingly.
 
-   - Remember to set DEBUG=False
+   - Set DEBUG=False
 
 8. Run "Pull from" on the "Control" tab.
    Note that this compiles your module, imports it, and collects its docstrings
