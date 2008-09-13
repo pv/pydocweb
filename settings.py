@@ -47,6 +47,8 @@ PULL_SCRIPTS = {
 
 MODULE_DIR = relative_dir("modules")
 
+# To be shown on the top of each page:
+EDITOR_NAME = "Scipy Documentation Editor"
 
 # Docstring validation
 # --------------------
