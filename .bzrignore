@@ -3,3 +3,4 @@ scipy
 media/math/*
 data.db
 modules/*
+doc/_build/*
