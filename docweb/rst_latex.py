@@ -34,11 +34,15 @@ DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1",
 #       So, check dvipng capabilities first.
 
 def _check_dvipng_caps():
-    r = subprocess.Popen([DVIPNG, '--help'], 
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = r.communicate()
-    if '--truecolor' in out+err:
-        DVIPNG_ARGS.append('--truecolor')
+    try:
+        r = subprocess.Popen([DVIPNG, '--help'], 
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = r.communicate()
+        if '--truecolor' in out+err:
+            DVIPNG_ARGS.append('--truecolor')
+    except OSError:
+        # dvipng not found
+        pass
 
 _check_dvipng_caps()
 
@@ -163,7 +167,8 @@ def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
                                    classes=["img-offset-%d" % baseline_off])
         return [img], []
     except RuntimeError, e:
-        item = docutils.nodes.literal(text=str(latex) + str(e))
+        item = inliner.document.reporter.system_message(
+            2, str(e), docutils.nodes.literal(text=str(latex)))
         return [item], []
 
 def math_directive(name, arguments, options, content, lineno,
@@ -176,8 +181,10 @@ def math_directive(name, arguments, options, content, lineno,
                                    align='center')
         return [img]
     except RuntimeError, e:
-        item = docutils.nodes.literal_block(text=u"\n".join(content) + str(e))
+        item = state.document.reporter.system_message(
+            2, str(e), docutils.nodes.literal_block(text=u"\n".join(content)))
         return [item]
+
 
 # -----------------------------------------------------------------------------
 # Register to reStructuredText engine
