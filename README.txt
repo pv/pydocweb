@@ -16,9 +16,9 @@ Setting up
 
 1. Install requirements:
 
-   - Django (>= 1.0)
-   - 'merge' tool from RCS (package "rcs" in Ubuntu/Debian)
-   - Python Imaging Library (package "python-imaging" in Ubuntu/Debian)
+   - Django (>= 1.0; http://www.djangoproject.com/)
+   - RCS 'merge' tool (in package "rcs" in Ubuntu/Debian)
+   - Python Imaging Library (in package "python-imaging" in Ubuntu/Debian)
    - LaTeX (optional, for math)
    - Dvipng (optional, for math)
 
