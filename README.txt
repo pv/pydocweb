@@ -48,6 +48,8 @@ Setting up
 
 7. Edit 'settings.py' to match your setup.
 
+   - Adjust EDITOR_NAME to change the text shown on top of each page.
+
    - Adjust PULL_SCRIPTS to match the Python module you are documenting
 
    - Fill in a random string to SECRET_KEY
