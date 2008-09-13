@@ -18,6 +18,7 @@ Setting up
 
    - Django (SVN or >= 0.97)
    - 'merge' tool from RCS
+   - Python Imaging Library
    - LaTeX (optional, for math)
    - Dvipng (optional, for math)
 
