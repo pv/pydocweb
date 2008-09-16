@@ -1356,7 +1356,7 @@ class Documentation(object):
             f, l = inspect.getsourcefile(obj), inspect.getsourcelines(obj)[1]
             if f is not None:
                 return f, l
-        except (TypeError, IOError, AttributeError):
+        except (TypeError, IOError, AttributeError, SyntaxError):
             pass
 
         try: return obj.__file__, None
