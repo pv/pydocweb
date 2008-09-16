@@ -787,11 +787,20 @@ def patch_against_source(domain, revs=None):
     out, err = p.communicate()
     return err + "\n" + out
 
-def _exec_cmd(cmd, ok_return_value=0, **kw):
+def _exec_cmd(raw_cmd, ok_return_value=0, **kw):
     """
     Run given command and check return value.
     Return concatenated input and output.
     """
+
+    # XXX: not so nice unicode fix
+    cmd = []
+    for x in raw_cmd:
+        if isinstance(x, unicode):
+            cmd.append(x.encode('utf-8'))
+        else:
+            cmd.append(x)
+    
     try:
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
