@@ -34,7 +34,7 @@ Getting Python docstring to XML from sources, and vice versa.
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
 import os, shutil, copy, glob, subprocess, re
-import sys, cgi, math, pkgutil, cPickle as pickle
+import sys, cgi, math, cPickle as pickle
 import inspect, imp, textwrap, re, pydoc, compiler, difflib
 from optparse import make_option, OptionParser
 from StringIO import StringIO
@@ -996,13 +996,16 @@ class Documentation(object):
 
         # import sub-packages (only one level)
         if hasattr(mod, '__path__'):
-            for m in pkgutil.iter_modules(mod.__path__):
-                nm = "%s.%s" % (module_name, m[1])
-                try:
-                    __import__(nm)
-                except:
-                    print >> sys.stderr, "Failed to import module %s" % nm
-                    pass
+            for pth in mod.__path__:
+                for mod_path in os.listdir(pth):
+                    init_py = os.path.join(pth, mod_path, '__init__.py')
+                    if not os.path.isfile(init_py): continue
+                    nm = "%s.%s" % (module_name, mod_path)
+                    try:
+                        __import__(nm)
+                    except:
+                        print >> sys.stderr, "Failed to import module %s" % nm
+                        pass
 
         cname = self._canonical_name(mod, self.root, None)
         if cname in self._id_cache:
