@@ -101,24 +101,25 @@ def latex_to_png(prologue, in_text, out_png, with_baseline=False):
     cwd = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
     try:
-        os.chdir(tmp_dir)
-        f = open('foo.tex', 'w')
-        if with_baseline:
-            in_text = r"\rule{1ex}{1ex}\ " + in_text
-        f.write(LATEX_TEMPLATE % dict(raw=in_text.encode('utf-8'),
-                                      prologue=prologue))
-        f.close()
-        exec_cmd([LIMITED_LATEX] + LATEX_ARGS + ['foo.tex'], show_cmd=False)
-        exec_cmd([DVIPNG] + DVIPNG_ARGS + ['-o', 'foo.png', 'foo.dvi'],
-                 show_cmd=False)
-        if with_baseline:
-            baseline_offset = extract_baseline('foo.png')
-        else:
-            baseline_offset = 0
-        shutil.copy('foo.png', out_png)
-        return baseline_offset
-    except OSError, e:
-        raise RuntimeError(str(e))
+        try:
+            os.chdir(tmp_dir)
+            f = open('foo.tex', 'w')
+            if with_baseline:
+                in_text = r"\rule{1ex}{1ex}\ " + in_text
+            f.write(LATEX_TEMPLATE % dict(raw=in_text.encode('utf-8'),
+                                          prologue=prologue))
+            f.close()
+            exec_cmd([LIMITED_LATEX] + LATEX_ARGS + ['foo.tex'], show_cmd=False)
+            exec_cmd([DVIPNG] + DVIPNG_ARGS + ['-o', 'foo.png', 'foo.dvi'],
+                     show_cmd=False)
+            if with_baseline:
+                baseline_offset = extract_baseline('foo.png')
+            else:
+                baseline_offset = 0
+            shutil.copy('foo.png', out_png)
+            return baseline_offset
+        except OSError, e:
+            raise RuntimeError(str(e))
     finally:
         os.chdir(cwd)
         shutil.rmtree(tmp_dir)
@@ -137,9 +138,10 @@ def latex_to_uri(in_text, with_baseline=False):
         if os.path.isfile(baseline_file_name):
             f = open(baseline_file_name, 'r')
             try:
-                baseline_offset = int(f.read())
-            except:
-                baseline_offset = 0
+                try:
+                    baseline_offset = int(f.read())
+                except:
+                    baseline_offset = 0
             finally:
                 f.close()
         else:

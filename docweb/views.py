@@ -490,8 +490,15 @@ def diff(request, name, rev1, rev2):
     except DocstringRevision.DoesNotExist:
         raise Http404()
 
-    name1 = str(rev1.revno) if rev1 is not None else "SVN"
-    name2 = str(rev2.revno) if rev2 is not None else "SVN"
+    if rev1 is not None:
+        name1 = str(rev1.revno)
+    else:
+        name1 = "SVN"
+
+    if rev2 is not None:
+        name2 = str(rev2.revno)
+    else:
+        name2 = "SVN"
 
     diff = html_diff_text(text1, text2, label_a=name1, label_b=name2)
 
