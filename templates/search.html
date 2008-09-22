@@ -21,9 +21,8 @@
 
 {% if docstring_results %}
 <h2>Results: docstrings</h2>
-{% as_table_rows 3 docstring_results as rows %}
 <table class="content-list">
-  {% for row in rows %}
+  {% for row in docstring_results|columnize:"3" %}
   <tr>
     {% for item in row %}
     <td><a href="{% url docweb.views.docstring item.0 %}">{{item.0|escape}}</a></td>
@@ -35,9 +34,8 @@
 
 {% if wiki_results %}
 <h2>Results: wiki pages</h2>
-{% as_table_rows 3 wiki_results as rows %}
 <table class="content-list">
-  {% for row in rows %}
+  {% for row in wiki_results|columnize:"3" %}
   <tr>
     {% for item in row %}
     <td><a href="{% url docweb.views.wiki item.0 %}">{{item.0|escape}}</a></td>

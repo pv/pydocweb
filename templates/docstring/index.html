@@ -12,9 +12,8 @@
 
 <h3>{{status.grouper.0|escape}}</h3>
 
-{% as_table_rows 3 status.list as rows %}
 <table class="content-list">
-  {% for row in rows %}
+  {% for row in status.list|columnize:"3" %}
   <tr>
     {% for doc in row %}
     <td class="{{doc.statuscode|escape}}"><a href="{% url docweb.views.docstring doc.name %}">{{doc.name|escape}}</a></td>
