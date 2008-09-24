@@ -44,7 +44,9 @@ class TestRoundtrip(object):
                      'sample_module.sample1',
                      'sample_module.sample1.func4',
                      'sample_module.sample2',
-                     'sample_module.sample2.Cls2.func2']:
+                     'sample_module.sample2.Cls2.func2',
+                     'sample_module.sample3.Cls4',
+                     'sample_module.sample4.func_41']:
             ok = False
             for el in doc.getroot():
                 if el.get('id') == name:

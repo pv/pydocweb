@@ -997,10 +997,19 @@ class Documentation(object):
         # import sub-packages (only one level)
         if hasattr(mod, '__path__'):
             for pth in mod.__path__:
-                for mod_path in os.listdir(pth):
-                    init_py = os.path.join(pth, mod_path, '__init__.py')
-                    if not os.path.isfile(init_py): continue
-                    nm = "%s.%s" % (module_name, mod_path)
+                for fn in os.listdir(pth):
+                    init_py = os.path.join(pth, fn, '__init__.py')
+                    base_py = os.path.join(pth, fn)
+
+                    if os.path.isfile(base_py) and base_py.endswith('.py'):
+                        mod_name = fn[:-3]
+                        if mod_name == "__init__": continue
+                    elif os.path.isfile(init_py):
+                        mod_name = fn
+                    else:
+                        continue
+
+                    nm = "%s.%s" % (module_name, mod_name)
                     try:
                         __import__(nm)
                     except:
