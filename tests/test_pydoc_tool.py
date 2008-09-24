@@ -46,7 +46,8 @@ class TestRoundtrip(object):
                      'sample_module.sample2',
                      'sample_module.sample2.Cls2.func2',
                      'sample_module.sample3.Cls4',
-                     'sample_module.sample4.func_41']:
+                     'sample_module.sample4.func_41',
+                     'sample_module.sample5.sample51.func_511']:
             ok = False
             for el in doc.getroot():
                 if el.get('id') == name:
@@ -110,7 +111,10 @@ class TestRoundtrip(object):
 
             name = el.attrib['id']
 
-            doc_there = el.text.decode('string-escape')
+            if el.text is not None:
+                doc_there = el.text.decode('string-escape')
+            else:
+                doc_there = ""
 
             assert doc_there.strip() == new_item_docstrings[name].strip(), \
                    "%s\n%s\n----------\n%s\n-------\n%s\n----" % (
