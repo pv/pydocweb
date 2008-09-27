@@ -588,6 +588,7 @@ def patch(request):
              merge_status_id=entry.merge_status,
              name=entry.name)
         for entry in docs
+        if not entry.is_obsolete
     ]
     docs.sort(key=lambda x: (x['merge_status_id'], -x['review'], x['name']))
     return render_template(request, "patch.html",
