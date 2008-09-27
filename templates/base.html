@@ -39,7 +39,8 @@
     <div id="container">
       <div id="title"><h1>{% block pagetitle %}{% endblock %}</h1></div>
       {% block actions %}{% endblock %}
-         <div id="content">{% block content %}{% endblock %}</div>
-    </container>
+      <div id="content">{% block content %}{% endblock %}</div>
+    </div>
+    {% block below_container %}{% endblock %}
   </body>
 </html>

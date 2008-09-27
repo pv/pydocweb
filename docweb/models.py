@@ -434,6 +434,24 @@ class Docstring(models.Model):
         return cls.objects.filter(timestamp__in=current_timestamps)
 
 
+    def get_source_snippet(self):
+        """
+        Get a Python source snippet containing the function definition,
+        with the docstring stripped.
+        
+        """
+        if self.line_number is None:
+            return None
+        src = get_source_file_content(self.file_name)
+        if src is None:
+            return None
+        lines = src.split("\n")
+        src = "\n".join(lines[self.line_number-1:])
+        src = re.compile(r'("""|\'\'\').*?("""|\'\'\')', re.S).sub('"""..."""', src, count=1)
+        lines = src.split("\n")
+        return "\n".join(lines[:150])
+
+
 class DocstringRevision(models.Model):
     revno       = models.AutoField(primary_key=True)
     docstring   = models.ForeignKey(Docstring, related_name="revisions")
@@ -827,6 +845,12 @@ def strip_module_dir_prefix(file_name):
     return None
 
 def get_source_file_content(relative_file_name):
+    if relative_file_name is None:
+        return None
+    if os.path.splitext(relative_file_name)[1] not in ('.py', '.pyx', '.txt',
+                                                       '.rst'):
+        return None
+    
     in_svn_dir = False
     for svn_dir in [settings.MODULE_DIR]:
         fn_1 = os.path.realpath(os.path.join(svn_dir, relative_file_name))

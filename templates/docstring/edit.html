@@ -50,3 +50,13 @@
 </div>
 
 {% endblock %}
+
+{% block below_container %}
+{% if source %}
+<div id='source-float'>
+  <h2>Source code</h2>
+  <pre>{{source}}
+...</pre>
+</div>
+{% endif %}
+{% endblock %}

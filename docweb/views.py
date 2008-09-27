@@ -319,6 +319,8 @@ def _get_author_map():
 def edit(request, name):
     doc = get_object_or_404(Docstring, name=name)
 
+    source = doc.get_source_snippet()
+
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(docstring, args=[name]))
@@ -335,6 +337,7 @@ def edit(request, name):
                 return render_template(request, 'docstring/edit.html',
                                        dict(form=form, name=name,
                                             revision=revision,
+                                            source=source,
                                             diff_html=diff_html,
                                             preview_html=preview_html,
                                             ))
@@ -365,12 +368,14 @@ def edit(request, name):
     if revision is None and doc.merge_status != MERGE_NONE:
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
+                                    source=source,
                                     merge_warning=(doc.merge_status==MERGE_MERGE),
                                     conflict_warning=(doc.merge_status==MERGE_CONFLICT),
                                     preview_html=None))
     else:
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
+                                    source=source,
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
                                     preview_html=None))
 
@@ -554,9 +559,6 @@ def review(request, name):
 def source(request, file_name):
     src = get_source_file_content(file_name)
     if src is None:
-        raise Http404()
-    if not (file_name.endswith('.py') or file_name.endswith('.pyx')
-            or file_name.endswith('.txt') or file_name.endswith('.rst')):
         raise Http404()
     lines = src.splitlines()
     return render_template(request, 'source.html',
