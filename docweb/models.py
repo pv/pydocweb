@@ -3,6 +3,7 @@ import datetime, cgi, os, tempfile, re
 from django.db import models
 from django.db import transaction
 from django.conf import settings
+from django.contrib.auth.models import User, Group
 
 MAX_NAME_LEN = 256
 
@@ -925,3 +926,18 @@ def html_diff_text(text_a, text_b, label_a="previous", label_b="current"):
 
 def strip_spurious_whitespace(text):
     return ("\n".join([x.rstrip() for x in text.split("\n")])).strip()
+
+def set_user_default_groups(user):
+    """Add the user to the default groups specified in settrings.py"""
+
+    try:
+        default_groups = settings.DEFAULT_USER_GROUPS
+    except AttributeError:
+        default_groups = []
+    
+    for group_name in default_groups:
+        try:
+            group = Group.objects.get(name=group_name)
+        except Group.DoesNotExist:
+            pass
+        group.user_set.add(user)

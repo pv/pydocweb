@@ -734,6 +734,7 @@ def register(request):
                                                 data['password'])
                 user.first_name = data['first_name']
                 user.last_name = data['last_name']
+                set_user_default_groups(user)
                 user.save()
                 return render_template(request,
                                        'registration/register_done.html',

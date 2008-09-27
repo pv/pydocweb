@@ -55,6 +55,16 @@ EDITOR_NAME = "Scipy Documentation Editor"
 
 MAX_DOCSTRING_WIDTH = 79
 
+# User registration
+# -----------------
+
+# Groups to which newly registered users are added.
+#
+# NOTE: By default newly registered users belong to no group and have no
+#       permissions. Be aware that Pydocweb has no real anti-spam measures,
+#       so allowing all registered users to edit may invite in spam.
+DEFAULT_USER_GROUPS = ()
+
 
 #------------------------------------------------------------------------------
 # Standard Django settings
