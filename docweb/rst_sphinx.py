@@ -133,6 +133,8 @@ register_directive('code-block', blurb_directive(
     lambda d, c: ["::", ""] + _indent(c[1:], 4)))
 register_directive('sourcecode', blurb_directive(
     lambda d, c: ["::", ""] + _indent(c[1:], 4)))
+register_directive('doctest', blurb_directive(
+    lambda d, c: ["::", ""] + _indent(c[1:], 4)))
 
 #------------------------------------------------------------------------------
 # Variable setters
