@@ -208,22 +208,11 @@ import docutils.nodes
 
 def index_directive(name, arguments, options, content, lineno,
                     content_offset, block_text, state, state_machine):
-    return docutils.nodes.literal(text='')
+    return []
 
-index_directive.arguments = (
-    1, # number of required arguments
-    1, # number of optional arguments
-    False # whether final argument can contain whitespace
-)
-index_directive.options = {
-}
-index_directive.arguments = (
-    0, # number of required arguments
-    0, # number of optional arguments
-    False # whether final argument can contain whitespace
-)
+index_directive.arguments = (0, 0, False)
 index_directive.options = {}
-index_directive.content = True # whether content is allowed
+index_directive.content = True
 
 docutils.parsers.rst.directives.register_directive('index', index_directive)
 

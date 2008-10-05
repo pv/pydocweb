@@ -14,6 +14,7 @@ import docutils.core
 from docutils.statemachine import ViewList
 from docutils import nodes, utils
 
+from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import (register_local_role,
                                         register_generic_role)
@@ -59,15 +60,6 @@ toctree_directive.options = {}
 toctree_directive.content = True
 
 register_directive('toctree', toctree_directive)
-
-#------------------------------------------------------------------------------
-# Variable setters
-#------------------------------------------------------------------------------
-
-# XXX: these should affect reference resolution
-
-# module::
-# currentmodule::
 
 #------------------------------------------------------------------------------
 # Dummy-rendered directives
@@ -143,6 +135,25 @@ register_directive('sourcecode', blurb_directive(
     lambda d, c: ["::", ""] + _indent(c[1:], 4)))
 
 #------------------------------------------------------------------------------
+# Variable setters
+#------------------------------------------------------------------------------
+
+# XXX: these should affect reference resolution
+
+def module_directive(dirname, arguments, options, content, lineno,
+                     content_offset, block_text, state, state_machine):
+    text = '.. %s:: %s' % (dirname, arguments[0])
+    node = nodes.literal_block('', text)
+    return [node]
+
+module_directive.arguments = (1, 0, False)
+module_directive.content = False
+module_directive.options = {'synopsis': directives.unchanged}
+
+register_directive('module', module_directive)
+register_directive('currentmodule', module_directive)
+
+#------------------------------------------------------------------------------
 # Dummy-rendered roles
 #------------------------------------------------------------------------------
 
@@ -184,16 +195,6 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         link = text[1:]
         text = text[1:].split('.')[-1]
 
-    try:
-        models.LabelCache.objects.get(label=link)
-        is_label = True
-    except models.LabelCache.DoesNotExist:
-        is_label = False
-
-    if is_label and link == text:
-        # XXX: Make LabelCache.title more intelligent, and use it here?
-        text = "[Ref:%s]" % link
-    
     ref = nodes.reference(rawtext, text, name=link,
                           refname=':ref:`%s`' % link)
     return [ref], []
