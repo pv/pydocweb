@@ -486,17 +486,15 @@ class LabelCache(models.Model):
     target = models.CharField(max_length=256)
     title = models.CharField(max_length=256)
     domain = models.CharField(max_length=256)
-    is_docstring = models.BooleanField()
 
     _label_re = re.compile(r'^\.\.\s+_([\w.-]+):\s*$', re.M)
 
     @classmethod
-    def cache(cls, name, target, title=None, domain="", is_docstring=False):
+    def cache(cls, name, target, title=None, domain=""):
         if title is None: title = name
         label, created = cls.objects.get_or_create(label=name)
         label.target = name
         label.title = title
-        label.is_docstring = is_docstring
         label.domain = domain
         label.save()
 
@@ -506,13 +504,13 @@ class LabelCache(models.Model):
 
     @classmethod
     def cache_docstring(cls, docstring):
+        cls.objects.filter(target=docstring.name).all().delete()
+
         # -- Cache docstring name
-        cls.cache(docstring.name, docstring.name, domain=docstring.domain,
-                  is_docstring=True)
+        cls.cache(docstring.name, docstring.name, domain=docstring.domain)
 
         # -- Cache .. _foo: labels
         if docstring.type_code == 'file':
-            cls.objects.filter(target=docstring.name).all().delete()
             for name in cls._label_re.findall(docstring.text):
                 # XXX: put something more intelligent to the title field...
                 cls.cache(name, docstring.name, domain=docstring.domain)
@@ -521,8 +519,7 @@ class LabelCache(models.Model):
         if docstring.type_code in ('class', 'module'):
             for alias in docstring.contents.all():
                 name = '%s.%s' % (docstring.name, alias.alias)
-                cls.cache(name, alias.target, is_docstring=True,
-                          domain=docstring.domain)
+                cls.cache(name, alias.target, domain=docstring.domain)
 
 
 # -- Wiki pages
@@ -708,7 +705,7 @@ def _update_docstrings_from_xml(domain, stream):
     # -- Update label cache
 
     LabelCache.clear(domain=domain)
-    for doc in Docstring.objects.all():
+    for doc in Docstring.objects.filter(domain=domain).all():
         LabelCache.cache_docstring(doc)
 
 

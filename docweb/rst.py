@@ -54,7 +54,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
         return True
     
     def _resolve_name(self, name, is_label=False):
-        names = [name] + ['%s.%s' % (p, name) for p in self.resolve_prefixes]
+        names = [name] + ['%s%s' % (p, name) for p in self.resolve_prefixes]
         items = models.LabelCache.objects.filter(label__in=names)
         if items:
             return reverse('pydocweb.docweb.views.docstring',
@@ -182,8 +182,10 @@ def render_docstring_html(doc, text):
 def render_sphinx_html(doc, text):
     # Determine allowed link namespace prefixes
     parts = doc.name.split('/')
-    prefixes = ['/'.join(parts[:j]) + '/' for j in range(1, len(parts))]
-    prefixes.reverse()
+    if len(parts) > 1:
+        prefixes = ['/'.join(parts[:-1]) + '/']
+    else:
+        prefixes = []
 
     # Docstring body
     body_html = render_html(unicode(text),
