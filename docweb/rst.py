@@ -58,7 +58,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
         items = models.LabelCache.objects.filter(label__in=names)
         if items:
             return reverse('pydocweb.docweb.views.docstring',
-                           kwargs=dict(name=items[0].target))
+                           kwargs=dict(name=items[0].target)) + '#' + name
 
         if self.resolve_to_wiki:
             return reverse('pydocweb.docweb.views.wiki', args=[name])

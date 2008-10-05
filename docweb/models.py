@@ -488,12 +488,13 @@ class LabelCache(models.Model):
     domain = models.CharField(max_length=256)
 
     _label_re = re.compile(r'^\.\.\s+_([\w.-]+):\s*$', re.M)
+    _directive_re = re.compile(r'^\s*\.\.\s+(currentmodule|module|cfunction|cmember|cmacro|ctype|cvar|data|exception|function|class|attribute|method|staticmethod)::.*?([a-zA-Z_0-9.-]+)\s*(?:\(.*\)\s*$|$)', re.M)
 
     @classmethod
     def cache(cls, name, target, title=None, domain=""):
         if title is None: title = name
         label, created = cls.objects.get_or_create(label=name)
-        label.target = name
+        label.target = target
         label.title = title
         label.domain = domain
         label.save()
@@ -509,11 +510,24 @@ class LabelCache(models.Model):
         # -- Cache docstring name
         cls.cache(docstring.name, docstring.name, domain=docstring.domain)
 
-        # -- Cache .. _foo: labels
+        # -- Cache .. _foo: labels and Sphinx directives
         if docstring.type_code == 'file':
-            for name in cls._label_re.findall(docstring.text):
+            text = docstring.text
+            
+            for name in cls._label_re.findall(text):
                 # XXX: put something more intelligent to the title field...
                 cls.cache(name, docstring.name, domain=docstring.domain)
+
+            module = ""
+            for directive, name in cls._directive_re.findall(text):
+                if directive in ('module', 'currentmodule'):
+                    module = name + '.'
+                    cls.cache(name, docstring.name, domain=docstring.domain)
+                elif directive == 'currentmodule':
+                    continue
+                else:
+                    cls.cache(module + name, docstring.name,
+                              domain=docstring.domain)
 
         # -- Cache content aliases
         if docstring.type_code in ('class', 'module'):
