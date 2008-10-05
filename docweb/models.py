@@ -479,24 +479,50 @@ class DocstringAlias(models.Model):
 
 class LabelCache(models.Model):
     """
-    ReStructuredText cross-reference labels
-    
+    ReStructuredText cross-reference labels and docstring aliases
+
     """
     label = models.CharField(max_length=256, primary_key=True)
     target = models.CharField(max_length=256)
     title = models.CharField(max_length=256)
+    domain = models.CharField(max_length=256)
+    is_docstring = models.BooleanField()
 
     _label_re = re.compile(r'^\.\.\s+_([\w.-]+):\s*$', re.M)
 
     @classmethod
+    def cache(cls, name, target, title=None, domain="", is_docstring=False):
+        if title is None: title = name
+        label, created = cls.objects.get_or_create(label=name)
+        label.target = name
+        label.title = title
+        label.is_docstring = is_docstring
+        label.domain = domain
+        label.save()
+
+    @classmethod
+    def clear(cls, domain):
+        cls.objects.filter(domain=domain).delete()
+
+    @classmethod
     def cache_docstring(cls, docstring):
-        cls.objects.filter(target=docstring.name).all().delete()
-        for name in cls._label_re.findall(docstring.text):
-            label, created = cls.objects.get_or_create(label=name)
-            label.target = docstring.name
-            # XXX: put something more intelligent to the title field...
-            label.title = docstring.name
-            label.save()
+        # -- Cache docstring name
+        cls.cache(docstring.name, docstring.name, domain=docstring.domain,
+                  is_docstring=True)
+
+        # -- Cache .. _foo: labels
+        if docstring.type_code == 'file':
+            cls.objects.filter(target=docstring.name).all().delete()
+            for name in cls._label_re.findall(docstring.text):
+                # XXX: put something more intelligent to the title field...
+                cls.cache(name, docstring.name, domain=docstring.domain)
+
+        # -- Cache content aliases
+        if docstring.type_code in ('class', 'module'):
+            for alias in docstring.contents.all():
+                name = '%s.%s' % (docstring.name, alias.alias)
+                cls.cache(name, alias.target, is_docstring=True,
+                          domain=docstring.domain)
 
 
 # -- Wiki pages
@@ -610,11 +636,15 @@ def _update_docstrings_from_xml(domain, stream):
 
     known_entries = {}
     for el in root:
-        if el.tag not in ('module', 'class', 'callable', 'object', 'dir', 'file'): continue
+        if el.tag not in ('module', 'class', 'callable', 'object', 'dir',
+                          'file'):
+            continue
         known_entries[el.attrib['id']] = True
 
     for el in root:
-        if el.tag not in ('module', 'class', 'callable', 'object', 'dir', 'file'): continue
+        if el.tag not in ('module', 'class', 'callable', 'object', 'dir',
+                          'file'):
+            continue
 
         bases = []
         for b in el.findall('base'):
@@ -666,11 +696,6 @@ def _update_docstrings_from_xml(domain, stream):
         doc.contents.all().delete()
         doc.save()
 
-        # -- Labels
-
-        if doc.type_code == 'file':
-            LabelCache.cache_docstring(doc)
-
         # -- Contents
 
         for ref in el.findall('ref'):
@@ -679,6 +704,13 @@ def _update_docstrings_from_xml(domain, stream):
             alias.parent = doc
             alias.alias = ref.attrib['name']
             alias.save()
+
+    # -- Update label cache
+
+    LabelCache.clear(domain=domain)
+    for doc in Docstring.objects.all():
+        LabelCache.cache_docstring(doc)
+
 
 def update_docstrings(domain):
     """

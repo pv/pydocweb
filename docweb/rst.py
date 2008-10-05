@@ -54,22 +54,11 @@ class RstWriter(docutils.writers.html4css1.Writer):
         return True
     
     def _resolve_name(self, name, is_label=False):
-        for prefix in [''] + self.resolve_prefixes:
-            try:
-                doc = models.Docstring.resolve(prefix + name)
-                return reverse('pydocweb.docweb.views.docstring',
-                               kwargs=dict(name=doc.name))
-            except models.Docstring.DoesNotExist:
-                pass
-
-        if not is_label:
-            # fall-back to a RST label search
-            try:
-                label = models.LabelCache.objects.get(label=name).target
-                result = self._resolve_name(label, is_label=True)
-                return "%s#%s" % (result, name)
-            except models.LabelCache.DoesNotExist:
-                pass
+        names = [name] + ['%s.%s' % (p, name) for p in self.resolve_prefixes]
+        items = models.LabelCache.objects.filter(label__in=names)
+        if items:
+            return reverse('pydocweb.docweb.views.docstring',
+                           kwargs=dict(name=items[0].target))
 
         if self.resolve_to_wiki:
             return reverse('pydocweb.docweb.views.wiki', args=[name])
