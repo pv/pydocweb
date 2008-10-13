@@ -8,6 +8,8 @@ from django.template.loader import get_template
 
 import pydocweb.docweb.models as models
 
+from utils import cache_memoize
+
 #------------------------------------------------------------------------------
 # Rendering
 #------------------------------------------------------------------------------
@@ -67,6 +69,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
     
     resolver.priority = 001
 
+@cache_memoize(max_age=60*60)
 def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
     # Fix Django clobbering
     docutils.parsers.rst.roles.DEFAULT_INTERPRETED_ROLE = 'title-reference'

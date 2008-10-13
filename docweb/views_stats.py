@@ -67,12 +67,7 @@ def contributors(request):
 @cache_control(max_age=60*15, public=True)
 def stats(request):
     # Get statistic information
-    stats_cached = cache.get('stats__get_stats_info')
-    if stats_cached is not None:
-        stats, height = stats_cached
-    else:
-        stats, height = _get_stats_info()
-        cache.set('stats__get_stats_info', (stats, height), 60*15)
+    stats, height = _get_stats_info()
 
     # Render
     try:
@@ -86,6 +81,7 @@ def stats(request):
                                 height=height,
                                 ))
 
+@cache_memoize(max_age=60*15)
 def _get_stats_info():
     """
     Generate information needed by the stats page.
@@ -244,7 +240,7 @@ class PeriodStats(object):
 def _get_edits():
     """Return a list of tuples (timestamp, n_words, docstringrevision)"""
     site = Site.objects.get_current()
-    objects = DocstringRevision.filter(docstring__site=site).objects
+    objects = DocstringRevision.objects.filter(docstring__site=site)
     revisions = objects.all().order_by('docstring', 'timestamp')
 
     last_text = None

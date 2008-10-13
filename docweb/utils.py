@@ -1,4 +1,5 @@
 import time
+import cPickle as pickle
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import (HttpResponseRedirect, HttpResponsePermanentRedirect,
@@ -20,7 +21,6 @@ from django import forms
 
 import pydocweb.settings
 
-import rst
 from pydocweb.docweb.models import *
 
 def render_template(request, template, vardict):
@@ -34,3 +34,17 @@ def get_author_map():
                                                    user.last_name)
     return author_map
 
+def cache_memoize(max_age):
+    def decorator(func):
+        key_prefix = 'cache_memoize__%s' % func.__name__
+        def wrapper(*a, **kw):
+            key = '%s__%s' % (key_prefix, hash(pickle.dumps((a, kw))))
+            cached = cache.get(key)
+            if cached is not None:
+                return cached
+            else:
+                ret = func(*a, **kw)
+            cache.set(key, ret, max_age)
+            return ret
+        return wrapper
+    return decorator
