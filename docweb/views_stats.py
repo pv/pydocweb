@@ -14,7 +14,7 @@ def changes(request):
     pagerevs = WikiPageRevision.objects.filter(page__site=site).order_by('-timestamp')[:100]
     comments = ReviewComment.objects.filter(docstring__site=site).order_by('-timestamp')
 
-    author_map = _get_author_map()
+    author_map = get_author_map()
     docstring_changes = [
         dict(timestamp=r.timestamp,
              author=author_map.get(r.author, r.author),
@@ -154,7 +154,7 @@ def _get_weekly_stats(edits):
     docstring_status = {}
     docstring_start_rev = {}
 
-    author_map = _get_author_map()
+    author_map = get_author_map()
     author_map['xml-import'] = "Imported"
 
     for j in REVIEW_STATUS_NAMES.keys():
