@@ -20,7 +20,7 @@ def frontpage(request):
 
 def view(request, name):
     try:
-        page = WikiPage.objects.get(name=name)
+        page = WikiPage.on_site.get(name=name)
         revision = request.GET.get('revision')
         try:
             revision = int(revision)
@@ -42,6 +42,8 @@ def view(request, name):
 
 @permission_required('docweb.change_wikipage')
 def edit(request, name):
+    site = Site.objects.get_current()
+    
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(view, args=[name]))
@@ -53,7 +55,7 @@ def edit(request, name):
             if request.POST.get('button_preview'):
                 preview = rst.render_html(data['text'])
                 try:
-                    prev_text = WikiPage.objects.get(name=name).text
+                    prev_text = WikiPage.on_site.get(name=name).text
                     prev_text = prev_text.decode('utf-8')
                 except WikiPage.DoesNotExist:
                     prev_text = ""
@@ -67,7 +69,8 @@ def edit(request, name):
                          diff_html=diff_html,
                          preview_html=preview))
             else:
-                page, created = WikiPage.objects.get_or_create(name=name)
+                page, created = WikiPage.on_site.get_or_create(name=name,
+                                                               site=site)
                 page.edit(data['text'],
                           request.user.username,
                           data['comment'])
@@ -75,7 +78,7 @@ def edit(request, name):
     else:
         try:
             revision = request.GET.get('revision')
-            page = WikiPage.objects.get(name=name)
+            page = WikiPage.on_site.get(name=name)
             try:
                 revision = int(revision)
                 rev = page.revisions.get(revno=revision)
@@ -105,7 +108,7 @@ def log(request, name):
             except (ValueError, TypeError):
                 pass
 
-    author_map = _get_author_map()
+    author_map = get_author_map()
 
     revisions = []
     for rev in page.revisions.all():
@@ -143,6 +146,7 @@ def diff(request, name, rev1, rev2):
                                 diff_html=diff))
 
 def diff_prev(request, name, rev2):
+    site = Site.objects.get_current()
     page = get_object_or_404(WikiPage, name=name)
     try:
         rev2 = get_object_or_404(WikiPageRevision, revno=int(rev2)).revno
@@ -150,7 +154,7 @@ def diff_prev(request, name, rev2):
         raise Http404()
 
     try:
-        rev1 = WikiPageRevision.objects.filter(page=page, revno__lt=rev2).order_by('-revno')[0].revno
+        rev1 = WikiPageRevision.objects.filter(page__site=site, page=page, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
         rev1 = "cur"
 

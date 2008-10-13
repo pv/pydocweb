@@ -20,8 +20,17 @@ from django import forms
 
 import pydocweb.settings
 
+import rst
+from pydocweb.docweb.models import *
+
 def render_template(request, template, vardict):
     return render_to_response(template, vardict, RequestContext(request))
 
-import rst
-from pydocweb.docweb.models import *
+def get_author_map():
+    author_map = {}
+    for user in User.objects.all():
+        if user.first_name and user.last_name:
+            author_map[user.username] = "%s %s" % (user.first_name,
+                                                   user.last_name)
+    return author_map
+

@@ -32,7 +32,7 @@ def docstring_name_link(name, all_links=False):
 @register.simple_tag
 def docstring_status_code(name):
     try:
-        doc = Docstring.objects.get(name=name)
+        doc = Docstring.on_site.get(name=name)
     except Docstring.DoesNotExist:
         return "none"
     return REVIEW_STATUS_CODES[doc.review]

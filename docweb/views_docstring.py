@@ -83,7 +83,7 @@ def view(request, name):
     except DocstringRevision.DoesNotExist:
         raise Http404()
 
-    author_map = _get_author_map()
+    author_map = get_author_map()
     comments = []
     for comment in doc.comments.all():
         comments.append(dict(
@@ -125,14 +125,6 @@ def view(request, name):
         return render_template(request, 'docstring/merge.html', params)
     else:
         return render_template(request, 'docstring/page.html', params)
-
-def _get_author_map():
-    author_map = {}
-    for user in User.objects.all():
-        if user.first_name and user.last_name:
-            author_map[user.username] = "%s %s" % (user.first_name,
-                                                   user.last_name)
-    return author_map
 
 class EditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(
@@ -218,7 +210,7 @@ def log(request, name):
             rev2 = str(request.POST.get('rev2'))
             return HttpResponseRedirect(reverse(diff, args=[name, rev1, rev2]))
 
-    author_map = _get_author_map()
+    author_map = get_author_map()
 
     revisions = []
     for rev in doc.revisions.all():
@@ -278,7 +270,7 @@ def diff_prev(request, name, rev2):
         raise Http404()
 
     try:
-        rev1 = DocstringRevision.objects.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
+        rev1 = DocstringRevision.on_site.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
         rev1 = "svn"
 

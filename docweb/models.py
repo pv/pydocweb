@@ -5,6 +5,10 @@ from django.db import transaction
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 
+from django.contrib.sites.models import Site
+from django.contrib.sites.managers import CurrentSiteManager
+
+
 MAX_NAME_LEN = 256
 
 PYDOCTOOL = os.path.join(os.path.dirname(__file__), '../scripts/pydoc-tool.py')
@@ -59,9 +63,6 @@ class Docstring(models.Model):
     name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")
 
-    domain      = models.CharField(max_length=MAX_NAME_LEN,
-                                   help_text="Source file domain")
-
     type_code   = models.CharField(max_length=16, db_column="type_",
                                    help_text="module, class, callable, object")
 
@@ -90,10 +91,13 @@ class Docstring(models.Model):
                                       help_text="Line number in source file")
     timestamp   = models.DateTimeField(default=datetime.datetime.now,
                                        help_text="Time of last SVN pull")
-    # contents = [DocstringAlias...]
+    # contents  = [DocstringAlias...]
     # revisions = [DocstringRevision...]
-    # comments = [ReviewComment...]
+    # comments  = [ReviewComment...]
 
+    site       = models.ForeignKey(Site)
+    on_site    = CurrentSiteManager()
+    
     class Meta:
         ordering = ['name']
         permissions = (
@@ -124,7 +128,7 @@ class Docstring(models.Model):
 
     @property
     def is_obsolete(self):
-        return (self.timestamp != Docstring.objects.filter(domain=self.domain).order_by('-timestamp')[0].timestamp)
+        return (self.timestamp != Docstring.on_site.order_by('-timestamp')[0].timestamp)
 
     @property
     def child_objects(self):
@@ -150,7 +154,9 @@ class Docstring(models.Model):
     def child_files(self):
         return self._get_contents('file')
 
-    def _get_contents(self, type_code):
+    def _get_contents(self, type_code, site=None):
+        if site is None:
+            site = Site.objects.get_current()
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
@@ -159,6 +165,7 @@ class Docstring(models.Model):
         [self.name, type_code])
         names = [n[0] for n in cursor.fetchall()]
         objs = DocstringAlias.objects.filter(parent=self,
+                                             parent__site=site,
                                              alias__in=names)
         objs = list(objs)
         for obj in objs:
@@ -328,7 +335,7 @@ class Docstring(models.Model):
 
         """
         def _get(name):
-            try: return cls.objects.get(name=name)
+            try: return cls.on_site.get(name=name)
             except cls.DoesNotExist: return None
 
         if '/' in name:
@@ -362,7 +369,7 @@ class Docstring(models.Model):
                 except DocstringAlias.DoesNotExist:
                     parent = None
             j += 1
-        return cls.objects.get(name=sep.join(parts))
+        return cls.on_site.get(name=sep.join(parts))
 
     def __str__(self):
         return "<Docstring '%s'>" % self.name
@@ -425,13 +432,14 @@ class Docstring(models.Model):
 
     @classmethod
     def get_non_obsolete(cls):
+        site = Site.objects.get_current()
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
         SELECT timestamp FROM docweb_docstring
-        GROUP BY domain ORDER BY timestamp""")
+        WHERE site_id = %s ORDER BY timestamp""", [site.id])
         current_timestamps = [x[0] for x in cursor.fetchall()]
-        return cls.objects.filter(timestamp__in=current_timestamps)
+        return cls.on_site.filter(timestamp__in=current_timestamps)
 
 
     def get_source_snippet(self):
@@ -485,30 +493,35 @@ class LabelCache(models.Model):
     label = models.CharField(max_length=256, primary_key=True)
     target = models.CharField(max_length=256)
     title = models.CharField(max_length=256)
-    domain = models.CharField(max_length=256)
+
+    site       = models.ForeignKey(Site)
+    on_site    = CurrentSiteManager()
+    objects    = models.Manager()
 
     _label_re = re.compile(r'^\.\.\s+_([\w.-]+):\s*$', re.M)
     _directive_re = re.compile(r'^\s*\.\.\s+(currentmodule|module|cfunction|cmember|cmacro|ctype|cvar|data|exception|function|class|attribute|method|staticmethod)::.*?([a-zA-Z_0-9.-]+)\s*(?:\(.*\)\s*$|$)', re.M)
 
     @classmethod
-    def cache(cls, name, target, title=None, domain=""):
+    def cache(cls, name, target, title=None, site=None, overwrite=False):
+        if site is None: site = Site.objects.get_current()
         if title is None: title = name
-        label, created = cls.objects.get_or_create(label=name)
-        label.target = target
-        label.title = title
-        label.domain = domain
-        label.save()
+        label, created = cls.on_site.get_or_create(label=name, site=site)
+        if created or overwrite:
+            label.target = target
+            label.title = title
+            label.site = site
+            label.save()
 
     @classmethod
-    def clear(cls, domain):
-        cls.objects.filter(domain=domain).delete()
+    def clear(cls, site):
+        cls.objects.filter(site=site).delete()
 
     @classmethod
     def cache_docstring(cls, docstring):
         cls.objects.filter(target=docstring.name).all().delete()
 
         # -- Cache docstring name
-        cls.cache(docstring.name, docstring.name, domain=docstring.domain)
+        cls.cache(docstring.name, docstring.name, site=docstring.site)
 
         # -- Cache .. _foo: labels and Sphinx directives
         if docstring.type_code == 'file':
@@ -516,31 +529,32 @@ class LabelCache(models.Model):
             
             for name in cls._label_re.findall(text):
                 # XXX: put something more intelligent to the title field...
-                cls.cache(name, docstring.name, domain=docstring.domain)
+                cls.cache(name, docstring.name, site=docstring.site)
 
             module = ""
             for directive, name in cls._directive_re.findall(text):
                 if directive in ('module', 'currentmodule'):
                     module = name + '.'
-                    cls.cache(name, docstring.name, domain=docstring.domain)
+                    cls.cache(name, docstring.name, site=docstring.site)
                 elif directive == 'currentmodule':
                     continue
                 else:
                     cls.cache(module + name, docstring.name,
-                              domain=docstring.domain)
+                              site=docstring.site)
 
         # -- Cache content aliases
         if docstring.type_code in ('class', 'module'):
             for alias in docstring.contents.all():
                 name = '%s.%s' % (docstring.name, alias.alias)
-                cls.cache(name, alias.target, domain=docstring.domain)
+                cls.cache(name, alias.target, site=docstring.site)
 
 
 # -- Wiki pages
 
 class WikiPage(models.Model):
-    name = models.CharField(max_length=256, primary_key=True)
-    domain = models.CharField(max_length=256)
+    name       = models.CharField(max_length=256)
+    site       = models.ForeignKey(Site)
+    on_site    = CurrentSiteManager()
 
     def edit(self, new_text, author, comment):
         """Create a new revision of the page"""
@@ -563,7 +577,7 @@ class WikiPage(models.Model):
     def fetch_text(cls, page_name):
         """Return text contained in a page, or empty string if didn't exist"""
         try:
-            text = cls.objects.get(name=page_name).text
+            text = cls.on_site.get(name=page_name).text
             if text is None: return ""
             return text
         except cls.DoesNotExist:
@@ -629,18 +643,18 @@ import tempfile, os, subprocess, sys, shutil, traceback, difflib
 class MalformedPydocXML(RuntimeError): pass
 
 @transaction.commit_on_success
-def update_docstrings_from_xml(domain, stream):
+def update_docstrings_from_xml(site, stream):
     """
     Read XML from stream and update database accordingly.
 
     """
     try:
-        _update_docstrings_from_xml(domain, stream)
+        _update_docstrings_from_xml(site, stream)
     except (TypeError, ValueError, AttributeError, KeyError), e:
         msg = traceback.format_exc()
         raise MalformedPydocXML(str(e) + "\n\n" +  msg)
 
-def _update_docstrings_from_xml(domain, stream):
+def _update_docstrings_from_xml(site, stream):
     tree = etree.parse(stream)
     root = tree.getroot()
 
@@ -681,7 +695,8 @@ def _update_docstrings_from_xml(domain, stream):
         except (ValueError, TypeError):
             line = None
 
-        doc, created = Docstring.objects.get_or_create(name=el.attrib['id'])
+        doc, created = Docstring.on_site.get_or_create(name=el.attrib['id'],
+                                                       site=site)
         doc.type_code = el.tag
         doc.type_name = el.get('type')
         doc.argspec = el.get('argspec')
@@ -690,7 +705,6 @@ def _update_docstrings_from_xml(domain, stream):
         doc.file_name = el.get('file')
         doc.line_number = line
         doc.timestamp = timestamp
-        doc.domain = domain
 
         if created:
             # New docstring
@@ -719,34 +733,34 @@ def _update_docstrings_from_xml(domain, stream):
 
     # -- Update label cache
 
-    LabelCache.clear(domain=domain)
-    for doc in Docstring.objects.filter(domain=domain).all():
+    LabelCache.clear(site=site)
+    for doc in Docstring.on_site.all():
         LabelCache.cache_docstring(doc)
 
 
-def update_docstrings(domain):
+def update_docstrings(site):
     """
     Update docstrings from sources.
 
     """
 
-    base_xml_fn = base_xml_file_name(domain)
+    base_xml_fn = base_xml_file_name(site)
     os.environ['PYDOCTOOL'] = PYDOCTOOL
     pwd = os.getcwd()
     try:
         os.chdir(settings.MODULE_DIR)
-        _exec_cmd([settings.PULL_SCRIPTS[domain], base_xml_fn])
+        _exec_cmd([settings.PULL_SCRIPT, base_xml_fn])
     finally:
         os.chdir(pwd)
     
     f = open(base_xml_fn, 'r')
     try:
-        update_docstrings_from_xml(domain, f)
+        update_docstrings_from_xml(site, f)
     finally:
         f.close()
 
-def base_xml_file_name(domain):
-    return os.path.join(settings.MODULE_DIR, 'base-%s.xml' % domain)
+def base_xml_file_name(site):
+    return os.path.join(settings.MODULE_DIR, 'base-%s.xml' % site.domain)
     
 @transaction.commit_on_success
 def import_docstring_revisions_from_xml(stream):
@@ -767,7 +781,7 @@ def _import_docstring_revisions_from_xml(stream):
         if el.tag not in ('module', 'class', 'callable', 'object'): continue
 
         try:
-            doc = Docstring.objects.get(name=el.attrib['id'])
+            doc = Docstring.on_site.get(name=el.attrib['id'])
         except Docstring.DoesNotExist:
             print "DOES-NOT-EXIST", el.attrib['id']
             continue
@@ -820,7 +834,7 @@ def dump_docs_as_xml(stream, revs=None, only_text=False):
     stream.write('<?xml version="1.0" encoding="utf-8"?>')
     new_xml.write(stream)
 
-def patch_against_source(domain, revs=None):
+def patch_against_source(site, revs=None):
     """
     Generate a patch against source files, for the given docstrings.
 
@@ -831,15 +845,15 @@ def patch_against_source(domain, revs=None):
     new_xml_file.flush()
     
     # -- Generate patch
-    base_xml_fn = base_xml_file_name(domain)
+    base_xml_fn = base_xml_file_name(site)
 
     # XXX: yech, bad hack, needs a real fix
     paths = os.path.pathsep.join([
-        os.path.join(settings.MODULE_DIR, domain,
+        os.path.join(settings.MODULE_DIR, site.domain,
                      'dist/lib/python2.4/site-packages'),
-        os.path.join(settings.MODULE_DIR, domain,
+        os.path.join(settings.MODULE_DIR, site.domain,
                      'dist/lib/python2.5/site-packages'),
-        os.path.join(settings.MODULE_DIR, domain,
+        os.path.join(settings.MODULE_DIR, site.domain,
                      'dist/lib/python2.6/site-packages'),
         settings.MODULE_DIR,
         ])

@@ -1,3 +1,4 @@
+from django.contrib.sites.models import Site
 from utils import *
 
 #------------------------------------------------------------------------------
@@ -5,15 +6,14 @@ from utils import *
 #------------------------------------------------------------------------------
 
 def patch(request):
+    site = Site.objects.get_current()
+
     if request.method == "POST":
         included_docs = request.POST.keys()
-        patch = ""
-        for domain in settings.PULL_SCRIPTS.keys():
-            patch += patch_against_source(
-                domain, Docstring.objects.filter(name__in=included_docs))
+        patch = patch_against_source(site, Docstring.on_site.filter(name__in=included_docs))
         return HttpResponse(patch, mimetype="text/plain")
 
-    docs = Docstring.objects.filter(dirty=True)
+    docs = Docstring.on_site.filter(dirty=True)
     docs = [
         dict(included=(entry.merge_status == MERGE_NONE and
                        entry.review == REVIEW_PROOFED),
@@ -47,15 +47,15 @@ def merge(request):
     errors = []
     if request.method == 'POST':
         ok = request.POST.keys()
-        for obj in Docstring.objects.filter(merge_status=MERGE_MERGE,
+        for obj in Docstring.on_site.filter(merge_status=MERGE_MERGE,
                                             name__in=ok):
             try:
                 obj.automatic_merge(author=request.user.username)
             except RuntimeError, e:
                 errors.append("%s: %s" % (obj.name, str(e)))
 
-    conflicts = Docstring.objects.filter(merge_status=MERGE_CONFLICT)
-    merged = Docstring.objects.filter(merge_status=MERGE_MERGE)
+    conflicts = Docstring.on_site.filter(merge_status=MERGE_CONFLICT)
+    merged = Docstring.on_site.filter(merge_status=MERGE_MERGE)
 
     return render_template(request, 'merge.html',
                            dict(conflicts=conflicts, merged=merged,
@@ -63,15 +63,11 @@ def merge(request):
 
 @permission_required('docweb.can_update_from_source')
 def control(request):
-
-    domains = settings.PULL_SCRIPTS.keys()
+    site = Site.objects.get_current()
     
     if request.method == 'POST':
         if 'update-docstrings' in request.POST.keys():
-            domain = request.POST.get('domain')
-            if domain in domains:
-                update_docstrings(domain)
+            update_docstrings(site)
 
     return render_template(request, 'control.html',
-                           dict(users=User.objects.filter(),
-                                domains=domains))
+                           dict(users=User.objects.filter()))

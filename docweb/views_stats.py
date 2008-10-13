@@ -8,9 +8,11 @@ from utils import *
 #------------------------------------------------------------------------------
 
 def changes(request):
-    docrevs = DocstringRevision.objects.order_by('-timestamp')[:100]
-    pagerevs = WikiPageRevision.objects.order_by('-timestamp')[:100]
-    comments = ReviewComment.objects.order_by('-timestamp')
+    site = Site.objects.get_current()
+    
+    docrevs = DocstringRevision.objects.filter(docstring__site=site).order_by('-timestamp')[:100]
+    pagerevs = WikiPageRevision.objects.filter(page__site=site).order_by('-timestamp')[:100]
+    comments = ReviewComment.objects.filter(docstring__site=site).order_by('-timestamp')
 
     author_map = _get_author_map()
     docstring_changes = [
@@ -158,7 +160,7 @@ def _get_weekly_stats(edits):
     for j in REVIEW_STATUS_NAMES.keys():
         review_counts[j] = 0
 
-    for docstring in Docstring.objects.all():
+    for docstring in Docstring.on_site.all():
         review_status[docstring.name] = docstring.review_code
         review_counts[docstring.review_code] += 1
         docstring_start_rev[docstring.name] = 'svn'
@@ -241,8 +243,9 @@ class PeriodStats(object):
 
 def _get_edits():
     """Return a list of tuples (timestamp, n_words, docstringrevision)"""
-    revisions = DocstringRevision.objects.all().order_by('docstring',
-                                                         'timestamp')
+    site = Site.objects.get_current()
+    objects = DocstringRevision.filter(docstring__site=site).objects
+    revisions = objects.all().order_by('docstring', 'timestamp')
 
     last_text = None
     last_docstring = None

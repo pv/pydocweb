@@ -37,15 +37,14 @@ def relative_dir(path):
 # can adapt to your use.
 #
 
-PULL_SCRIPTS = {
-    ## Some examples on what you can put here: (remember to remove them)
-    'numpy': relative_dir("modules/pull-numpy.sh"),
-    'numpy-refguide': relative_dir("modules/pull-numpy-refguide.sh"),
-    'ipython': relative_dir("modules/pull-ipython.sh"),
-    'matplotlib': relative_dir("modules/pull-matplotlib.sh"),
-    'python-docs': relative_dir("modules/pull-python-docs.sh"),
-}
+## Some examples on what you can put here:
+#PULL_SCRIPT = relative_dir("modules/pull-numpy.sh")
+PULL_SCRIPT = relative_dir("modules/pull-numpy-refguide.sh")
+#PULL_SCRIPT = relative_dir("modules/pull-ipython.sh")
+#PULL_SCRIPT = relative_dir("modules/pull-matplotlib.sh")
+#PULL_SCRIPT = relative_dir("modules/pull-python-docs.sh")
 
+# Checkout directory
 MODULE_DIR = relative_dir("modules")
 
 # To be shown on the top of each page:
@@ -200,6 +199,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
+    'django.contrib.sites',
     'pydocweb.docweb',
 )
 
