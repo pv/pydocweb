@@ -16,7 +16,7 @@
   {% for row in status.list|columnize:"3" %}
   <tr>
     {% for doc in row %}
-    <td class="{{doc.statuscode|escape}}"><a href="{% url docweb.views.docstring doc.name %}">{{doc.name|escape}}</a></td>
+    <td class="{{doc.statuscode|escape}}"><a href="{% url docweb.views_docstring.view doc.name %}">{{doc.name|escape}}</a></td>
     {% endfor %}
   </tr>
   {% endfor %}

@@ -11,7 +11,7 @@
   {% for c in comment_changes %}
   <tr class="{% if c.resolved %}resolved{% endif %}">
     <td>{{c.timestamp|date:"Y-m-d H:i:s"}}</td>
-    <td><a href="{% url docweb.views.docstring c.name %}#discussion-sec">{{c.name|escape}}</a></td>
+    <td><a href="{% url docweb.views_docstring.view c.name %}#discussion-sec">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
   </tr>
@@ -23,7 +23,7 @@
   {% for c in docstring_changes %}
   <tr>
     <td>{{c.timestamp|date:"Y-m-d H:i:s"}}</td>
-    <td><a href="{% url docweb.views.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
+    <td><a href="{% url docweb.views_docstring.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
   </tr>
@@ -35,7 +35,7 @@
   {% for c in wiki_changes %}
   <tr>
     <td>{{c.timestamp|date:"Y-m-d H:i:s"}}</td>
-    <td><a href="{% url docweb.views.diff_wiki_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
+    <td><a href="{% url docweb.views_wiki.diff_prev c.name,c.revno %}">{{c.name|escape}}</a></td>
     <td>{{c.author|escape}}</td>
     <td>{{c.comment|escape}}</td>
   </tr>

@@ -10,7 +10,7 @@
   <h2>Overview</h2>
 
   <p>With thanks to all
-     <a href="{% url docweb.views.contributors %}">contributors</a>.
+     <a href="{% url docweb.views_stats.contributors %}">contributors</a>.
   </p><br/>
 
   <div style="float:left; margin-right:2em;margin-bottom:2ex;">
@@ -72,7 +72,7 @@
     {% else %}
     <tr>
     {% endif %}  
-      <td class="{{item.review|escape}}"><a href="{% url docweb.views.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
+      <td class="{{item.review|escape}}"><a href="{% url docweb.views_docstring.diff item.name,item.start_rev,item.end_rev %}">{{item.name|escape}}</a></td>
       <td>{{item.edits|floatformat:"-0"}} word{{item.edits|pluralize}}</td>
     </tr>
     {% endfor %}

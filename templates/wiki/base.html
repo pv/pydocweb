@@ -5,10 +5,10 @@
 
 {% block actions %}
 <div id="actions">
-  <a href="{% url docweb.views.wiki name %}">View</a>
+  <a href="{% url docweb.views_wiki.view name %}">View</a>
   {% if perms.docweb.change_wikipage %}
-  <a href="{% url docweb.views.edit_wiki name %}">Edit</a>
+  <a href="{% url docweb.views_wiki.edit name %}">Edit</a>
   {% endif %}
-  <a href="{% url docweb.views.log_wiki name %}">Log</a>
+  <a href="{% url docweb.views_wiki.log name %}">Log</a>
 </div>
 {% endblock %}
