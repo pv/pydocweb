@@ -13,7 +13,7 @@ class AccessTests(TestCase):
         self.failUnless('All docstrings' in str(response))
 
     def test_wiki_new_page(self):
-        response = self.client.get('/Some New Page Or Not/')
+        response = self.client.get('/Some New Page/')
         self.failUnless('Create new' in str(response))
 
     def test_changes(self):
@@ -33,8 +33,9 @@ class AccessTests(TestCase):
         self.failUnless('Generate patch' in str(response))
 
     def test_non_authenticated(self):
-        for url in ['/merge/', '/control/', '/accounts/password/']:
+        for url in ['/merge/', '/control/', '/accounts/password/',
+                    '/Some%20New%20Page/edit/']:
             response = self.client.get(url)
             # It should contain a redirect to the login page
             self.failUnless(('Location: http://testserver/accounts/login/?next=%s'%url)
-                            in str(response))
+                            in str(response), response)
