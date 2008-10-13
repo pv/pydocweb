@@ -35,5 +35,6 @@ class AccessTests(TestCase):
     def test_non_authenticated(self):
         for url in ['/merge/', '/control/', '/accounts/password/']:
             response = self.client.get(url)
+            # It should contain a redirect to the login page
             self.failUnless(('Location: http://testserver/accounts/login/?next=%s'%url)
                             in str(response))
