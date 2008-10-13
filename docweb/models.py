@@ -540,6 +540,7 @@ class LabelCache(models.Model):
 
 class WikiPage(models.Model):
     name = models.CharField(max_length=256, primary_key=True)
+    domain = models.CharField(max_length=256)
 
     def edit(self, new_text, author, comment):
         """Create a new revision of the page"""

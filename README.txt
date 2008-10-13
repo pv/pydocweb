@@ -4,7 +4,7 @@ Pydocweb
 
 Collaborative Python docstring editor on the web.
 
-:version: 0.3.dev
+:version: 0.4.dev
 :author: Pauli Virtanen <pav@iki.fi>, Stefan van der Walt, Emmanuelle Gouillart
 
 
