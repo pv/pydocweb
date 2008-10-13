@@ -40,6 +40,7 @@ def relative_dir(path):
 PULL_SCRIPTS = {
     ## Some examples on what you can put here: (remember to remove them)
     'numpy': relative_dir("modules/pull-numpy.sh"),
+    'numpy-refguide': relative_dir("modules/pull-numpy-refguide.sh"),
     'ipython': relative_dir("modules/pull-ipython.sh"),
     'matplotlib': relative_dir("modules/pull-matplotlib.sh"),
     'python-docs': relative_dir("modules/pull-python-docs.sh"),
