@@ -57,7 +57,7 @@ def view(request, name):
             # resolve non-canonical names
             return HttpResponseRedirect(reverse(view, args=[doc.name]))
     except Docstring.DoesNotExist:
-        return docstring_try_new(request, name)
+        raise Http404()
 
     # redirect 'dir' entries to a master document
     index_names = ['index.rst', 'contents.rst', 'index.txt', 'contents.txt']
