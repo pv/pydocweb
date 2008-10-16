@@ -11,7 +11,14 @@
     {% block extra_headers %}{% endblock %}
   </head>
   <body>
-    <div id="header"><h1><a href="{% url docweb.views_wiki.frontpage %}">{{EDITOR_NAME}}</a></h1></div>
+    <div id="header">
+      {% for site in OTHER_SITES reversed %}
+      <div class="headertab">
+	<span><a href="http://{{site.domain}}/" style="whitespace:nowrap;">&raquo; {{site.name}}</a></span>
+      </div>
+      {% endfor %}
+      <h1><a href="{% url docweb.views_wiki.frontpage %}">{{CURRENT_SITE.name}}</a></h1>
+    </div>
     <div id="navbar">
       <ul>
 	<li class="button"><a href="{% url docweb.views_wiki.frontpage %}">Wiki</a></li>

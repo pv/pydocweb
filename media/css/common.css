@@ -112,6 +112,7 @@ dl dt {
   margin-top: 0;
   border-bottom: solid 2px #ccc;
   padding-left: 1em;
+  padding-right: 1em;
   margin-bottom: 0em;
 }
 
@@ -126,6 +127,28 @@ dl dt {
   color: #445;
   text-decoration: none;
 }
+#header div.headertab { 
+  display: block; 
+  float: right;
+  margin-right: 0.25em;
+  margin-top: 0;
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  background: #f8f8ff;
+  border-left: solid 2px #fff;
+  border-bottom: solid 2px #ddd;
+  border-right: solid 2px #bbb;
+}
+#header div.headertab a { 
+  display: inline; 
+  float: right;
+  font-size: 10pt;
+  color: #445;
+  text-decoration: none;
+}
+
 
 /*
  * Navigation bar
