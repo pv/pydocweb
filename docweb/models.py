@@ -446,7 +446,11 @@ class Docstring(models.Model):
     @classmethod
     def get_non_obsolete(cls):
         site = Site.objects.get_current()
-        timestamp = Docstring.on_site.order_by('-timestamp')[0].timestamp
+        try:
+            timestamp = Docstring.on_site.order_by('-timestamp')[0].timestamp
+        except IndexError:
+            # no docstrings
+            return cls.on_site.all()
         return cls.on_site.filter(timestamp=timestamp)
 
     def get_source_snippet(self):
