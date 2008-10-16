@@ -66,6 +66,7 @@ def run_sql(filename):
         if not entry: continue
         print entry + ";"
         cursor.execute(entry)
+    cursor.execute('VACUUM')
 
 def get_upgrade_scripts():
     scripts = {}
@@ -82,8 +83,15 @@ def get_upgrade_scripts():
 def set_schema_version(version):
     from django.db import connection
     cursor = connection.cursor()
-    cursor.execute('DELETE FROM docweb_dbschema')
-    cursor.execute('INSERT INTO docweb_dbschema (version) VALUES (%s)', [version])
+    try:
+        cursor.execute('DELETE FROM docweb_dbschema')
+        cursor.execute('INSERT INTO docweb_dbschema (version) VALUES (%s)',
+                       [version])
+        cursor.execute('VACUUM')
+    except Exception, exc:
+        pass
+    # NB: with SQLite3, the above INSERT INTO appears not always to have
+    #     an effect without the VACUUM
 
 def get_schema_version():
     from django.db import connection
