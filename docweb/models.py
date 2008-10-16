@@ -59,6 +59,12 @@ MERGE_STATUS_CODES = {
     2: 'conflict',
 }
 
+
+class DBSchema(models.Model):
+    version = models.IntegerField(primary_key=True)
+
+# --
+
 class Docstring(models.Model):
     name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")

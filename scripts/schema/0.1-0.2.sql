@@ -15,3 +15,5 @@ drop index doc_reviewcomment_docstring_id;
 drop index doc_reviewcomment_rev_id;
 drop index doc_wikipagerevision_page_id;
 update django_content_type set app_label = 'docweb' where app_label = 'doc';
+
+@run-syncdb@;
