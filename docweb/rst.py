@@ -59,8 +59,9 @@ class RstWriter(docutils.writers.html4css1.Writer):
         names = [name] + ['%s%s' % (p, name) for p in self.resolve_prefixes]
         items = models.LabelCache.objects.filter(label__in=names)
         if items:
-            return reverse('pydocweb.docweb.views_docstring.view',
-                           kwargs=dict(name=items[0].target)) + '#' + name
+            url = reverse('pydocweb.docweb.views_docstring.view',
+                          kwargs=dict(name=items[0].target)) + '#' + name
+            return items[0].full_url(url)
 
         if self.resolve_to_wiki and name and name[0].lower() != name[0]:
             return reverse('pydocweb.docweb.views_wiki.view', args=[name])

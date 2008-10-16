@@ -559,6 +559,14 @@ class LabelCache(models.Model):
                 name = '%s.%s' % (docstring.name, alias.alias)
                 cls.cache(name, alias.target, site=docstring.site)
 
+    def full_url(self, url_part):
+        """Prefix the given URL with this object's site prefix"""
+        site = Site.objects.get_current()
+        if self.site == site:
+            return url_part
+        else:
+            return "http://%s%s" % (self.site.domain, url_part)
+
 
 # -- Wiki pages
 
@@ -771,8 +779,9 @@ def update_docstrings(site):
         f.close()
 
 def base_xml_file_name(site):
+    base_part = re.sub('[^a-z]', '', site.domain)
     return os.path.abspath(os.path.join(settings.MODULE_DIR,
-                                        'base-%s.xml' % site.domain))
+                                        'base-%s.xml' % base_part))
     
 @transaction.commit_on_success
 def import_docstring_revisions_from_xml(stream):
