@@ -202,14 +202,23 @@ def edit(request, name):
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
                                     preview_html=None))
 
+def _rev_to_str(rev):
+    if rev is None:
+        raise ValueError
+    else:
+        return rev
+
 def log(request, name):
     doc = get_object_or_404(Docstring, name=name)
 
     if request.method == "POST":
         if request.POST.get('button_diff'):
-            rev1 = str(request.POST.get('rev1'))
-            rev2 = str(request.POST.get('rev2'))
-            return HttpResponseRedirect(reverse(diff, args=[name, rev1, rev2]))
+            try:
+                rev1 = _rev_to_str(request.POST.get('rev1'))
+                rev2 = _rev_to_str(request.POST.get('rev2'))
+                return HttpResponseRedirect(reverse(diff,args=[name,rev1,rev2]))
+            except ValueError:
+                pass
 
     author_map = get_author_map()
 
