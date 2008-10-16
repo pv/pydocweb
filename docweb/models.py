@@ -439,14 +439,8 @@ class Docstring(models.Model):
     @classmethod
     def get_non_obsolete(cls):
         site = Site.objects.get_current()
-        from django.db import connection
-        cursor = connection.cursor()
-        cursor.execute("""\
-        SELECT timestamp FROM docweb_docstring
-        WHERE site_id = %s ORDER BY timestamp""", [site.id])
-        current_timestamps = [x[0] for x in cursor.fetchall()]
-        return cls.on_site.filter(timestamp__in=current_timestamps)
-
+        timestamp = Docstring.on_site.order_by('-timestamp')[0].timestamp
+        return cls.on_site.filter(timestamp=timestamp)
 
     def get_source_snippet(self):
         """
