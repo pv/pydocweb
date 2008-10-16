@@ -767,7 +767,8 @@ def update_docstrings(site):
         f.close()
 
 def base_xml_file_name(site):
-    return os.path.join(settings.MODULE_DIR, 'base-%s.xml' % site.domain)
+    return os.path.abspath(os.path.join(settings.MODULE_DIR,
+                                        'base-%s.xml' % site.domain))
     
 @transaction.commit_on_success
 def import_docstring_revisions_from_xml(stream):
@@ -867,6 +868,7 @@ def patch_against_source(site, revs=None):
 
     p = subprocess.Popen([PYDOCTOOL, 'patch', '-s', paths,
                           base_xml_fn, new_xml_file.name],
+                         cwd=settings.MODULE_DIR,
                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     out, err = p.communicate()
     return err + "\n" + out
