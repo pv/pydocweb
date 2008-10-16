@@ -61,6 +61,13 @@ MERGE_STATUS_CODES = {
 
 
 class DBSchema(models.Model):
+    """
+    Database schema version.
+
+    On every public schema change, bump the version number in sql/dbschema.sql,
+    and create a new schema upgrade script in ../scripts/schema.
+
+    """
     version = models.IntegerField(primary_key=True)
 
 # --
