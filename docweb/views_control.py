@@ -13,7 +13,8 @@ def patch(request):
         patch = patch_against_source(site, Docstring.on_site.filter(name__in=included_docs))
         return HttpResponse(patch, mimetype="text/plain")
 
-    docs = Docstring.on_site.filter(dirty=True)
+    docs = Docstring.get_non_obsolete().filter(dirty=True).all()
+    docs = list(docs)
     docs = [
         dict(included=(entry.merge_status == MERGE_NONE and
                        entry.review == REVIEW_PROOFED),
@@ -25,7 +26,6 @@ def patch(request):
              merge_status_id=entry.merge_status,
              name=entry.name)
         for entry in docs
-        if not entry.is_obsolete
     ]
     docs.sort(key=lambda x: (x['merge_status_id'], -x['review'], x['name']))
     return render_template(request, "patch.html",
