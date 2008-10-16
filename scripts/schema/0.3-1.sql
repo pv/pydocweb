@@ -1,5 +1,15 @@
--- Create django_site and docweb_dbschema tables
-@run-syncdb@;
+-- Create django_site
+CREATE TABLE 'django_site' (
+    'id' integer NOT NULL PRIMARY KEY,
+    'domain' varchar(100) NOT NULL,
+    'name' varchar(50) NOT NULL
+);
+INSERT INTO django_site (id, domain, name) VALUES (1, 'example.com', 'example');
+
+-- Create docweb_dbschema
+CREATE TABLE 'docweb_dbschema' (
+    'version' integer NOT NULL PRIMARY KEY
+);
 
 -- Convert labelcache
 ALTER TABLE docweb_labelcache ADD COLUMN 'site_id' integer NOT NULL

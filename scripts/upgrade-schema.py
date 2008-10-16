@@ -63,19 +63,9 @@ def run_sql(filename):
 
     for entry in sql.split(';'):
         entry = entry.strip()
-        if not entry:
-            continue
-        elif entry.upper() == '@RUN-SYNCDB@':
-            run_python(os.path.join(BASEDIR, '..', 'manage.py'), 'syncdb')
-        elif entry.startswith('try:'):
-            print entry + ";"
-            try:
-                cursor.execute(entry[4:])
-            except Exception, exc:
-                pass
-        else:
-            print entry + ";"
-            cursor.execute(entry)
+        if not entry: continue
+        print entry + ";"
+        cursor.execute(entry)
 
 def get_upgrade_scripts():
     scripts = {}
