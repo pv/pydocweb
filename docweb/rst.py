@@ -62,7 +62,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
             return reverse('pydocweb.docweb.views_docstring.view',
                            kwargs=dict(name=items[0].target)) + '#' + name
 
-        if self.resolve_to_wiki:
+        if self.resolve_to_wiki and name and name[0].lower() != name[0]:
             return reverse('pydocweb.docweb.views_wiki.view', args=[name])
         else:
             raise ValueError()
