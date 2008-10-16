@@ -5,6 +5,10 @@
 ALTER TABLE docweb_labelcache ADD COLUMN 'site_id' integer NOT NULL
 REFERENCES 'django_site' ('id') DEFAULT (1);
 
+-- Convert docstring
+ALTER TABLE docweb_docstring ADD COLUMN 'site_id' integer NOT NULL
+REFERENCES 'django_site' ('id') DEFAULT (1);
+
 -- Convert wiki pages
 DROP TABLE docweb_wikipage;
 CREATE TABLE docweb_wikipage (
