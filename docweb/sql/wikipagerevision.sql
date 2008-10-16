@@ -1,11 +1,3 @@
-BEGIN TRANSACTION;
-
-INSERT INTO "docweb_wikipage" VALUES ('Front Page');
-INSERT INTO "docweb_wikipage" VALUES ('Help Edit Docstring');
-INSERT INTO "docweb_wikipage" VALUES ('Help Merge');
-INSERT INTO "docweb_wikipage" VALUES ('Help Merge Docstring');
-INSERT INTO "docweb_wikipage" VALUES ('Help Registration Done');
-
 INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Front Page',
 'Insert text for your front page here.
 
@@ -26,7 +18,7 @@ You may want to:
 ',
 'Source','Template revision',datetime('now'));
 
-INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Edit Docstring',
+INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Edit Docstring', 
 'See:
 
 * `ReStructuredText quick reference <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_
@@ -46,7 +38,7 @@ An equation in its own line
     \.. math:: A = B C \\cos(\\alpha)
 
     Use LaTeX formulas sparingly. Favor readability in plain text
-    form over perfectly tuned typesetting when writing Latex;
+    form over perfectly tuned typesetting when writing Latex:
     many of our users will read the documentation interactively
     in plain text format.
 
@@ -54,11 +46,11 @@ Images::
     \.. image:: image-filename.png
 
     Use images sparingly. Note that our infrastructure needed in including
-    images in the reference manual is not finished yet.',
+    images in the reference manual is not finished yet.
+',
 'Source','Template',datetime('now'));
 
-INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Merge',
-'Merging docstrings with SVN can go wrong:
+INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Merge', 'Merging docstrings with SVN can go wrong:
 either the merge fails and causes a conflict, or the merge succeeds
 but the result does not make sense. Hence, human confirmation of the
 merge results is always necessary.
@@ -80,8 +72,7 @@ and in SVN; also they are listed on this page.
 The conflicts must be resolved manually by editing the docstrings.',
 'Source','Template',datetime('now'));
 
-INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Merge Docstring',
-'Merging docstrings with SVN can go wrong:
+INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Merge Docstring', 'Merging docstrings with SVN can go wrong:
 either the merging fails and causes a conflict, or the merge succeeds
 but the result does not make sense. Hence, human confirmation of the
 merge results is always necessary.
@@ -126,10 +117,7 @@ must now manually remove the conflict markers and combine
 the two versions so that the results make sense.',
 'Source','Template',datetime('now'));
 
-INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Registration Done',
-'To get **edit permissions**, mail to the administrators.
+INSERT INTO "docweb_wikipagerevision" (page_id, text, author, comment, timestamp) VALUES ('Help Registration Done', 'To get **edit permissions**, mail to the administrators.
 
 For more information, see our `Front Page`_.',
 'Source','Template',datetime('now'));
-
-COMMIT;
