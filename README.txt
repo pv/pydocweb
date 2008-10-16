@@ -26,32 +26,20 @@ Setting up
 
        ./manage.py syncdb
 
-3. If you want to get some template wiki help pages, run::
-
-       sqlite3 data.db < scripts/template-pages.sql
-
-4. Add sample "Editor" and "Reviewer" groups::
+3. If you want sample "Editor" and "Reviewer" groups, do::
 
        sqlite3 data.db < scripts/template-groups.sql
 
-   or, log in as superuser, go to "Control", and create groups with
-   appropriate permissions yourself.
-
-5. If you want just to try it out, run::
+4. If you want just to try it out *now*, run::
 
        ./manage.py runserver
 
-   For production deployment, see Django's deployment guide at
-   http://docs.djangoproject.com/en/dev/howto/deployment/
-
-6. Create a "pull script" for your project. See "settings.py" for
+5. Create a "pull script" for your project. See "settings.py" for
    an explanation, and check the examples under modules/
 
-7. Edit 'settings.py' to match your setup.
+6. Edit 'settings.py' to match your setup.
 
-   - Adjust EDITOR_NAME to change the text shown on top of each page.
-
-   - Adjust PULL_SCRIPTS to match the Python module you are documenting
+   - Adjust PULL_SCRIPT to match the Python module you are documenting
 
    - Fill in a random string to SECRET_KEY
 
@@ -63,6 +51,18 @@ Setting up
      accordingly.
 
    - Set DEBUG=False
+
+   For production deployment, see Django's deployment guide at
+   http://docs.djangoproject.com/en/dev/howto/deployment/
+
+7. Change the site name: Go to the "Control" tab -> Administration site
+   on the site, and change the "example.com" in the Sites to something
+   that suits you.
+
+   To understand what the Sites in general do, see
+   http://docs.djangoproject.com/en/dev/ref/contrib/sites/
+   In short, they allow you to share user and docstring data between different
+   sites (that use the same DB). Wiki pages are not shared.
 
 8. Run "Pull from" on the "Control" tab.
    Note that this compiles your module, imports it, and collects its docstrings
