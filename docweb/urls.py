@@ -12,6 +12,13 @@ urlpatterns = patterns(
 )
 
 urlpatterns += patterns(
+    'pydocweb.docweb.views_comment',
+    #--
+    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/review/$', 'review'), 
+    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/comment/(?P<comment_id>[\w-]+)/$', 'edit'),
+)
+
+urlpatterns += patterns(
     'pydocweb.docweb.views_docstring',
     # --
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/edit/$', 'edit'),
@@ -21,13 +28,6 @@ urlpatterns += patterns(
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/$', 'view'),
     url(r'^docs/$', 'index'),
     url(r'^source/(?P<file_name>.+)$', 'source'),
-)
-
-urlpatterns += patterns(
-    'pydocweb.docweb.views_comment',
-    #--
-    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/review/$', 'review'), 
-    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/comment/(?P<comment_id>[\w-]+)/$', 'edit'),
 )
 
 urlpatterns += patterns(
