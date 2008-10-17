@@ -132,6 +132,13 @@ class WikiTests(TestCase):
         self.assertContains(response, '-Test *text*')
         self.assertContains(response, '+Test *stuff*')
 
+        # Check that the edits appear on the changes page
+        response = self.client.get('/changes/')
+        self.assertContains(response, 'Test comment')
+        self.assertContains(response, 'Test note')
+        self.assertContains(response, 'A New Page', count=2)
+        self.assertContains(response, 'Bar Fuu', count=2+1)
+
 def _follow_redirect(response, data={}):
     if response.status_code != 302:
         raise AssertionError("Not a redirect")
