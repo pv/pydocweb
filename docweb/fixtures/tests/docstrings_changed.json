@@ -1,0 +1,86 @@
+[ 
+  {
+    "pk": "sample_module.sample1.func1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 6, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "CONFLICT",
+      "source_doc": "CONFLICT",
+      "dirty": false
+    }
+  },
+  {
+    "pk": 1,
+    "model": "docweb.docstringrevision",
+    "fields": {
+      "docstring": "sample_module.sample1.func1",
+      "text": "edited docstring",
+      "author": "editor",
+      "comment": "tampering",
+      "review_code": 2,
+      "timestamp": "2008-10-17 22:13:18"
+    }
+  },
+  {
+    "pk": "sample_module.sample1.func2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 9, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "sample1.func2 docstring\n\nquux\nMERGE TEST\\r",
+      "source_doc": "sample1.func2 docstring\n\nquux\nMERGE TEST\\r",
+      "dirty": false
+    }
+  },
+  {
+    "pk": 2,
+    "model": "docweb.docstringrevision",
+    "fields": {
+      "docstring": "sample_module.sample1.func2",
+      "text": "sample1.func2 docstring NEW PART\n\nquux\nMERGE TEST\\r",
+      "author": "editor",
+      "comment": "tampering",
+      "review_code": 2,
+      "timestamp": "2008-10-17 22:13:18"
+    }
+  },
+  {
+    "pk": "sample_module.sample1.func_obsolete", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1234,
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "obsolete docs",
+      "source_doc": "obsolete docs",
+      "dirty": false
+    }
+  }
+]

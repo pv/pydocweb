@@ -4,6 +4,7 @@ sample1 docstring
 """
 
 def func1():
+    """sample1.func1 docstrings"""
     pass
 
 def func2():

@@ -6,7 +6,7 @@ from django.conf import settings
 #--
 
 TESTDIR = os.path.abspath(os.path.dirname(__file__))
-settings.MODULE_PATH = TESTDIR
+settings.MODULE_DIR = TESTDIR
 settings.PULL_SCRIPT = os.path.join(TESTDIR, 'pull-test.sh')
 settings.MIDDLEWARE_CLASSES = list(settings.MIDDLEWARE_CLASSES)
 try:
@@ -177,14 +177,15 @@ class DocstringTests(TestCase):
         response = self.client.get('/docs/')
         self.assertContains(response, 'sample_module')
         self.assertContains(response, 'sample_module.sample1')
-        self.assertContains(response, 'sample_module.sample3')
 
     def test_docstring_page(self):
+        response = self.client.get('/docs/sample_module/')
+        self.assertContains(response, 'sample1')
+        self.assertContains(response, 'func1')
         response = self.client.get('/docs/sample_module.sample1/')
         self.assertContains(response, 'sample1 docstring')
         self.assertContains(response, 'Functions')
         self.assertContains(response, 'func1')
-        self.assertContains(response, 'func2')
 
     def test_docstring_cycle(self):
         self.client.login(username='editor', password=PASSWORD)
@@ -352,6 +353,91 @@ class CommentTests(TestCase):
         self.assertContains(response, 'action="%scomment/' % page, count=1+3*1)
         self.failUnless('New <em>stuff</em>' not in response.content)
         self.assertContains(response, '<em>Second comment</em>')
+
+class PullMergeTests(TestCase):
+    fixtures = ['tests/users.json', 'tests/docstrings_changed.json']
+
+    def tearDown(self):
+        xmlfile = os.path.join(TESTDIR, 'base-examplecom.xml')
+        if os.path.isfile(xmlfile):
+            os.unlink(xmlfile)
+
+    def test_pull_merge_cycle(self):
+        self.client.login(username='admin', password=PASSWORD)
+        
+        # Run pull
+        response = self.client.post('/control/',
+                                    {'update-docstrings': 'Pull'})
+        
+        # Check that it succeeded
+        response = self.client.get('/docs/sample_module.sample1.func_obsolete/')
+        self.assertContains(response, 'This docstring is obsolete')
+        response = self.client.get('/docs/sample_module.sample4/')
+        self.assertContains(response, 'sample4.')
+
+        # Check merge results
+        self.client.login(username='editor', password=PASSWORD)
+        response = self.client.get('/merge/')
+        # waiting for merge
+        self.assertContains(response, 'type="checkbox" name="sample_module.sample1.func2"')
+        # conflict
+        self.assertContains(response, '<li><a href="/docs/sample_module.sample1.func1/"')
+
+        # Check what's to be merged
+        response = self.client.get('/docs/sample_module.sample1.func2/')
+        self.assertContains(response, 'nop"> sample1.func2 docstring NEW PART')
+        self.assertContains(response, 'del">-MERGE TEST\\r')
+        self.assertContains(response, 'add">+\\r')
+        self.assertContains(response, 'name="sample_module.sample1.func2"')
+
+        # Accept merges
+        response = self.client.post('/merge/',
+                                    {'sample_module.sample1.func2': 'checked'})
+        self.assertContains(response, 'Nothing to merge')
+
+        # Check conflict
+        response = self.client.get('/docs/sample_module.sample1.func1/')
+        conflict_text = ('&lt;&lt;&lt;&lt;&lt;&lt;&lt; web version\n'
+                         'edited docstring\n'
+                         '=======\n'
+                         'sample1.func1 docstrings\n'
+                         '&gt;&gt;&gt;&gt;&gt;&gt;&gt; new svn version')
+        self.assertContains(response, conflict_text)
+        self.assertContains(response, 'Merge conflict')
+        response = self.client.get('/docs/sample_module.sample1.func1/edit/')
+        self.assertContains(response, conflict_text)
+
+        # Check that conflict markers can't be committed in
+        bad_text = '<<<<<<<\nA\n=======\nB\n>>>>>>>'
+        good_text = 'some new text'
+        response = self.client.post('/docs/sample_module.sample1.func1/edit/',
+                                    {'text': bad_text,
+                                     'button_edit': 'Save',
+                                     'comment': 'Resolve'})
+        self.assertContains(response, '"button_edit"')
+
+        # Check that conflict status is reset on edit
+        good_text = 'some **new** text'
+        response = self.client.post('/docs/sample_module.sample1.func1/edit/',
+                                    {'text': good_text,
+                                     'button_edit': 'Save',
+                                     'comment': 'Resolve'})
+        response = _follow_redirect(response)
+        self.failUnless('=======' not in response.content)
+        self.failUnless('Merge conflict' not in response.content)
+        self.assertContains(response, 'some <strong>new</strong> text')
+
+        # Check that no conflicts or merges remain
+        response = self.client.get('/merge/')
+        self.assertContains(response, 'Nothing to merge')
+        self.assertContains(response, 'No conflicts')
+
+        # Check idempotency of pull
+        response = self.client.post('/control/',
+                                    {'update-docstrings': 'Pull'})
+        response = self.client.get('/merge/')
+        self.assertContains(response, 'Nothing to merge')
+        self.assertContains(response, 'No conflicts')
 
 def _follow_redirect(response, data={}):
     if response.status_code not in (301, 302):
