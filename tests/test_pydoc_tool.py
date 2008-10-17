@@ -1,5 +1,6 @@
 import os, sys, shutil, tempfile, subprocess, os, random, glob, compiler.ast
 import xml.etree.ElementTree as etree
+import unittest
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                       '..', 'scripts', 'pydoc-tool.py'))
@@ -13,7 +14,7 @@ SAMPLE_MODULE = os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 # -----------------------------------------------------------------------------
 
-class TestRoundtrip(object):
+class TestRoundtrip(unittest.TestCase):
 
     def test_roundtrip(self):
         cwd = os.getcwd()
@@ -148,24 +149,25 @@ def garbage_generator(length=40*2):
 
 # -----------------------------------------------------------------------------
 
-def test_iter_statements():
-    t1 = """\
-    
-    def foo(a,
-            b,
-            c)  :
-            'foobar quux'
-            pass
+class TestOther(unittest.TestCase):
+    def test_iter_statements(self):
+        t1 = """\
 
-    """
+        def foo(a,
+                b,
+                c)  :
+                'foobar quux'
+                pass
 
-    lines = t1.splitlines(1)
-    ch_iter = pydoc_moin.iter_chars_on_lines(lines)
-    
-    it = pydoc_moin.iter_statements(ch_iter)
-    s = list(it)
-    assert isinstance(s[0][0], compiler.ast.Function)
-    assert lines[s[0][1]][s[0][2]:].startswith('def foo')
-    assert isinstance(s[1][0], compiler.ast.Discard)
-    assert isinstance(s[1][0].getChildNodes()[0], compiler.ast.Const)
-    assert isinstance(s[2][0], compiler.ast.Pass)
+        """
+
+        lines = t1.splitlines(1)
+        ch_iter = pydoc_moin.iter_chars_on_lines(lines)
+
+        it = pydoc_moin.iter_statements(ch_iter)
+        s = list(it)
+        assert isinstance(s[0][0], compiler.ast.Function)
+        assert lines[s[0][1]][s[0][2]:].startswith('def foo')
+        assert isinstance(s[1][0], compiler.ast.Discard)
+        assert isinstance(s[1][0].getChildNodes()[0], compiler.ast.Const)
+        assert isinstance(s[2][0], compiler.ast.Pass)
