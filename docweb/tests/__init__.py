@@ -339,6 +339,12 @@ class CommentTests(TestCase):
         self.assertContains(response, '<div class="comment resolved">')
         self.assertContains(response, 'action="%scomment/' % page, count=1+3*2)
 
+        # Check that comments appear in /changes/
+        response = self.client.get('/changes/')
+        self.assertContains(response, 'sample_module')
+        self.assertContains(response, 'New *stuff*')
+        self.assertContains(response, '*Second comment*')
+
         # Delete comment
         response = self.client.post(page + 'comment/1/',
                                     {'button_delete': 'Resolved'})
