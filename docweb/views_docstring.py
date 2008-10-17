@@ -272,7 +272,7 @@ def diff_prev(request, name, rev2):
         raise Http404()
 
     try:
-        rev1 = DocstringRevision.on_site.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
+        rev1 = DocstringRevision.objects.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
         rev1 = "svn"
 
