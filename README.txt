@@ -92,6 +92,16 @@ Administration
 - Fix any bugs in Pydocweb you find during this :)
 
 
+Running tests
+-------------
+
+To run Pydocweb's test suite, do
+
+    ./manage.py test docweb
+
+The test suite should cover the basic functionality of Pydocweb.
+
+
 Internals
 =========
 

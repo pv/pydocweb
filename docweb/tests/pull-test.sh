@@ -10,7 +10,7 @@ fi
 
 set -e
 
-export SITEPATH=$PWD/../../tests
+export SITEPATH=$PWD/../../scripts/tests
 
 python2.5 $PYDOCTOOL collect -s $SITEPATH \
     sample_module \

@@ -3,7 +3,7 @@ import xml.etree.ElementTree as etree
 import unittest
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                      '..', 'scripts', 'pydoc-tool.py'))
+                                      '..', 'pydoc-tool.py'))
 
 sys.path.insert(0, os.path.dirname(PYDOCM))
 pydoc_moin = __import__('pydoc-tool')

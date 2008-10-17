@@ -448,6 +448,7 @@ def _follow_redirect(response, data={}):
 # -- Allow Django test command to find the script tests
 import os
 import sys
-test_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'tests')
+test_dir = os.path.join(os.path.dirname(__file__), '..', '..',
+                        'scripts', 'tests')
 sys.path.append(test_dir)
 from test_pydoc_tool import *
