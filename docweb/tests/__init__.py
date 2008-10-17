@@ -39,3 +39,11 @@ class AccessTests(TestCase):
             # It should contain a redirect to the login page
             self.failUnless(('Location: http://testserver/accounts/login/?next=%s'%url)
                             in str(response), response)
+
+
+# -- Allow Django test command to find the script tests
+import os
+import sys
+test_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'tests')
+sys.path.append(test_dir)
+from test_pydoc_tool import *
