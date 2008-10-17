@@ -971,7 +971,8 @@ def merge_3way(mine, base, other):
                           '-L', 'old svn version',
                           '-L', 'new svn version',
                           f1.name, f2.name, f3.name],
-                         stdout=subprocess.PIPE)
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
         return out.decode('iso-8859-1'), True
