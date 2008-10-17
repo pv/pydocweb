@@ -63,15 +63,15 @@ class LoginTests(TestCase):
 
     def test_login_ok(self):
         response = self.client.post('/accounts/login/',
-                                    {'username': 'bar',
+                                    {'username': 'editor',
                                      'password': 'asdfasd'})
-        self.failUnless('Location: http://testserver/' in str(response))
-        response = self.client.get('/Front Page/')
-        self.assertContains(response, 'Bar Fuu')
+        response = _follow_redirect(response)
+        response = _follow_redirect(response)
+        self.assertContains(response, 'Editor Editorer')
 
     def test_login_fail(self):
         response = self.client.post('/accounts/login/',
-                                    {'username': 'bar',
+                                    {'username': 'editor',
                                      'password': 'blashyrkh'})
         self.assertContains(response, 'Authentication failed')
 
@@ -79,7 +79,7 @@ class WikiTests(TestCase):
     fixtures = ['tests/users.json']
 
     def setUp(self):
-        self.client.login(username='bar', password='asdfasd')
+        self.client.login(username='editor', password='asdfasd')
     
     def test_page_cycle(self):
         # Go to a new page
@@ -116,7 +116,7 @@ class WikiTests(TestCase):
         response = self.client.get('/A New Page/log/')
         self.assertContains(response, 'Test note')
         self.assertContains(response, 'Test comment')
-        self.assertContains(response, 'Bar Fuu', count=3)
+        self.assertContains(response, 'Editor Editorer', count=3)
         self.assertContains(response, 'href="/A%20New%20Page/?revision=2"')
 
         # Check old revision
@@ -137,10 +137,64 @@ class WikiTests(TestCase):
         self.assertContains(response, 'Test comment')
         self.assertContains(response, 'Test note')
         self.assertContains(response, 'A New Page', count=2)
-        self.assertContains(response, 'Bar Fuu', count=2+1)
+        self.assertContains(response, 'Editor Editorer', count=2+1)
+
+class DocstringTests(TestCase):
+    fixtures = ['tests/users.json', 'tests/docstrings.json']
+
+    def test_docstring_index(self):
+        response = self.client.get('/docs/')
+        self.assertContains(response, 'sample_module')
+        self.assertContains(response, 'sample_module.sample1')
+        self.assertContains(response, 'sample_module.sample3')
+
+    def test_docstring_page(self):
+        response = self.client.get('/docs/sample_module.sample1/')
+        self.assertContains(response, 'sample1 docstring')
+        self.assertContains(response, 'Functions')
+        self.assertContains(response, 'func1')
+        self.assertContains(response, 'func2')
+
+
+class ReviewTests(TestCase):
+    fixtures = ['tests/users.json', 'tests/docstrings.json']
+    
+    def test_docstring_review(self):
+        self.client.login(username='editor', password='asdfasd')
+
+        # Initial status: needs editing
+        response = self.client.get('/docs/sample_module/')
+        self.assertContains(response,
+                            'id="review-status" class="needs-editing"')
+
+        # OK status change, I'm an editor
+        response = self.client.post('/docs/sample_module/review/',
+                                    {'status': '2'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'id="review-status" class="needs-review"')
+
+        # Not OK status change, I'm only an editor
+        response = self.client.post('/docs/sample_module/review/',
+                                    {'status': '5'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'id="review-status" class="needs-review"')
+
+    def test_docstring_review_admin(self):
+        self.client.login(username='admin', password='asdfasd')
+
+        # Initial status: needs editing
+        response = self.client.get('/docs/sample_module/')
+        self.assertContains(response,
+                            'id="review-status" class="needs-editing"')
+
+        # OK status change, I'm an admin
+        response = self.client.post('/docs/sample_module/review/',
+                                    {'status': '5'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'id="review-status" class="reviewed"')
 
 def _follow_redirect(response, data={}):
-    if response.status_code != 302:
+    if response.status_code not in (301, 302):
         raise AssertionError("Not a redirect")
     url = re.match('http://testserver(.*)', response['Location']).group(1)
     return response.client.get(url, data)

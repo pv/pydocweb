@@ -1,0 +1,1479 @@
+[
+  {
+    "pk": "sample_module", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/__init__.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.add_newdocs", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/add_newdocs.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.add_newdocs.add_newdoc", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 2, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/add_newdocs.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "(modname, place, doc)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample1 docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 6, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 9, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample1.func2 docstring\n\nquux\n\\r", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func3", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 18, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "(a, b={1: 3, 4: 5}, c=1, d='foobar')", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func4", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 24, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "(a, b='baz', c=123)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample1.func4 docstring docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func5", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 31, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample1.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "(a, b={3: 'Foo bar quux'}, c=6)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample1.func5 docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "Test module.\n\n\nju", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 16, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.type", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": "__builtin__.object", 
+      "type_code": "class", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.func1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 18, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.instancemethod", 
+      "objclass": "sample_module.sample2.Cls1", 
+      "site": 1, 
+      "argspec": "(self, q, b)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.func2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 20, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.instancemethod", 
+      "objclass": "sample_module.sample2.Cls1", 
+      "site": 1, 
+      "argspec": "(self, q)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "Cls1.func2 docstring\n\n\"\"\"", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.type", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.type", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": "__builtin__.object", 
+      "type_code": "class", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.type.object", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.type", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "class", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "The most base type", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 27, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.type", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": "sample_module.sample2.Cls1 __builtin__.dict", 
+      "type_code": "class", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample2.Cls2 docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.fromkeys", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.builtin_function_or_method", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "dict.fromkeys(S[,v]) -> New dict with keys from S and values equal to v.\nv defaults to None.", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.func1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 44, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.instancemethod", 
+      "objclass": "sample_module.sample2.Cls2", 
+      "site": 1, 
+      "argspec": "(a, b)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.func2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 46, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.instancemethod", 
+      "objclass": "sample_module.sample2.Cls2", 
+      "site": 1, 
+      "argspec": "(a, b, c)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample2.Cls2.func2 docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls3", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 57, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.classobj", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "class", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls3.foo", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 58, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.instancemethod", 
+      "objclass": "sample_module.sample2.Cls3", 
+      "site": 1, 
+      "argspec": "(self)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.func4", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 53, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample2.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "(a, b)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "Quux docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample3.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.Cls4", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 4, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample3.py", 
+      "type_name": "__builtin__.type", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": "__builtin__.object", 
+      "type_code": "class", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.Cls4.func1", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample3.py", 
+      "type_name": "__builtin__.str", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "object", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.Cls4.func2", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample3.py", 
+      "type_name": "__builtin__.str", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "object", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.func0", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample3.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "(x)", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "func0 docstring", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample4", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample4.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample4. This module is not imported explicitly anywhere.", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample4.func_41", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 6, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample4.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample5", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample5/__init__.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample5.sample51", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 0, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample5/sample51.py", 
+      "type_name": "__builtin__.module", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "module", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "This file is in a subpackage.", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "sample_module.sample5.sample51.func_511", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 6, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/sample5/sample51.py", 
+      "type_name": "__builtin__.function", 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": "()", 
+      "bases": null, 
+      "type_code": "callable", 
+      "timestamp": "2008-10-17 21:13:18", 
+      "base_doc": "", 
+      "source_doc": "sample_module.sample5.sample51.func_511\nxN\n\"cz XhZHem\nKD2LkVQnFLwV j3\"GH\nBRpsA'Z\ntkt'Z4N2S\nA3\"\"j\"m\"\\V\" t '\nDS3l7Y\\\"UUa\\\"\"\"", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "add_newdocs", 
+      "target": "sample_module.add_newdocs", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "sample1", 
+      "target": "sample_module.sample1", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "sample2", 
+      "target": "sample_module.sample2", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "sample3", 
+      "target": "sample_module.sample3", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 5, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "sample4", 
+      "target": "sample_module.sample4", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 6, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "sample5", 
+      "target": "sample_module.sample5", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 7, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "Cls1", 
+      "target": "sample_module.sample2.Cls1", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 8, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func1", 
+      "target": "sample_module.sample1.func1", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 9, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func2", 
+      "target": "sample_module.sample1.func2", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 10, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func4", 
+      "target": "sample_module.sample2.func4", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 11, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "add_newdoc", 
+      "target": "sample_module.add_newdocs.add_newdoc", 
+      "parent": "sample_module.add_newdocs"
+    }
+  }, 
+  {
+    "pk": 12, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func1", 
+      "target": "sample_module.sample1.func1", 
+      "parent": "sample_module.sample1"
+    }
+  }, 
+  {
+    "pk": 13, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func2", 
+      "target": "sample_module.sample1.func2", 
+      "parent": "sample_module.sample1"
+    }
+  }, 
+  {
+    "pk": 14, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func3", 
+      "target": "sample_module.sample1.func3", 
+      "parent": "sample_module.sample1"
+    }
+  }, 
+  {
+    "pk": 15, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func4", 
+      "target": "sample_module.sample1.func4", 
+      "parent": "sample_module.sample1"
+    }
+  }, 
+  {
+    "pk": 16, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func5", 
+      "target": "sample_module.sample1.func5", 
+      "parent": "sample_module.sample1"
+    }
+  }, 
+  {
+    "pk": 17, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "Cls1", 
+      "target": "sample_module.sample2.Cls1", 
+      "parent": "sample_module.sample2"
+    }
+  }, 
+  {
+    "pk": 18, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func4", 
+      "target": "sample_module.sample2.func4", 
+      "parent": "sample_module.sample2"
+    }
+  }, 
+  {
+    "pk": 19, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func1", 
+      "target": "sample_module.sample2.Cls1.func1", 
+      "parent": "sample_module.sample2.Cls1"
+    }
+  }, 
+  {
+    "pk": 20, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func2", 
+      "target": "sample_module.sample2.Cls1.func2", 
+      "parent": "sample_module.sample2.Cls1"
+    }
+  }, 
+  {
+    "pk": 21, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "mro", 
+      "target": "__builtin__.type.mro", 
+      "parent": "sample_module.sample2.Cls1.type"
+    }
+  }, 
+  {
+    "pk": 22, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "clear", 
+      "target": "__builtin__.dict.clear", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 23, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "copy", 
+      "target": "__builtin__.dict.copy", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 24, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "fromkeys", 
+      "target": "sample_module.sample2.Cls2.fromkeys", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 25, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func1", 
+      "target": "sample_module.sample2.Cls2.func1", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 26, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func2", 
+      "target": "sample_module.sample2.Cls2.func2", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 27, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "get", 
+      "target": "__builtin__.dict.get", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 28, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "has_key", 
+      "target": "__builtin__.dict.has_key", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 29, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "items", 
+      "target": "__builtin__.dict.items", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 30, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "iteritems", 
+      "target": "__builtin__.dict.iteritems", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 31, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "iterkeys", 
+      "target": "__builtin__.dict.iterkeys", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 32, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "itervalues", 
+      "target": "__builtin__.dict.itervalues", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 33, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "keys", 
+      "target": "__builtin__.dict.keys", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 34, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "pop", 
+      "target": "__builtin__.dict.pop", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 35, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "popitem", 
+      "target": "__builtin__.dict.popitem", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 36, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "setdefault", 
+      "target": "__builtin__.dict.setdefault", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 37, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "update", 
+      "target": "__builtin__.dict.update", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 38, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "values", 
+      "target": "__builtin__.dict.values", 
+      "parent": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": 39, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "foo", 
+      "target": "sample_module.sample2.Cls3.foo", 
+      "parent": "sample_module.sample2.Cls3"
+    }
+  }, 
+  {
+    "pk": 40, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "Cls4", 
+      "target": "sample_module.sample3.Cls4", 
+      "parent": "sample_module.sample3"
+    }
+  }, 
+  {
+    "pk": 41, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func0", 
+      "target": "sample_module.sample3.func0", 
+      "parent": "sample_module.sample3"
+    }
+  }, 
+  {
+    "pk": 42, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func1", 
+      "target": "sample_module.sample3.Cls4.func1", 
+      "parent": "sample_module.sample3.Cls4"
+    }
+  }, 
+  {
+    "pk": 43, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func2", 
+      "target": "sample_module.sample3.Cls4.func2", 
+      "parent": "sample_module.sample3.Cls4"
+    }
+  }, 
+  {
+    "pk": 44, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func_41", 
+      "target": "sample_module.sample4.func_41", 
+      "parent": "sample_module.sample4"
+    }
+  }, 
+  {
+    "pk": 45, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "sample51", 
+      "target": "sample_module.sample5.sample51", 
+      "parent": "sample_module.sample5"
+    }
+  }, 
+  {
+    "pk": 46, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "func_511", 
+      "target": "sample_module.sample5.sample51.func_511", 
+      "parent": "sample_module.sample5.sample51"
+    }
+  }, 
+  {
+    "pk": "sample_module", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module", 
+      "title": "sample_module"
+    }
+  }, 
+  {
+    "pk": "sample_module.add_newdocs", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.add_newdocs", 
+      "title": "sample_module.add_newdocs"
+    }
+  }, 
+  {
+    "pk": "sample_module.add_newdocs.add_newdoc", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.add_newdocs.add_newdoc", 
+      "title": "sample_module.add_newdocs.add_newdoc"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample1", 
+      "title": "sample_module.sample1"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func1", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample1.func1", 
+      "title": "sample_module.sample1.func1"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func2", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample1.func2", 
+      "title": "sample_module.sample1.func2"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func3", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample1.func3", 
+      "title": "sample_module.sample1.func3"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func4", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample1.func4", 
+      "title": "sample_module.sample1.func4"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample1.func5", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample1.func5", 
+      "title": "sample_module.sample1.func5"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2", 
+      "title": "sample_module.sample2"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls1", 
+      "title": "sample_module.sample2.Cls1"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.func1", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls1.func1", 
+      "title": "sample_module.sample2.Cls1.func1"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.func2", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls1.func2", 
+      "title": "sample_module.sample2.Cls1.func2"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.type", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls1.type", 
+      "title": "sample_module.sample2.Cls1.type"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.type.mro", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.type.mro", 
+      "title": "sample_module.sample2.Cls1.type.mro"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls1.type.object", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls1.type.object", 
+      "title": "sample_module.sample2.Cls1.type.object"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls2", 
+      "title": "sample_module.sample2.Cls2"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.clear", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.clear", 
+      "title": "sample_module.sample2.Cls2.clear"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.copy", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.copy", 
+      "title": "sample_module.sample2.Cls2.copy"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.get", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.get", 
+      "title": "sample_module.sample2.Cls2.get"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.has_key", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.has_key", 
+      "title": "sample_module.sample2.Cls2.has_key"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.items", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.items", 
+      "title": "sample_module.sample2.Cls2.items"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.iteritems", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.iteritems", 
+      "title": "sample_module.sample2.Cls2.iteritems"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.iterkeys", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.iterkeys", 
+      "title": "sample_module.sample2.Cls2.iterkeys"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.itervalues", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.itervalues", 
+      "title": "sample_module.sample2.Cls2.itervalues"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.keys", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.keys", 
+      "title": "sample_module.sample2.Cls2.keys"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.pop", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.pop", 
+      "title": "sample_module.sample2.Cls2.pop"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.popitem", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.popitem", 
+      "title": "sample_module.sample2.Cls2.popitem"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.setdefault", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.setdefault", 
+      "title": "sample_module.sample2.Cls2.setdefault"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.update", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.update", 
+      "title": "sample_module.sample2.Cls2.update"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.values", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "__builtin__.dict.values", 
+      "title": "sample_module.sample2.Cls2.values"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.fromkeys", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls2.fromkeys", 
+      "title": "sample_module.sample2.Cls2.fromkeys"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.func1", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls2.func1", 
+      "title": "sample_module.sample2.Cls2.func1"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls2.func2", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls2.func2", 
+      "title": "sample_module.sample2.Cls2.func2"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls3", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls3", 
+      "title": "sample_module.sample2.Cls3"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.Cls3.foo", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.Cls3.foo", 
+      "title": "sample_module.sample2.Cls3.foo"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample2.func4", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample2.func4", 
+      "title": "sample_module.sample2.func4"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample3", 
+      "title": "sample_module.sample3"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.Cls4", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample3.Cls4", 
+      "title": "sample_module.sample3.Cls4"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.Cls4.func1", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample3.Cls4.func1", 
+      "title": "sample_module.sample3.Cls4.func1"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.Cls4.func2", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample3.Cls4.func2", 
+      "title": "sample_module.sample3.Cls4.func2"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample3.func0", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample3.func0", 
+      "title": "sample_module.sample3.func0"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample4", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample4", 
+      "title": "sample_module.sample4"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample4.func_41", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample4.func_41", 
+      "title": "sample_module.sample4.func_41"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample5", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample5", 
+      "title": "sample_module.sample5"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample5.sample51", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample5.sample51", 
+      "title": "sample_module.sample5.sample51"
+    }
+  }, 
+  {
+    "pk": "sample_module.sample5.sample51.func_511", 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "target": "sample_module.sample5.sample51.func_511", 
+      "title": "sample_module.sample5.sample51.func_511"
+    }
+  }
+]
