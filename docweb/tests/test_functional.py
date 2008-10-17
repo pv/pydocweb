@@ -12,16 +12,19 @@ from django.conf import settings
 TESTDIR = os.path.abspath(os.path.dirname(__file__))
 settings.MODULE_DIR = TESTDIR
 settings.PULL_SCRIPT = os.path.join(TESTDIR, 'pull-test.sh')
+
 settings.MIDDLEWARE_CLASSES = list(settings.MIDDLEWARE_CLASSES)
 try:
     # the CSRF middleware prevents the Django test client from working
-    settings.MIDDLEWARE_CLASSES.remove('django.contrib.csrf.middleware.CsrfMiddleware')
+    settings.MIDDLEWARE_CLASSES.remove(
+        'django.contrib.csrf.middleware.CsrfMiddleware')
 except IndexError:
     pass
 
 #--
 
 PASSWORD='asdfasd'
+
 
 class AccessTests(TestCase):
     """
@@ -110,6 +113,7 @@ class LoginTests(TestCase):
                                      'password': 'blashyrkh'})
         self.assertContains(response, 'Authentication failed')
 
+
 class WikiTests(TestCase):
     fixtures = ['tests/users.json']
 
@@ -173,6 +177,7 @@ class WikiTests(TestCase):
         self.assertContains(response, 'Test note')
         self.assertContains(response, 'A New Page', count=2)
         self.assertContains(response, 'Editor Editorer', count=2+1)
+
 
 class DocstringTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings.json']
@@ -292,6 +297,7 @@ class ReviewTests(TestCase):
         response = _follow_redirect(response)
         self.assertContains(response, 'id="review-status" class="reviewed"')
 
+
 class CommentTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings.json']
     
@@ -357,6 +363,7 @@ class CommentTests(TestCase):
         self.assertContains(response, 'action="%scomment/' % page, count=1+3*1)
         self.failUnless('New <em>stuff</em>' not in response.content)
         self.assertContains(response, '<em>Second comment</em>')
+
 
 class PullMergeTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings_changed.json']
@@ -442,6 +449,7 @@ class PullMergeTests(TestCase):
         response = self.client.get('/merge/')
         self.assertContains(response, 'Nothing to merge')
         self.assertContains(response, 'No conflicts')
+
 
 def _follow_redirect(response, data={}):
     if response.status_code not in (301, 302):
