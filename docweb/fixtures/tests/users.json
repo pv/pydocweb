@@ -1,0 +1,54 @@
+[
+  {
+    "pk": 1, 
+    "model": "auth.group", 
+    "fields": {
+      "name": "Editor", 
+      "permissions": [ 29, 48, 42 ]
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "auth.group", 
+    "fields": {
+      "name": "Reviewer", 
+      "permissions": [ 31, 29, 48, 42 ]
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "auth.user", 
+    "fields": {
+      "username": "foo", 
+      "first_name": "Foo", 
+      "last_name": "Buu", 
+      "is_active": true, 
+      "is_superuser": true, 
+      "is_staff": true, 
+      "last_login": "2008-10-17 20:12:35", 
+      "groups": [], 
+      "user_permissions": [], 
+      "password": "sha1$d8c03$670fa3fa89dd5112e7236e95e2a632feec8eddda", 
+      "email": "foo@bar.com", 
+      "date_joined": "2008-10-17 20:12:01"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "auth.user", 
+    "fields": {
+      "username": "bar", 
+      "first_name": "Bar", 
+      "last_name": "Fuu", 
+      "is_active": true, 
+      "is_superuser": false, 
+      "is_staff": false, 
+      "last_login": "2008-10-17 20:12:58", 
+      "groups": [ 1 ], 
+      "user_permissions": [], 
+      "password": "sha1$2dcb4$5da5b3f87bab0d74bc985f05f1abc3baa9523b61", 
+      "email": "bar@foo.com", 
+      "date_joined": "2008-10-17 20:12:58"
+    }
+  }
+]
