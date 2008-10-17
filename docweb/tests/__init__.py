@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, re
 import unittest
 from django.test import TestCase
 from django.conf import settings
@@ -75,20 +75,21 @@ class LoginTests(TestCase):
                                      'password': 'blashyrkh'})
         self.assertContains(response, 'Authentication failed')
 
-class EditTests(TestCase):
+class WikiTests(TestCase):
     fixtures = ['tests/users.json']
 
     def setUp(self):
         self.client.login(username='bar', password='asdfasd')
     
-    def test_create_page(self):
+    def test_page_cycle(self):
+        # Go to a new page
         response = self.client.get('/A New Page/')
         self.assertContains(response, '"/A%20New%20Page/edit/"')
 
         response = self.client.get('/A%20New%20Page/edit/')
         self.assertContains(response, 'action="/A%20New%20Page/edit/"')
 
-        # Preview button pressed
+        # Try out the preview
         response = self.client.post('/A%20New%20Page/edit/',
                                     {'button_preview': 'Preview',
                                      'text': 'Test *text*',
@@ -97,11 +98,45 @@ class EditTests(TestCase):
         self.assertContains(response, '+Test *text*')
         self.assertContains(response, '<p>Test <em>text</em></p>')
 
+        # Edit the page
         response = self.client.post('/A%20New%20Page/edit/',
                                     {'text': 'Test *text*',
                                      'comment': 'Test comment'})
         response = self.client.get('/A New Page/')
         self.assertContains(response, '<p>Test <em>text</em></p>')
+
+        # Edit the page again
+        response = self.client.post('/A%20New%20Page/edit/',
+                                    {'text': 'Test *stuff*',
+                                     'comment': 'Test note'})
+        response = self.client.get('/A New Page/')
+        self.assertContains(response, '<p>Test <em>stuff</em></p>')
+
+        # Check log entries
+        response = self.client.get('/A New Page/log/')
+        self.assertContains(response, 'Test note')
+        self.assertContains(response, 'Test comment')
+        self.assertContains(response, 'Bar Fuu', count=3)
+        self.assertContains(response, 'href="/A%20New%20Page/?revision=2"')
+
+        # Check old revision
+        response = self.client.get('/A New Page/', {'revision': '1'})
+        self.assertContains(response, 'Revision 1')
+        self.assertContains(response, 'Test <em>text</em>')
+
+        # Check log diff redirect & diff
+        response = self.client.post('/A New Page/log/',
+                                    {'button_diff': 'Differences',
+                                     'rev1': '1', 'rev2': '2'})
+        response = _follow_redirect(response)
+        self.assertContains(response, '-Test *text*')
+        self.assertContains(response, '+Test *stuff*')
+
+def _follow_redirect(response, data={}):
+    if response.status_code != 302:
+        raise AssertionError("Not a redirect")
+    url = re.match('http://testserver(.*)', response['Location']).group(1)
+    return response.client.get(url, data)
 
 # -- Allow Django test command to find the script tests
 import os
