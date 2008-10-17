@@ -31,6 +31,7 @@ def edit(request, name, comment_id):
             comment = doc.comments.get(id=comment_id,
                                        author=request.user.username)
     except (ValueError, TypeError, ReviewComment.DoesNotExist):
+        comment_id = 'new'
         comment = None
 
     if request.method == 'POST':
@@ -46,6 +47,7 @@ def edit(request, name, comment_id):
                 return render_template(request, 'docstring/edit_comment.html',
                                        dict(form=form, name=name,
                                             comment=comment,
+                                            comment_id=comment_id,
                                             preview_html=preview))
             elif request.POST.get('button_delete') and comment is not None:
                 comment.delete()
