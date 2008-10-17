@@ -17,11 +17,16 @@ except IndexError:
 
 #--
 
+PASSWORD='asdfasd'
+
 class AccessTests(TestCase):
     """
     Simple tests that check that basic pages can be accessed
     and they contain something sensible.
+    
     """
+
+    fixtures = ['tests/users.json']
     
     def test_docstring_index(self):
         response = self.client.get('/docs/')
@@ -58,13 +63,39 @@ class AccessTests(TestCase):
             # It should contain a redirect to the login page
             self.failUnless('Location: http://testserver/accounts/login/?next=%s' % url in str(response))
 
+        self.client.login(username='editor', password=PASSWORD)
+        response = self.client.get('/control/')
+        self.failUnless('Location: http://testserver/accounts/login/' in str(response))
+            
+    def test_merge(self):
+        self.client.login(username='editor', password=PASSWORD)
+        response = self.client.get('/merge/')
+        self.assertContains(response, 'Nothing to merge')
+
+    def test_control(self):
+        self.client.login(username='admin', password=PASSWORD)
+        response = self.client.get('/control/')
+        self.assertContains(response, 'Pull from sources')
+        self.assertContains(response, 'Editor Editorer')
+
+    def test_admin(self):
+        self.client.login(username='editor', password=PASSWORD)
+        response = self.client.get('/admin/')
+        # django's own login form...
+        self.assertContains(response, '<input type="submit" value="Log in" />')
+
+        self.client.login(username='admin', password=PASSWORD)
+        response = self.client.get('/admin/')
+        self.assertContains(response, 'Site administration')
+
+
 class LoginTests(TestCase):
     fixtures = ['tests/users.json']
 
     def test_login_ok(self):
         response = self.client.post('/accounts/login/',
                                     {'username': 'editor',
-                                     'password': 'asdfasd'})
+                                     'password': PASSWORD})
         response = _follow_redirect(response)
         response = _follow_redirect(response)
         self.assertContains(response, 'Editor Editorer')
@@ -79,7 +110,7 @@ class WikiTests(TestCase):
     fixtures = ['tests/users.json']
 
     def setUp(self):
-        self.client.login(username='editor', password='asdfasd')
+        self.client.login(username='editor', password=PASSWORD)
     
     def test_page_cycle(self):
         # Go to a new page
@@ -156,7 +187,7 @@ class DocstringTests(TestCase):
         self.assertContains(response, 'func2')
 
     def test_docstring_cycle(self):
-        self.client.login(username='editor', password='asdfasd')
+        self.client.login(username='editor', password=PASSWORD)
         
         page = '/docs/sample_module.sample1.func1/'
 
@@ -176,7 +207,7 @@ class DocstringTests(TestCase):
         self.assertContains(response, 'New <em>text</em>')
 
         # Another edit by another person
-        self.client.login(username='admin', password='asdfasd')
+        self.client.login(username='admin', password=PASSWORD)
         response = self.client.post(page + 'edit/',
                                     {'text': 'New *stuff*',
                                      'comment': 'Comment 2'})
@@ -184,7 +215,7 @@ class DocstringTests(TestCase):
         self.assertContains(response, 'New <em>stuff</em>')
 
         # Check log
-        self.client.login(username='editor', password='asdfasd')
+        self.client.login(username='editor', password=PASSWORD)
         response = self.client.get(page + 'log/')
         self.assertContains(response, 'Admin Adminer', count=1)
         self.assertContains(response, 'Editor Editorer', count=1+1)
@@ -212,15 +243,18 @@ class DocstringTests(TestCase):
         self.assertContains(response, 'Differences between revisions SVN and 2')
         self.failUnless('New *stuff*' not in response.content)
         self.assertContains(response, '+New *text*')
-        
 
+        # Look at a previous revision
+        response = self.client.get(page, {'revision': '1'})
+        self.failUnless('New *text*' not in response.content)
+        self.failUnless('New *stuff*' not in response.content)
 
 
 class ReviewTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings.json']
     
     def test_docstring_review(self):
-        self.client.login(username='editor', password='asdfasd')
+        self.client.login(username='editor', password=PASSWORD)
 
         # Initial status: needs editing
         response = self.client.get('/docs/sample_module/')
@@ -240,7 +274,7 @@ class ReviewTests(TestCase):
         self.assertContains(response, 'id="review-status" class="needs-review"')
 
     def test_docstring_review_admin(self):
-        self.client.login(username='admin', password='asdfasd')
+        self.client.login(username='admin', password=PASSWORD)
 
         # Initial status: needs editing
         response = self.client.get('/docs/sample_module/')
@@ -253,10 +287,70 @@ class ReviewTests(TestCase):
         response = _follow_redirect(response)
         self.assertContains(response, 'id="review-status" class="reviewed"')
 
+class CommentTests(TestCase):
+    fixtures = ['tests/users.json', 'tests/docstrings.json']
+    
+    def test_comment_cycle(self):
+        page = '/docs/sample_module/'
+        
+        self.client.login(username='editor', password=PASSWORD)
+
+        # Check that there's a link to comment page
+        response = self.client.get(page)
+        self.assertContains(response, 'action="%scomment/new/"' % page)
+
+        # Try preview
+        response = self.client.post(page + 'comment/new/',
+                                    {'button_preview': 'Preview',
+                                     'text': 'New *text*'})
+        self.assertContains(response, 'New <em>text</em>')
+
+        # Try submit
+        response = self.client.post(page + 'comment/new/',
+                                    {'button_edit': 'Save',
+                                     'text': 'New *text*'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'New <em>text</em>')
+        self.assertContains(response, 'action="%scomment/1/"' % page)
+        self.assertContains(response, 'action="%scomment/' % page, count=1+3*1)
+
+        # Submit second one
+        response = self.client.post(page + 'comment/new/',
+                                    {'button_edit': 'Save',
+                                     'text': '*Second comment*'})
+        response = _follow_redirect(response)
+        self.assertContains(response, '<em>Second comment</em>')
+        self.assertContains(response, 'action="%scomment/' % page, count=1+3*2)
+
+        # Re-edit comment
+        response = self.client.post(page + 'comment/1/',
+                                    {'button_edit': 'Save',
+                                     'text': 'New *stuff*'})
+        response = _follow_redirect(response)
+        self.failUnless('New <em>text</em>' not in response.content)
+        self.assertContains(response, 'New <em>stuff</em>')
+        self.assertContains(response, 'action="%scomment/' % page, count=1+3*2)
+
+        # Mark comment resolved
+        self.assertContains(response, '<div class="comment">')
+        response = self.client.post(page + 'comment/1/',
+                                    {'button_resolved': 'Resolved'})
+        response = _follow_redirect(response)
+        self.assertContains(response, '<div class="comment resolved">')
+        self.assertContains(response, 'action="%scomment/' % page, count=1+3*2)
+
+        # Delete comment
+        response = self.client.post(page + 'comment/1/',
+                                    {'button_delete': 'Resolved'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'action="%scomment/' % page, count=1+3*1)
+        self.failUnless('New <em>stuff</em>' not in response.content)
+        self.assertContains(response, '<em>Second comment</em>')
+
 def _follow_redirect(response, data={}):
     if response.status_code not in (301, 302):
         raise AssertionError("Not a redirect")
-    url = re.match('http://testserver(.*)', response['Location']).group(1)
+    url = re.match('http://testserver([^#]*)', response['Location']).group(1)
     return response.client.get(url, data)
 
 # -- Allow Django test command to find the script tests
