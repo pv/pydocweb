@@ -1,16 +1,7 @@
 import rst
 from utils import *
 
-class EditForm(forms.Form):
-    text = forms.CharField(widget=forms.Textarea(attrs=dict(
-        cols=pydocweb.settings.MAX_DOCSTRING_WIDTH, rows=30, wrap='off')),
-                           required=False)
-    comment = forms.CharField(required=True)
-
-    def clean(self):
-        # fix CRLF -> LF
-        self.cleaned_data['text'] = "\n".join(self.cleaned_data['text'].splitlines())
-        return self.cleaned_data
+from views_docstring import EditForm
 
 #------------------------------------------------------------------------------
 # Wiki
