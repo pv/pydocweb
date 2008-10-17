@@ -15,4 +15,8 @@ export SITEPATH=$PWD/../../scripts/tests
 python2.5 $PYDOCTOOL collect -s $SITEPATH \
     sample_module \
 | $PYDOCTOOL prune -i - \
+| $PYDOCTOOL numpy-docs -i - -s $SITEPATH \
+    -f $SITEPATH/sample_module/add_newdocs.py \
+| $PYDOCTOOL sphinx-docs -i - \
+    $SITEPATH/sample_module/doc \
 > "$1"
