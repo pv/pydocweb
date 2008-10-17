@@ -1,6 +1,8 @@
 import rst
 from utils import *
 
+from views_comment import ReviewForm
+
 #------------------------------------------------------------------------------
 # Docstrings
 #------------------------------------------------------------------------------
@@ -39,16 +41,6 @@ def index(request):
     entries.sort(key=lambda x: x['sort_code'])
     return render_template(request, 'docstring/index.html',
                            dict(entries=entries))
-
-class ReviewForm(forms.Form):
-    _choices = [(str(j), x)
-                for j, x in REVIEW_STATUS_NAMES.items()]
-    status = forms.IntegerField(
-        min_value=min(REVIEW_STATUS_NAMES.keys()),
-        max_value=max(REVIEW_STATUS_NAMES.keys()),
-        widget=forms.Select(choices=_choices),
-        label="Review status"
-        )
 
 def view(request, name):
     try:

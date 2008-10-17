@@ -1,8 +1,6 @@
 import rst
 from utils import *
 
-from views_docstring import view
-
 class CommentEditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)),
                            required=False)
@@ -11,6 +9,16 @@ class CommentEditForm(forms.Form):
         # fix CRLF -> LF
         self.cleaned_data['text']="\n".join(self.cleaned_data['text'].splitlines())
         return self.cleaned_data
+
+class ReviewForm(forms.Form):
+    _choices = [(str(j), x)
+                for j, x in REVIEW_STATUS_NAMES.items()]
+    status = forms.IntegerField(
+        min_value=min(REVIEW_STATUS_NAMES.keys()),
+        max_value=max(REVIEW_STATUS_NAMES.keys()),
+        widget=forms.Select(choices=_choices),
+        label="Review status"
+        )
 
 @permission_required('docweb.change_reviewcomment')
 def edit(request, name, comment_id):
@@ -27,7 +35,7 @@ def edit(request, name, comment_id):
 
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
-            return HttpResponseRedirect(reverse(view, args=[name])
+            return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name])
                                         + "#discussion-sec")
 
         form = CommentEditForm(request.POST)
@@ -41,17 +49,17 @@ def edit(request, name, comment_id):
                                             preview_html=preview))
             elif request.POST.get('button_delete') and comment is not None:
                 comment.delete()
-                return HttpResponseRedirect(reverse(view, args=[name])
+                return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name])
                                             + "#discussion-sec")
             elif request.POST.get('button_resolved') and comment is not None:
                 comment.resolved = True
                 comment.save()
-                return HttpResponseRedirect(reverse(view, args=[name])
+                return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name])
                                             + "#discussion-sec")
             elif request.POST.get('button_not_resolved') and comment is not None:
                 comment.resolved = False
                 comment.save()
-                return HttpResponseRedirect(reverse(view, args=[name])
+                return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name])
                                             + "#discussion-sec")
             else:
                 if comment is None:
@@ -65,7 +73,7 @@ def edit(request, name, comment_id):
                 comment.text = strip_spurious_whitespace(data['text'])
                 comment.timestamp = datetime.datetime.now()
                 comment.save()
-                return HttpResponseRedirect(reverse(view, args=[name])
+                return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name])
                                             + "#discussion-sec")
     else:
         if comment:
@@ -93,11 +101,11 @@ def review(request, name):
             if not request.user.has_perm('docweb.can_review') and not (
                 _valid_review(doc.review, [REVIEW_REVISED]) and
                 _valid_review(form.cleaned_data['status'])):
-                return HttpResponseRedirect(reverse(view, args=[name]))
+                return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name]))
 
             doc.review = form.cleaned_data['status']
             doc.save()
-        return HttpResponseRedirect(reverse(view, args=[name]))
+        return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name]))
     else:
         raise Http404()
 
