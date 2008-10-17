@@ -155,6 +155,66 @@ class DocstringTests(TestCase):
         self.assertContains(response, 'func1')
         self.assertContains(response, 'func2')
 
+    def test_docstring_cycle(self):
+        self.client.login(username='editor', password='asdfasd')
+        
+        page = '/docs/sample_module.sample1.func1/'
+
+        # Test preview
+        response = self.client.post(page + 'edit/',
+                                    {'text': 'New *text*',
+                                     'button_preview': 'Preview',
+                                     'comment': 'Comment 1'})
+        self.assertContains(response, 'New <em>text</em>')
+        self.assertContains(response, '+New *text*')
+
+        # Test edit
+        response = self.client.post(page + 'edit/',
+                                    {'text': 'New *text*',
+                                     'comment': 'Comment 1'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'New <em>text</em>')
+
+        # Another edit by another person
+        self.client.login(username='admin', password='asdfasd')
+        response = self.client.post(page + 'edit/',
+                                    {'text': 'New *stuff*',
+                                     'comment': 'Comment 2'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'New <em>stuff</em>')
+
+        # Check log
+        self.client.login(username='editor', password='asdfasd')
+        response = self.client.get(page + 'log/')
+        self.assertContains(response, 'Admin Adminer', count=1)
+        self.assertContains(response, 'Editor Editorer', count=1+1)
+        self.assertContains(response, 'Source', count=1)
+        self.assertContains(response, 'Initial source revision', count=1)
+        self.assertContains(response, 'Comment 1', count=1)
+        self.assertContains(response, 'Comment 2', count=1)
+
+        # Follow log url to diff
+        response = self.client.post(page + 'log/',
+                                    {'button_diff': 'Differences',
+                                     'rev1': '2', 'rev2': '3'})
+        response = _follow_redirect(response)
+        self.assertContains(response, '-New *text*')
+        self.assertContains(response, '+New *stuff*')
+
+        # Diff vs. previous
+        response = self.client.get(page + 'diff/3/')
+        self.assertContains(response, 'Differences between revisions 2 and 3')
+        self.assertContains(response, '-New *text*')
+        self.assertContains(response, '+New *stuff*')
+
+        # Diff vs. SVN
+        response = self.client.get(page + 'diff/svn/2/')
+        self.assertContains(response, 'Differences between revisions SVN and 2')
+        self.failUnless('New *stuff*' not in response.content)
+        self.assertContains(response, '+New *text*')
+        
+
+
 
 class ReviewTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings.json']
