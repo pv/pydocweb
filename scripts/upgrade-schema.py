@@ -54,7 +54,7 @@ def run_python(*args):
     subprocess.call(cmd)
 
 def run_sql(filename):
-    from django.db import connection
+    from django.db import connection, transaction
     cursor = connection.cursor()
 
     sql = open(filename, 'r').read()
@@ -66,7 +66,7 @@ def run_sql(filename):
         if not entry: continue
         print entry + ";"
         cursor.execute(entry)
-    cursor.execute('VACUUM')
+    transaction.commit_unless_managed()
 
 def get_upgrade_scripts():
     scripts = {}
@@ -81,17 +81,15 @@ def get_upgrade_scripts():
     return scripts
 
 def set_schema_version(version):
-    from django.db import connection
+    from django.db import connection, transaction
     cursor = connection.cursor()
     try:
         cursor.execute('DELETE FROM docweb_dbschema')
         cursor.execute('INSERT INTO docweb_dbschema (version) VALUES (%s)',
                        [version])
-        cursor.execute('VACUUM')
+        transaction.commit_unless_managed()
     except Exception, exc:
         pass
-    # NB: with SQLite3, the above INSERT INTO appears not always to have
-    #     an effect without the VACUUM
 
 def get_schema_version():
     from django.db import connection
