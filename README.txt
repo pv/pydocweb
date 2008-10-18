@@ -97,7 +97,7 @@ Running tests
 
 To run Pydocweb's test suite, do
 
-    ./manage.py test docweb
+    ./manage.py test
 
 The test suite should cover the basic functionality of Pydocweb.
 
