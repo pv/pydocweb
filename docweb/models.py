@@ -520,7 +520,6 @@ class LabelCache(models.Model):
         if created or overwrite:
             label.target = target
             label.title = title
-            label.site = site
             label.save()
 
     @classmethod
