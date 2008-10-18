@@ -114,7 +114,7 @@ Aim: we want to serve Pydocweb for Numpy in ``/numpy``, ASAP.
 
 Make the directory layout as follows::
 
-   /wherever/pydocweb [*]
+   /wherever/pydocweb
    |-- media
    |   |-- math [*]
    |   ...
