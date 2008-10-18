@@ -1,5 +1,9 @@
 import os, sys, shutil, tempfile, subprocess, os, random, glob, compiler.ast
-import xml.etree.ElementTree as etree
+try:
+    import xml.etree.ElementTree as etree
+except ImportError:
+    import elementtree.ElementTree as etree
+
 import unittest
 
 PYDOCM = os.path.abspath(os.path.join(os.path.dirname(__file__),
