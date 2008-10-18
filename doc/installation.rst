@@ -106,28 +106,78 @@ Some example configurations are, however, explained below.
 .. _`deployment guide`: http://docs.djangoproject.com/en/dev/howto/deployment/
 
 
-Apache + ``mod_python``
-^^^^^^^^^^^^^^^^^^^^^^^
+Example: Apache + ``mod_python``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before going production,
+Aim: we want to serve Pydocweb for Numpy in ``/numpy``, as a part of a
+site containing also many other parts. We also want to put all data to
+a separate directory than source code. The web server is Apache.
 
-- Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
-  accordingly.
+Make the directory layout as follows::
 
-- Set DEBUG=False
+   /var/www
+   |-- lib
+   |   |-- pydocweb
+   |   |   |-- LICENSE.txt
+   |   |   ... pydocweb's source code; unmodified ...
+   |   `-- pydocweb-numpy [*]
+   |       |-- data.db [*]
+   |       |-- modules [*]
+   |       |   `-- pull-numpy.sh
+   |       |-- math-images [*]
+   |       `-- settings_numpy.py
+   `-- root
+       `-- site_media
+           |-- css -> ../../lib/pydocweb/media/css
+           |-- js -> ../../lib/pydocweb/media/js
+           |-- math -> ../../lib/pydocweb-numpy/math-images
+           `-- admin -> /usr/local/lib/python2.5/site-packages/Django-1.0_final-py2.5.egg/django/contrib/admin/media
 
-For production deployment, see Django's deployment guide at
-http://docs.djangoproject.com/en/dev/howto/deployment/
+Entries marked [*] need to be writable by the web server.
+Note the link to Django's admin app's static files.
+
+The Apache configuration looks like the following::
+
+    <VirtualHost *:80>
+      DocumentRoot /var/www/root
+      <Location "/numpy/">
+        SetHandler python-program
+        PythonHandler django.core.handlers.modpython
+        SetEnv DJANGO_SETTINGS_MODULE settings_numpy
+        PythonOption django.root /numpy
+        PythonPath "['/var/www/lib', '/var/www/lib/pydocweb-numpy'] + sys.path"
+        PythonDebug On
+      </Location>
+    </VirtualHost>
+
+and the active Django settings file, :file:`settings_numpy.py` reads::
+
+    from pydocweb.settings import *
+    DEBUG = False
+    PULL_SCRIPT = "/var/www/lib/pydocweb-numpy/modules/pull-numpy.sh"
+    MODULE_DIR = "/var/www/lib/pydocweb-numpy/modules"
+    ADMINS = (('Foo Bar', 'foo.bar@quux.com.invalid'),)
+    SECRET_KEY = 'example-secret-key-1kovAouhk5y8auwhyPWPgs4YYbO0SauE'
+    DATABASE_ENGINE = 'sqlite3'
+    DATABASE_NAME = '/var/www/lib/pydocweb-numpy/data.db'
+    SITE_PREFIX = '/numpy'
+    ADMIN_MEDIA_PREFIX = '/site_media/admin/'
+
+We also go to Control -> Admin site -> Sites and change the site 'domain'
+to "www.domain.com/numpy".
+
+And that's pretty much there's to it.
 
 
 Multiple sites
 --------------
 
 Pydocweb uses the django.contrib.sites_ framework, which allows you to
-share users and docstrings between multiple Pydocweb sites. In short,
-each "site" should have its own :file:`settings.py` file and entry in
-web server configuration. (But note that you can do 
-``from another_settings import *`` in a ``settings.py`` file to get settings
-from another file.)
+share users and docstrings between multiple Pydocweb instances
+("sites"). In short, each "site" should have its own
+:file:`settings.py` file (each with a different ``SITE_ID``) and entry
+in web server configuration, but share the same database. (But note
+that you can do ``from another_settings import *`` in a
+``settings.py`` file to get settings from another file.)
 
 .. _django.contrib.sites: http://docs.djangoproject.com/en/dev/ref/contrib/sites/
