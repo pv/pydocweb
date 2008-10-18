@@ -57,7 +57,10 @@ class RstWriter(docutils.writers.html4css1.Writer):
     
     def _resolve_name(self, name, is_label=False):
         names = [name] + ['%s%s' % (p, name) for p in self.resolve_prefixes]
-        items = models.LabelCache.objects.filter(label__in=names)
+        items = models.LabelCache.on_site.filter(label__in=names)
+        if not items:
+            # try to search cross-site
+            items = models.LabelCache.objects.filter(label__in=names)
         if items:
             url = reverse('pydocweb.docweb.views_docstring.view',
                           kwargs=dict(name=items[0].target)) + '#' + name
