@@ -455,8 +455,8 @@ class PatchTests(TestCase):
 
     def tearDown(self):
         xmlfile = os.path.join(TESTDIR, 'base-examplecom.xml')
-        #if os.path.isfile(xmlfile):
-        #    os.unlink(xmlfile)
+        if os.path.isfile(xmlfile):
+            os.unlink(xmlfile)
 
     def test_patch_generation(self):
         
