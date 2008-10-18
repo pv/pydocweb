@@ -501,7 +501,7 @@ class LabelCache(models.Model):
     ReStructuredText cross-reference labels and docstring aliases
 
     """
-    label = models.CharField(max_length=256, primary_key=True)
+    label = models.CharField(max_length=256)
     target = models.CharField(max_length=256)
     title = models.CharField(max_length=256)
 

@@ -47,7 +47,7 @@ def main():
         current_version = next_version
         print "-- Done."
 
-    print "-- All done."
+    print "-- All done. You may need to re-pull from sources."
         
 def run_python(*args):
     cmd = [sys.executable] + list(args)
