@@ -2,11 +2,8 @@
 Installation
 ============
 
-Basic setup
-===========
-
 Requirements
-------------
+============
 
 Pydocweb requires that the following dependencies are installed:
 
@@ -17,7 +14,7 @@ Pydocweb requires that the following dependencies are installed:
    - Dvipng (optional, for math)
 
 Initial setup
--------------
+=============
 
 Before serious deployment, you'll likely want to test it and
 initialize it first. This is probably easiest to try on your desktop
@@ -50,7 +47,7 @@ instead of doing it on the deployment server.
    You should see the a working front page greeting you.
 
 Module setup
-------------
+============
 
 Next, you will need to tell Pydocweb what Python module or
 documentation you want to use it for.
@@ -74,7 +71,7 @@ documentation you want to use it for.
 4. You should now see your module's docstrings in the "Docstrings" tab.
 
 Customisation
--------------
+=============
 
 1. Change the site name: Go to the "Control" tab -> Administration site
    on the site, and change the "example.com" entry in the Sites section
@@ -93,9 +90,11 @@ Customisation
 
 3. Write a proper front page and modify the "registration" page, if needed.
 
+4. Don't like the visual appearance? Edit the templates and CSS.
+
 
 Deployment
-----------
+==========
 
 There are many ways to deploy Django-based applications on servers,
 and all of them should work for Pydocweb (provided you make the
@@ -109,7 +108,7 @@ Some example configurations are, however, explained below.
 
 
 Example: Simple Apache + ``mod_python``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------
 
 Aim: we want to serve Pydocweb for Numpy in ``/numpy``, ASAP.
 
@@ -140,7 +139,7 @@ The Apache configuration looks like the following::
       <Location "/numpy/">
         SetHandler python-program
         PythonHandler django.core.handlers.modpython
-        SetEnv DJANGO_SETTINGS_MODULE settings
+        SetEnv DJANGO_SETTINGS_MODULE pydocweb.settings
         PythonOption django.root /numpy
         PythonPath "['/wherever'] + sys.path"
         PythonDebug On
@@ -159,10 +158,51 @@ The ``settings.py`` file contains the following relevant variables:
     SITE_PREFIX = '/numpy'
     ADMIN_MEDIA_PREFIX = '/admin_media/'
 
-We also go to Control -> Admin site -> Sites and change the site 'domain'
+Finally, go to Control -> Admin site -> Sites and change the site 'domain'
 to "www.domain.com/numpy".
 
 And that's pretty much there's to it.
+
+Continuation: Another Pydocweb site, sharing users
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Aim: Now that a site for Numpy is set up, we'd like to put up a site for
+Numpy's reference guide.
+
+Go to Control -> Admin site -> Sites (on the Numpy site) and add a new site
+with 'domain' "www.domain.com/numpy-refguide" and appropriate name.
+Pay heed to the SITE ID the new site gets (after adding the site, click
+the new site, and look at the URL: "../admin/sites/site/2/" -> the site id
+is 2).
+
+Create a :file:`settings_numpy_refguide.py` in the :file:`pydocweb`
+directory::
+
+    from settings import *
+    SITE_ID = 2
+    PULL_SCRIPT = relative_dir("modules/pull-numpy-refguide.sh")
+    SITE_PREFIX = "/numpy-refguide"
+
+and add to the Apache configuration::
+
+      <Location "/numpy-refguide/">
+        SetHandler python-program
+        PythonHandler django.core.handlers.modpython
+        SetEnv DJANGO_SETTINGS_MODULE pydocweb.settings_numpy_refguide
+        PythonOption django.root /numpy
+        PythonPath "['/wherever'] + sys.path"
+        PythonDebug On
+        PythonInterpreter refguidesite
+      </Location>
+
+You can leave out the ``PythonInterpreter`` statement if you put the
+new site definition into a different VirtualHost.
+
+Finally, note that the shell scripts ``generate-path.sh``,
+``import-docstrings.sh``, ``update-docstrings.sh``, and
+``upgrade-db-schema.sh`` hard-code the name of the ``settings``
+module.  They are very simple scripts, so you can adapt them if you
+need to run them agains a different site than the default one.
 
 
 Example: More involved Apache + ``mod_python``
@@ -225,8 +265,6 @@ and the active Django settings file, :file:`settings_numpy.py` reads::
 
 We also go to Control -> Admin site -> Sites and change the site 'domain'
 to "www.domain.com/numpy".
-
-And that's pretty much there's to it.
 
 
 Multiple sites
