@@ -98,8 +98,10 @@ Deployment
 ----------
 
 There are many ways to deploy Django-based applications on servers,
-and all of them should work for Pydocweb. For general documentation,
-see Django's `deployment guide`_.
+and all of them should work for Pydocweb (provided you make the
+:file:`modules` directory writable for the web server and otherwise
+take care of file permissions). For general documentation, see
+Django's `deployment guide`_.
 
 Some example configurations are, however, explained below.
 
