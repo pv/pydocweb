@@ -570,6 +570,8 @@ class LabelCache(models.Model):
         if self.site == site:
             return url_part
         else:
+            if url_part.startswith(settings.SITE_PREFIX):
+                url_part = url_part[len(settings.SITE_PREFIX):]
             return "http://%s%s" % (self.site.domain, url_part)
 
 
