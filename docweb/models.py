@@ -534,24 +534,8 @@ class LabelCache(models.Model):
         # -- Cache docstring name
         cls.cache(docstring.name, docstring.name, site=docstring.site)
 
-        # -- Cache .. _foo: labels and Sphinx directives
-        if docstring.type_code == 'file':
-            text = docstring.text
-            
-            for name in cls._label_re.findall(text):
-                # XXX: put something more intelligent to the title field...
-                cls.cache(name, docstring.name, site=docstring.site)
-
-            module = ""
-            for directive, name in cls._directive_re.findall(text):
-                if directive in ('module', 'currentmodule'):
-                    module = name + '.'
-                    cls.cache(name, docstring.name, site=docstring.site)
-                elif directive == 'currentmodule':
-                    continue
-                else:
-                    cls.cache(module + name, docstring.name,
-                              site=docstring.site)
+        # -- Cache docstring RST labels
+        cls.cache_docstring_labels(docstring)
 
         # -- Cache content aliases
         if docstring.type_code in ('class', 'module'):
@@ -559,6 +543,28 @@ class LabelCache(models.Model):
                 name = '%s.%s' % (docstring.name, alias.alias)
                 cls.cache(name, alias.target, site=docstring.site)
 
+    @classmethod
+    def cache_docstring_labels(cls, docstring):
+        if docstring.type_code != 'file':
+            return
+    
+        text = docstring.text
+
+        for name in cls._label_re.findall(text):
+            # XXX: put something more intelligent to the title field...
+            cls.cache(name, docstring.name, site=docstring.site)
+
+        module = ""
+        for directive, name in cls._directive_re.findall(text):
+            if directive in ('module', 'currentmodule'):
+                module = name + '.'
+                cls.cache(name, docstring.name, site=docstring.site)
+            elif directive == 'currentmodule':
+                continue
+            else:
+                cls.cache(module + name, docstring.name,
+                          site=docstring.site)
+        
     def full_url(self, url_part):
         """Prefix the given URL with this object's site prefix"""
         site = Site.objects.get_current()
@@ -753,8 +759,39 @@ def _update_docstrings_from_xml(site, stream):
     # -- Update label cache
 
     LabelCache.clear(site=site)
-    for doc in Docstring.on_site.all():
-        LabelCache.cache_docstring(doc)
+    
+    from django.db import connection, transaction
+    cursor = connection.cursor()
+
+    # Insert docstring names at once using raw SQL (fast!)
+    cursor.execute("""
+    INSERT INTO docweb_labelcache (label, target, title, site_id)
+    SELECT d.name || '.' || a.alias, a.target, a.alias, %s
+    FROM docweb_docstring AS d
+    LEFT JOIN docweb_docstringalias AS a
+    ON d.name == a.parent_id
+    WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
+    """, [site.id])
+    cursor.execute("""
+    INSERT INTO docweb_labelcache (label, target, title, site_id)
+    SELECT d.name || '/' || a.alias, a.target, a.alias, %s
+    FROM docweb_docstring AS d
+    LEFT JOIN docweb_docstringalias AS a
+    ON d.name == a.parent_id
+    WHERE d.name || '/' || a.alias != a.target AND d.type_ == 'dir'
+    """, [site.id])
+    cursor.execute("""
+    INSERT INTO docweb_labelcache (label, target, title, site_id)
+    SELECT d.name, d.name, d.name, %s
+    FROM docweb_docstring AS d
+    """, [site.id])
+
+    # Raw SQL needs a manual flush
+    transaction.commit_unless_managed()
+
+    # Do the part of the work that's not possible using SQL only
+    for doc in Docstring.on_site.filter(type_code='file').all():
+        LabelCache.cache_docstring_labels(doc)
 
 
 def update_docstrings(site):
