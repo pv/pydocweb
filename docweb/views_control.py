@@ -35,7 +35,7 @@ def patch(request):
 @cache_control(public=True, max_age=60*15)
 def dump(request):
     response = HttpResponse(mimetype="application/xml")
-    response['Content-Disposition'] = 'attachment; filename=foo.xls'
+    response['Content-Disposition'] = 'attachment; filename=dump.xml'
     dump_docs_as_xml(response)
     return response
 
