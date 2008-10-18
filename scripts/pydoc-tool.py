@@ -811,8 +811,11 @@ class SourceReplacer(object):
             new_doc = new_doc.replace('"""', r'\"\"\"')
             new_doc = new_doc.strip()
 
-            fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
-                indent, new_doc.replace("\n", "\n"+indent), indent, indent)
+            if "\n" not in new_doc and len(new_doc) < 80 - 7 - len(indent):
+                fmt_doc = '"""%s"""' % new_doc
+            else:
+                fmt_doc = '"""\n%s%s\n%s\n%s"""' % (
+                    indent, new_doc.replace("\n", "\n"+indent), indent, indent)
             fmt_doc = strip_trailing_whitespace(fmt_doc)
         
         # Replace
