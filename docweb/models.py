@@ -868,18 +868,7 @@ def patch_against_source(site, revs=None):
     # -- Generate patch
     base_xml_fn = base_xml_file_name(site)
 
-    # XXX: yech, bad hack, needs a real fix
-    paths = os.path.pathsep.join([
-        os.path.join(settings.MODULE_DIR, site.domain,
-                     'dist/lib/python2.4/site-packages'),
-        os.path.join(settings.MODULE_DIR, site.domain,
-                     'dist/lib/python2.5/site-packages'),
-        os.path.join(settings.MODULE_DIR, site.domain,
-                     'dist/lib/python2.6/site-packages'),
-        settings.MODULE_DIR,
-        ])
-
-    p = subprocess.Popen([PYDOCTOOL, 'patch', '-s', paths,
+    p = subprocess.Popen([PYDOCTOOL, 'patch', '-s', settings.MODULE_DIR,
                           base_xml_fn, new_xml_file.name],
                          cwd=settings.MODULE_DIR,
                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)

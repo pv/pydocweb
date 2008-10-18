@@ -140,6 +140,25 @@ def _open_file(filename, mode):
     else:
         return open(filename, mode)
 
+def _extend_sys_path(doc, cmd_opts):
+    doc_paths = doc.root.attrib.get('path', '').split(os.path.pathsep)
+    if '' in doc_paths:
+        doc_paths.remove('')
+    
+    for pth in reversed(doc_paths):
+        pth = os.path.abspath(pth)
+        if pth not in sys.path:
+            sys.path.insert(0, pth)
+
+    if hasattr(cmd_opts, 'path'):
+        for pth in reversed(cmd_opts.path.split(os.path.pathsep)):
+            pth = os.path.abspath(pth)
+            if pth not in doc_paths:
+                doc_paths.insert(0, pth)
+    
+    doc.root.attrib['path'] = os.path.pathsep.join(doc_paths)
+
+
 #------------------------------------------------------------------------------
 # collect
 #------------------------------------------------------------------------------
@@ -159,6 +178,7 @@ def cmd_collect(args):
                                       indoc=True, outfile=True, syspath=True)
 
     doc = opts.indoc
+    _extend_sys_path(doc, opts)
 
     for m in args:
         doc.add_module(m)
@@ -197,6 +217,7 @@ def cmd_mangle(args):
                                       indoc=True, nargs=0)
 
     doc = opts.indoc
+    _extend_sys_path(doc, opts)
 
     def common_prefix_length(a, b):
         for j in xrange(min(len(a), len(b))):
@@ -314,7 +335,8 @@ def cmd_numpy_docs(args):
                                       syspath=True)
     
     doc = opts.indoc
-    
+    _extend_sys_path(doc, opts)
+
     new_info = {}
     
     def ast_parse_file(file_name, source):
@@ -377,6 +399,7 @@ def cmd_pyrex_docs(args):
                                       syspath=True)
     
     doc = opts.indoc
+    _extend_sys_path(doc, opts)
     
     def pyrex_parse_source(source):
         Pyrex.Compiler.Main.Errors.num_errors = 0
@@ -453,7 +476,6 @@ def cmd_sphinx_docs(args):
                                       indoc=True, outfile=True, nargs=1,
                                       syspath=False)
 
-
     doc = opts.indoc
 
     if not opts.exts:
@@ -529,6 +551,8 @@ def cmd_patch(args):
     doc_old = Documentation.load(open(args[0], 'r'))
     doc_new = Documentation.load(open(args[1], 'r'))
 
+    _extend_sys_path(doc_old, opts)
+
     replacer = SourceReplacer(doc_old, doc_new)
 
     for new_el in doc_new.root.getchildren():
@@ -553,7 +577,7 @@ def cmd_patch(args):
                 new_src[-1] += "\n"
 
         # Generate an unified diff
-        fn = strip_sys_path(file)
+        fn = strip_path(file)
         diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
         opts.outfile.writelines(diff)
 
@@ -587,6 +611,7 @@ def cmd_bzr(args):
 
     doc_old = Documentation.load(open(old_fn, 'r'))
     doc_new = Documentation.load(open(new_fn, 'r'))
+    _extend_sys_path(doc_old, opts)
 
     replacer = SourceReplacer(doc_old, doc_new)
 
@@ -603,7 +628,7 @@ def cmd_bzr(args):
             # nothing to do
             continue
         
-        relative_fn = strip_sys_path(fn)
+        relative_fn = strip_path(fn)
 
         if os.path.abspath(relative_fn) == fn:
             print >> sys.stderr, "Don't know where to find file", fn
@@ -940,12 +965,14 @@ def iter_statements(ch_iter):
 def strip_trailing_whitespace(text):
     return "\n".join([x.rstrip() for x in text.split("\n")])
  
-def strip_sys_path(fn):
+def strip_path(fn, paths=None):
     """
-    If a file is in sys.path, strip the prefix.
+    If a file is in given paths (default: sys.path), strip the prefix.
     """
+    if paths is None:
+        paths = sys.path
     fn = os.path.realpath(fn)
-    for pth in sys.path:
+    for pth in paths:
         pth = os.path.realpath(pth)
         if fn.startswith(pth + os.path.sep):
             return fn[len(pth)+1:]
