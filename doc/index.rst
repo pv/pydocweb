@@ -1,14 +1,21 @@
-.. Pydocweb documentation master file, created by sphinx-quickstart on Sat Sep 13 22:20:24 2008.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Pydocweb
+========
 
-Welcome to Pydocweb's documentation!
-====================================
+Pydocweb is a web application for editing Python module docstrings or
+(eventually) Sphinx_-enabled documentation.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   installation
+   usage
+   administration
+   pydoc-tool
+   development
+
+.. _Sphinx: http://sphinx.pocoo.org/
 
 Indices and tables
 ==================
@@ -16,4 +23,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
