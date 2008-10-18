@@ -450,6 +450,46 @@ class PullMergeTests(TestCase):
         self.assertContains(response, 'Nothing to merge')
         self.assertContains(response, 'No conflicts')
 
+class PatchTests(TestCase):
+    fixtures = ['tests/users.json', 'tests/docstrings_changed.json']
+
+    def tearDown(self):
+        xmlfile = os.path.join(TESTDIR, 'base-examplecom.xml')
+        #if os.path.isfile(xmlfile):
+        #    os.unlink(xmlfile)
+
+    def test_patch_generation(self):
+        
+        # Run pull
+        self.client.login(username='admin', password=PASSWORD)
+        response = self.client.post('/control/',
+                                    {'update-docstrings': 'Pull'})
+        self.client.logout()
+
+        # Edit a docstring
+        self.client.login(username='editor', password=PASSWORD)
+        response = self.client.post('/docs/sample_module.sample2.func4/edit/',
+                                    {'text': 'EDITED Quux docstring',
+                                     'button_edit': 'Save',
+                                     'comment': 'Edit a bit'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'EDITED Quux docstring')
+        self.client.logout()
+
+        # Check that it's listed 
+        response = self.client.get('/patch/')
+        self.assertContains(response, 'href="/docs/sample_module.sample2.func4/diff/svn/cur/"')
+        self.assertContains(response, 'type="checkbox" name="sample_module.sample2.func4"')
+        self.assertContains(response, 'action="/patch/"')
+
+        # Check patch generation
+        response = self.client.post('/patch/',
+                                    {'sample_module.sample2.func4': 'checked'})
+        self.assertContains(response, '--- sample_module/sample2.py.old')
+        self.assertContains(response, '+++ sample_module/sample2.py')
+        self.assertContains(response,
+                            '-\t"Quux docstring"\n'
+                            '+\t"""EDITED Quux docstring"""\n')
 
 def _follow_redirect(response, data={}):
     if response.status_code not in (301, 302):
