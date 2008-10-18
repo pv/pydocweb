@@ -42,9 +42,9 @@ copyright = '2008, Pauli Virtanen, Stéfan van der Walt'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.3.dev'
+version = '0.4.dev'
 # The full version, including alpha/beta/rc tags.
-release = '0.3.dev'
+release = '0.4.dev'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
