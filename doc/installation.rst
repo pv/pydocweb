@@ -20,7 +20,7 @@ Before serious deployment, you'll likely want to test it and
 initialize it first. This is probably easiest to try on your desktop
 instead of doing it on the deployment server.
 
-0. Edit :file:`settings.py` and:
+1. Edit :file:`settings.py` and:
 
    - Fill in a random string to SECRET_KEY
 
@@ -29,17 +29,17 @@ instead of doing it on the deployment server.
    - Adjust the database setup, if you want to use something else than
      SQLite for the database.
 
-1. Create database by running::
+2. Create database by running::
 
        ./manage.py syncdb
 
    Remember to answer 'yes' when it asks you to create a superuser account.
 
-2. Install "Editor" and "Reviewer" groups by::
+3. Install "Editor" and "Reviewer" groups by::
 
        sqlite3 data.db < scripts/template-groups.sql
 
-3. Try it out *now*, by running::
+4. Try it out *now*, by running::
 
        ./manage.py runserver
 
@@ -121,11 +121,11 @@ Make the directory layout as follows::
    |-- modules [*]
    |   |-- data.db [*]
    |   `-- pull-numpy.sh
-   |-- settings_numpy.py
+   |-- settings.py
    | ... pydocweb's source code ...
 
    /var/www
-   |-- site_media -> /home/user/pydocweb/media
+   |-- site_media -> /wherever/pydocweb/media
    `-- admin_media -> /usr/local/lib/python2.5/site-packages/Django-1.0_final-py2.5.egg/django/contrib/admin/media
 
 Entries marked [*] need to be writable by the web server, and
@@ -146,7 +146,7 @@ The Apache configuration looks like the following::
       </Location>
     </VirtualHost>
 
-The ``settings.py`` file contains the following relevant variables:
+The ``settings.py`` file contains the following relevant variables::
 
     DEBUG = False
     PULL_SCRIPT = relative_dir("modules/pull-numpy.sh")
@@ -189,7 +189,7 @@ and add to the Apache configuration::
         SetHandler python-program
         PythonHandler django.core.handlers.modpython
         SetEnv DJANGO_SETTINGS_MODULE pydocweb.settings_numpy_refguide
-        PythonOption django.root /numpy
+        PythonOption django.root /numpy-refguide
         PythonPath "['/wherever'] + sys.path"
         PythonDebug On
         PythonInterpreter refguidesite
@@ -202,7 +202,7 @@ Finally, note that the shell scripts ``generate-path.sh``,
 ``import-docstrings.sh``, ``update-docstrings.sh``, and
 ``upgrade-db-schema.sh`` hard-code the name of the ``settings``
 module.  They are very simple scripts, so you can adapt them if you
-need to run them agains a different site than the default one.
+need to run them against a different site than the default one.
 
 
 Example: More involved Apache + ``mod_python``
@@ -265,17 +265,3 @@ and the active Django settings file, :file:`settings_numpy.py` reads::
 
 We also go to Control -> Admin site -> Sites and change the site 'domain'
 to "www.domain.com/numpy".
-
-
-Multiple sites
---------------
-
-Pydocweb uses the django.contrib.sites_ framework, which allows you to
-share users and docstrings between multiple Pydocweb instances
-("sites"). In short, each "site" should have its own
-:file:`settings.py` file (each with a different ``SITE_ID``) and entry
-in web server configuration, but share the same database. (But note
-that you can do ``from another_settings import *`` in a
-``settings.py`` file to get settings from another file.)
-
-.. _django.contrib.sites: http://docs.djangoproject.com/en/dev/ref/contrib/sites/
