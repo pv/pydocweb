@@ -6,6 +6,6 @@
 {% block content %}
 <p>This page "{{name|escape}}" does not yet exist.</p>
 <p>
-  <a href="{% url docweb.views_wiki.edit name=name %}">Create new wiki page</a>
+  <a href="{% url pydocweb.docweb.views_wiki.edit name=name %}">Create new wiki page</a>
 </p>
 {% endblock %}

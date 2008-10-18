@@ -2,7 +2,13 @@
 Installation
 ============
 
-1. Install requirements:
+Basic setup
+===========
+
+Requirements
+------------
+
+Pydocweb requires that the following dependencies are installed:
 
    - Django (>= 1.0; http://www.djangoproject.com/)
    - RCS 'merge' tool (in package "rcs" in Ubuntu/Debian)
@@ -10,56 +16,118 @@ Installation
    - LaTeX (optional, for math)
    - Dvipng (optional, for math)
 
-2. Create database by running::
+Initial setup
+-------------
 
-       ./manage.py syncdb
+Before serious deployment, you'll likely want to test it and
+initialize it first. This is probably easiest to try on your desktop
+instead of doing it on the deployment server.
 
-3. If you want sample "Editor" and "Reviewer" groups, do::
-
-       sqlite3 data.db < scripts/template-groups.sql
-
-4. If you want just to try it out *now*, run::
-
-       ./manage.py runserver
-
-5. Create a "pull script" for your project. See "settings.py" for
-   an explanation, and check the examples under modules/
-
-6. Edit 'settings.py' to match your setup.
-
-   - Adjust PULL_SCRIPT to match the Python module you are documenting
+0. Edit :file:`settings.py` and:
 
    - Fill in a random string to SECRET_KEY
 
    - Fill in ADMINS (they get mail when DEBUG=False and something fails)
 
-   Before going production,
+   - Adjust the database setup, if you want to use something else than
+     SQLite for the database.
 
-   - Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
-     accordingly.
+1. Create database by running::
 
-   - Set DEBUG=False
+       ./manage.py syncdb
 
-   For production deployment, see Django's deployment guide at
-   http://docs.djangoproject.com/en/dev/howto/deployment/
+   Remember to answer 'yes' when it asks you to create a superuser account.
 
-7. Change the site name: Go to the "Control" tab -> Administration site
-   on the site, and change the "example.com" in the Sites to something
-   that suits you.
+2. Install "Editor" and "Reviewer" groups by::
+
+       sqlite3 data.db < scripts/template-groups.sql
+
+3. Try it out *now*, by running::
+
+       ./manage.py runserver
+
+   and navigating your browser to the address this command prints.
+   You should see the a working front page greeting you.
+
+Module setup
+------------
+
+Next, you will need to tell Pydocweb what Python module or
+documentation you want to use it for.
+
+1. Create a "pull script" for your project. The pull script extracts
+   docstring etc. from your Python module sources, and dumps the
+   results to an XML file. Typically it is a shell script that calls
+   Pydocweb's :ref:`pydoc-tool.py <pydoc-tool>`.
+
+   See the file "settings.py", and check the examples under modules/
+
+2. In :file:`settings.py`, adjust PULL_SCRIPT and MODULE_DIR according
+   to your setup.
+
+3. Navigate to the running test server, go to "Control" tab and
+   click "Pull from sources".
+
+   Note that this compiles your module, imports it, and collects its docstrings
+   (in a separate process), so it will take some time.
+
+4. You should now see your module's docstrings in the "Docstrings" tab.
+
+Customisation
+-------------
+
+1. Change the site name: Go to the "Control" tab -> Administration site
+   on the site, and change the "example.com" entry in the Sites section
+   to something that suits you.
 
    To understand what the Sites in general do, see
    http://docs.djangoproject.com/en/dev/ref/contrib/sites/
    In short, they allow you to share user and docstring data between different
    sites (that use the same DB). Wiki pages are not shared.
 
-8. Run "Pull from" on the "Control" tab.
-   Note that this compiles your module, imports it, and collects its docstrings
-   (in a separate process).
+2. Decide on user policy. By default Pydocweb allows new users to register
+   accounts, but doesn't give edit permissions to them.
 
-   If this fails with a server timeout, run ./update-docstrings.sh instead.
+   If you want to change this, you can adjust the ``DEFAULT_USER_GROUPS``
+   setting in :file:`settings.py`
 
-9. Write a proper front page and modify the "registration" page, if needed.
+3. Write a proper front page and modify the "registration" page, if needed.
 
-10. Set up regular backups of your database.
 
-11. Start writing!
+Deployment
+----------
+
+There are many ways to deploy Django-based applications on servers,
+and all of them should work for Pydocweb. For general documentation,
+see Django's `deployment guide`_.
+
+Some example configurations are, however, explained below.
+
+.. _`deployment guide`: http://docs.djangoproject.com/en/dev/howto/deployment/
+
+
+Apache + ``mod_python``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Before going production,
+
+- Publish the media/ subdirectory on your web server, and adjust MEDIA_URL
+  accordingly.
+
+- Set DEBUG=False
+
+For production deployment, see Django's deployment guide at
+http://docs.djangoproject.com/en/dev/howto/deployment/
+
+
+Multiple sites
+--------------
+
+Pydocweb uses the django.contrib.sites_ framework, which allows you to
+share users and docstrings between multiple Pydocweb sites. In short,
+each "site" should have its own :file:`settings.py` file and entry in
+web server configuration. (But note that you can do 
+``from another_settings import *`` in a ``settings.py`` file to get settings
+from another file.)
+
+.. _django.contrib.sites: http://docs.djangoproject.com/en/dev/ref/contrib/sites/

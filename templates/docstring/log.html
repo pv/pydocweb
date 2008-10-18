@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form action="{% url docweb.views_docstring.log name %}" method="POST">
+<form action="{% url pydocweb.docweb.views_docstring.log name %}" method="POST">
 <table>
   <tr>
     <th>Revision</th>
@@ -18,7 +18,7 @@
   <tr>
     <td class="{{rev.review|escape}}">{{rev.id|escape}}</td>
     <td>
-      <a href="{% url docweb.views_docstring.view name %}?revision={{rev.id|escape}}">{{rev.timestamp|date:"Y-m-d H:i:s"}}</a>
+      <a href="{% url pydocweb.docweb.views_docstring.view name %}?revision={{rev.id|escape}}">{{rev.timestamp|date:"Y-m-d H:i:s"}}</a>
     </td>
     <td>{{rev.author|escape}}</td>
     <td>
@@ -29,7 +29,7 @@
     </td>
     <td>
       {% if perms.docweb.change_docstring %}
-      <a href="{% url docweb.views_docstring.edit name %}?revision={{rev.id|escape}}">Revert</a>
+      <a href="{% url pydocweb.docweb.views_docstring.edit name %}?revision={{rev.id|escape}}">Revert</a>
       {% endif %}
     </td>
     <td>{{rev.comment|escape}}</td>

@@ -3,7 +3,7 @@
 {% block content %}
 {{body_html|safe}}
 
-<form action="{% url docweb.views_wiki.log name %}" method="POST">
+<form action="{% url pydocweb.docweb.views_wiki.log name %}" method="POST">
 <table>
   <tr>
     <th>Time</th>
@@ -17,7 +17,7 @@
   {% for rev in revisions %}
   <tr>
     <td>
-      <a href="{% url docweb.views_wiki.view name %}?revision={{rev.id|escape}}">{{rev.timestamp|date:"Y-m-d H:i:s"}}</a>
+      <a href="{% url pydocweb.docweb.views_wiki.view name %}?revision={{rev.id|escape}}">{{rev.timestamp|date:"Y-m-d H:i:s"}}</a>
     </td>
     <td>{{rev.author|escape}}</td>
     <td>
@@ -28,7 +28,7 @@
     </td>
     <td>
       {% if perms.docweb.change_wikipage %}
-      <a href="{% url docweb.views_wiki.edit name %}?revision={{rev.id|escape}}">Revert</a>
+      <a href="{% url pydocweb.docweb.views_wiki.edit name %}?revision={{rev.id|escape}}">Revert</a>
       {% endif %}
     </td>
     <td>{{rev.comment|escape}}</td>

@@ -4,8 +4,8 @@
 {% if revision %}
 <div id="revision-header">
   Revision {{ revision }}.
-  <a href="{% url docweb.views_wiki.view name %}">Back to current revision.</a>
-  <a href="{% url docweb.views_wiki.log name %}">Back to log.</a>
+  <a href="{% url pydocweb.docweb.views_wiki.view name %}">Back to current revision.</a>
+  <a href="{% url pydocweb.docweb.views_wiki.log name %}">Back to log.</a>
 </div>
 {% endif %}
 

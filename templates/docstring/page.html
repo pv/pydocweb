@@ -5,15 +5,15 @@
 {% block actions_items %}
 {{block.super}}
 {% if file_name %}
-<a href="{% url docweb.views_docstring.source file_name %}#{{line_number|escape}}">Source</a>
+<a href="{% url pydocweb.docweb.views_docstring.source file_name %}#{{line_number|escape}}">Source</a>
 {% endif %}
 {% if revision %}
-<a href="{% url docweb.views_docstring.view name %}">Current revision</a>
+<a href="{% url pydocweb.docweb.views_docstring.view name %}">Current revision</a>
 <span id="revision-header">Revision {{revision.revno|escape}}</span>
 {% else %}
 <span id="review-status" class="{{status_code|escape}}">
   {% if perms.docweb.change_docstring %}
-  <form action="{% url docweb.views_comment.review name %}" method="post">
+  <form action="{% url pydocweb.docweb.views_comment.review name %}" method="post">
     <ul>
       {{review_form.as_ul}}
       <li><input type="submit" id="submit-review-status" value="Change" /></li>
@@ -54,34 +54,34 @@
     {% if perms.docweb.change_reviewcomment %}
     {% ifequal comment.author_username user.username %}
     <div class="edit-tools">
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="GET">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="GET">
 	<input type=submit value="Edit"/>
       </form>
       {% if comment.resolved %}
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="POST">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="POST">
 	<input type=submit name="button_not_resolved" value="Not resolved" />
       </form>
       {% else %}
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="POST">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="POST">
 	<input type=submit name="button_resolved" value="Resolved" />
       </form>
       {% endif %}
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="POST">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="POST">
 	<input type=submit name="button_delete" value="Delete" />
       </form>
     </div>
     {% else %}{% if perms.docweb.can_review %}
     <div class="edit-tools">
       {% if comment.resolved %}
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="POST">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="POST">
 	<input type=submit name="button_not_resolved" value="Not resolved" />
       </form>
       {% else %}
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="POST">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="POST">
 	<input type=submit name="button_resolved" value="Resolved" />
       </form>
       {% endif %}
-      <form action="{% url docweb.views_comment.edit name,comment.id %}" method="POST">
+      <form action="{% url pydocweb.docweb.views_comment.edit name,comment.id %}" method="POST">
 	<input type=submit name="button_delete" value="Delete" />
       </form>
     </div>
@@ -91,7 +91,7 @@
   </div>
   {% endfor %}
   {% if perms.docweb.change_reviewcomment %}
-  <form action="{% url docweb.views_comment.edit name,"new" %}" method="GET">
+  <form action="{% url pydocweb.docweb.views_comment.edit name,"new" %}" method="GET">
     <input type=submit value="New comment"/>
   </form>
   {% endif %}
@@ -108,7 +108,7 @@
     {% for row in doc.child_modules|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -119,7 +119,7 @@
     {% for row in doc.child_classes|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -130,7 +130,7 @@
     {% for row in doc.child_callables|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -141,7 +141,7 @@
     {% for row in doc.child_objects|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -156,7 +156,7 @@
     {% for row in doc.child_callables|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -167,7 +167,7 @@
     {% for row in doc.child_objects|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a>{% if alias.direct_child %}<span class="child-marker">@</span>{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -182,7 +182,7 @@
     {% for row in doc.child_dirs|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a></td>
       {% endfor %}
     </tr>
     {% endfor %}
@@ -193,7 +193,7 @@
     {% for row in doc.child_files|dictsort:"alias"|columnize:"5" %}
     <tr>
       {% for alias in row %}
-      <td class="{% docstring_status_code alias.target %}"><a href="{% url docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a></td>
+      <td class="{% docstring_status_code alias.target %}"><a href="{% url pydocweb.docweb.views_docstring.view alias.target %}">{{alias.alias|escape}}</a></td>
       {% endfor %}
     </tr>
     {% endfor %}
