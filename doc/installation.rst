@@ -108,8 +108,65 @@ Some example configurations are, however, explained below.
 .. _`deployment guide`: http://docs.djangoproject.com/en/dev/howto/deployment/
 
 
-Example: Apache + ``mod_python``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: Simple Apache + ``mod_python``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Aim: we want to serve Pydocweb for Numpy in ``/numpy``, ASAP.
+
+Make the directory layout as follows::
+
+   /wherever/pydocweb [*]
+   |-- media
+   |   |-- math [*]
+   |   ...
+   |-- modules [*]
+   |   |-- data.db [*]
+   |   `-- pull-numpy.sh
+   |-- settings_numpy.py
+   | ... pydocweb's source code ...
+
+   /var/www
+   |-- site_media -> /home/user/pydocweb/media
+   `-- admin_media -> /usr/local/lib/python2.5/site-packages/Django-1.0_final-py2.5.egg/django/contrib/admin/media
+
+Entries marked [*] need to be writable by the web server, and
+everything needs to be readable by it. Note the link to Django's admin
+app's static files.
+
+The Apache configuration looks like the following::
+
+    <VirtualHost *:80>
+      DocumentRoot /var/www
+      <Location "/numpy/">
+        SetHandler python-program
+        PythonHandler django.core.handlers.modpython
+        SetEnv DJANGO_SETTINGS_MODULE settings
+        PythonOption django.root /numpy
+        PythonPath "['/wherever'] + sys.path"
+        PythonDebug On
+      </Location>
+    </VirtualHost>
+
+The ``settings.py`` file contains the following relevant variables:
+
+    DEBUG = False
+    PULL_SCRIPT = relative_dir("modules/pull-numpy.sh")
+    MODULE_DIR = relative_dir("modules")
+    ADMINS = (('Foo Bar', 'foo.bar@quux.com.invalid'),)
+    SECRET_KEY = 'example-secret-key-1kovAouhk5y8auwhyPWPgs4YYbO0SauE'
+    DATABASE_ENGINE = 'sqlite3'
+    DATABASE_NAME = relative_dir("modules/data.db")
+    SITE_PREFIX = '/numpy'
+    ADMIN_MEDIA_PREFIX = '/admin_media/'
+
+We also go to Control -> Admin site -> Sites and change the site 'domain'
+to "www.domain.com/numpy".
+
+And that's pretty much there's to it.
+
+
+Example: More involved Apache + ``mod_python``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Aim: we want to serve Pydocweb for Numpy in ``/numpy``, as a part of a
 site containing also many other parts. We also want to put all data to
@@ -164,6 +221,7 @@ and the active Django settings file, :file:`settings_numpy.py` reads::
     DATABASE_NAME = '/var/www/lib/pydocweb-numpy/data.db'
     SITE_PREFIX = '/numpy'
     ADMIN_MEDIA_PREFIX = '/site_media/admin/'
+    MATH_ROOT = '/var/www/lib/pydocweb-numpy/math-images'
 
 We also go to Control -> Admin site -> Sites and change the site 'domain'
 to "www.domain.com/numpy".
