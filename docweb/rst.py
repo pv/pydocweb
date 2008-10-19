@@ -24,12 +24,14 @@ class RstWriter(docutils.writers.html4css1.Writer):
     
     output = None
     
-    def __init__(self, resolve_to_wiki, resolve_prefixes=[]):
+    def __init__(self, resolve_to_wiki,
+                 resolve_prefixes=[], resolve_suffixes=[]):
         docutils.writers.html4css1.Writer.__init__(self)
         self.unknown_reference_resolvers = [self.resolver]
         self.nodes = []
         self.resolve_to_wiki = resolve_to_wiki
         self.resolve_prefixes = resolve_prefixes
+        self.resolve_suffixes = resolve_suffixes
     
     def resolver(self, node):
         """
@@ -56,7 +58,9 @@ class RstWriter(docutils.writers.html4css1.Writer):
         return True
     
     def _resolve_name(self, name, is_label=False):
-        names = [name] + ['%s%s' % (p, name) for p in self.resolve_prefixes]
+        names = ['%s%s%s' % (p, name, s)
+                 for p in [''] + self.resolve_prefixes
+                 for s in [''] + self.resolve_suffixes]
         items = models.LabelCache.on_site.filter(label__in=names)
         if not items:
             # try to search cross-site
@@ -74,13 +78,15 @@ class RstWriter(docutils.writers.html4css1.Writer):
     resolver.priority = 001
 
 @cache_memoize(max_age=60*60)
-def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
+def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
+                resolve_suffixes=[]):
     # Fix Django clobbering
     docutils.parsers.rst.roles.DEFAULT_INTERPRETED_ROLE = 'title-reference'
     parts = docutils.core.publish_parts(
         text,
         writer=RstWriter(resolve_to_wiki=resolve_to_wiki,
-                         resolve_prefixes=resolve_prefixes),
+                         resolve_prefixes=resolve_prefixes,
+                         resolve_suffixes=resolve_suffixes),
         settings_overrides = dict(halt_level=5,
                                   traceback=True,
                                   file_insertion_enabled=0,
@@ -89,7 +95,6 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[]):
                                   template='',
                                   default_reference_context='title-reference',
                                   link_base='',
-                                  resolve_prefixes=resolve_prefixes,
                                   )
     )
     return parts['html_body'].encode('utf-8')
@@ -197,7 +202,8 @@ def render_sphinx_html(doc, text):
     # Docstring body
     body_html = render_html(unicode(text),
                             resolve_to_wiki=False,
-                            resolve_prefixes=prefixes)
+                            resolve_prefixes=prefixes,
+                            resolve_suffixes=['.rst', '.txt'])
 
     # Full HTML output
     t = get_template('docstring/body.html')
