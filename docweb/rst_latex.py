@@ -81,13 +81,20 @@ def extract_baseline(png_fn):
     img = Image.open(png_fn).convert('RGBA')
     red, green, blue, alpha = img.split()
     baseline_offset = 0
+    
+    def is_background_at(pos):
+        return (alpha.getpixel(pos) == 0
+                or (red.getpixel(pos) == 255
+                    and green.getpixel(pos) == 255
+                    and blue.getpixel(pos) == 255))
+                
     for y in xrange(img.size[1]):
-        if alpha.getpixel((0, img.size[1]-1 - y)) != 0:
+        if not is_background_at((0, img.size[1]-1 - y)):
             baseline_offset = y
             break
     right_edge = 0
     for x in xrange(img.size[0]):
-        if alpha.getpixel((x, img.size[1]-1 - baseline_offset)) == 0:
+        if is_background_at((x, img.size[1]-1 - baseline_offset)):
             right_edge = x + 1
             break
     img2 = img.crop((right_edge, 0, img.size[0], img.size[1]))
