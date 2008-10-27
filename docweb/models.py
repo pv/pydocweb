@@ -425,29 +425,6 @@ class Docstring(models.Model):
         return res + cursor.fetchall()
 
     @classmethod
-    def get_by_review(cls, review, dirty=None):
-        site_id = Site.objects.get_current().id
-        where_ = ""
-        if dirty is True:
-            where_ += ' AND dirty '
-        elif dirty is False:
-            where_ += ' AND NOT dirty '
-        from django.db import connection
-        cursor = connection.cursor()
-        cursor.execute("""\
-        SELECT d.name FROM docweb_docstring AS d
-        LEFT JOIN docweb_docstringrevision AS r WHERE d.name = r.docstring_id
-        GROUP BY d.name HAVING r.review = %%s %s AND d.site_id = %%s
-        """ % where_, [review, site_id])
-        res =  cursor.fetchall()
-        cursor.execute("""\
-        SELECT name FROM docweb_docstring
-        WHERE name NOT IN (SELECT docstring_id FROM docweb_docstringrevision)
-        AND review = %%s %s AND site_id = %%s
-        """ % where_, [review, site_id])
-        return res + cursor.fetchall()
-
-    @classmethod
     def get_non_obsolete(cls):
         site = Site.objects.get_current()
         try:
