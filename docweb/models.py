@@ -620,6 +620,7 @@ class WikiPage(models.Model):
             Iterator of matching docstring names
 
         """
+        site_id = Site.objects.get_current().id
         if invert:
             not_ = "NOT"
         else:
@@ -627,9 +628,11 @@ class WikiPage(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""\
-        SELECT page_id FROM docweb_wikipagerevision
-        GROUP BY page_id HAVING %s (page_id LIKE %%s OR text LIKE %%s)
-        """ % (not_,), [s, s])
+        SELECT p.name FROM docweb_wikipagerevision AS r
+        LEFT JOIN docweb_wikipage AS p WHERE r.page_id = p.id
+        GROUP BY p.name HAVING %s (p.name LIKE %%s OR r.text LIKE %%s)
+        AND p.site_id = %%s
+        """ % (not_,), [s, s, site_id])
         return cursor.fetchall()
 
 class WikiPageRevision(models.Model):
