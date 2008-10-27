@@ -491,6 +491,34 @@ class PatchTests(TestCase):
                             '-\t"Quux docstring"\n'
                             '+\t"""EDITED Quux docstring"""\n')
 
+class SearchTests(TestCase):
+    fixtures = ['tests/docstrings.json', 'tests/wiki.json']
+
+    def test_search_page(self):
+        response = self.client.get('/search/')
+        self.assertContains(response, '<form action="/search/"')
+
+        # check searching from docstrings
+        response = self.client.post('/search/',
+                                    {'type_code': 'any',
+                                     'fulltext': 'sample_module'})
+        self.assertContains(response, '>sample_module</a>')
+
+        # check search filter
+        response = self.client.post('/search/',
+                                    {'type_code': 'wiki',
+                                     'fulltext': 'sample_module'})
+        self.failUnless('>sample_module</a>' not in response)
+
+        # check wiki search
+        response = self.client.post('/search/',
+                                    {'type_code': 'wiki',
+                                     'fulltext': 'Help',
+                                     'button_search': 'Search',
+                                     })
+        self.assertContains(response, '>Help Edit Docstring</a>')
+
+
 def _follow_redirect(response, data={}):
     if response.status_code not in (301, 302):
         raise AssertionError("Not a redirect")

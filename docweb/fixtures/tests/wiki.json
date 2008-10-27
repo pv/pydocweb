@@ -1,0 +1,97 @@
+[
+  {
+    "pk": 1, 
+    "model": "docweb.wikipage", 
+    "fields": {
+      "name": "Front Page", 
+      "site": 1
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "docweb.wikipage", 
+    "fields": {
+      "name": "Help Edit Docstring", 
+      "site": 1
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "docweb.wikipage", 
+    "fields": {
+      "name": "Help Merge", 
+      "site": 1
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "docweb.wikipage", 
+    "fields": {
+      "name": "Help Merge Docstring", 
+      "site": 1
+    }
+  }, 
+  {
+    "pk": 5, 
+    "model": "docweb.wikipage", 
+    "fields": {
+      "name": "Help Registration Done", 
+      "site": 1
+    }
+  }, 
+  {
+    "pk": 5, 
+    "model": "docweb.wikipagerevision", 
+    "fields": {
+      "comment": "Template", 
+      "text": "To get **edit permissions**, mail to the administrators.\n\nFor more information, see our `Front Page`_.", 
+      "page": 5, 
+      "timestamp": "2008-10-27 22:06:15", 
+      "author": "Source"
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "docweb.wikipagerevision", 
+    "fields": {
+      "comment": "Template", 
+      "text": "Merging docstrings with SVN can go wrong:\neither the merging fails and causes a conflict, or the merge succeeds\nbut the result does not make sense. Hence, human confirmation of the\nmerge results is always necessary.\n\nSuccessful merges\nIf merge was successful, committing the merge automatically is possible.\nSuch merges can be seen on the `Merge </pydocweb/merge>`_ page,\nand the changes due to the merge are shown when the docstring is viewed.\n\nClicking on \"Accept merge\" button causes the merged version to be\ncommitted as a new revision of the docstring.\n\nConflicts\nSometimes conflicting changes are made in the version in this system\nand in SVN; they are also listed on the Merge page.\n\nThe conflicts must be resolved manually by editing the docstring\nand correcting the pieces between conflict markers. For example::\n\n    <<<<<<< web version\n    y = absolute(x) takes |x| elementwise.\n\n    Examples\n        >>> x = np.array([-1.2, 1.2])\n    >>> np.absolute(x)\n    array([ 1.2,  1.2])\n    >>> np.absolute(1.2 + 1j)\n    1.5620499351813308\n    =======\n    y = absolute(x)\n\n    takes |x| elementwise.\n    >>>>>>> new svn version\n\nHere, the part between ``<<<<<<<`` and ``=======`` is the previous\nrevision of the docstring in this system, and the part between\n``=======`` and ``>>>>>>>`` is that currently in SVN. The editor\nmust now manually remove the conflict markers and combine\nthe two versions so that the results make sense.", 
+      "page": 4, 
+      "timestamp": "2008-10-27 22:06:15", 
+      "author": "Source"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "docweb.wikipagerevision", 
+    "fields": {
+      "comment": "Template", 
+      "text": "Merging docstrings with SVN can go wrong:\neither the merge fails and causes a conflict, or the merge succeeds\nbut the result does not make sense. Hence, human confirmation of the\nmerge results is always necessary.\n\nSuccessful merges\nIf merge was successful, committing it automatically is possible.\nSuch merges can be seen on this page, and the changes due to the merge\nare shown when the docstring is viewed.\n\nClicking on \"Accept merge\" button causes the merged versions to be\ncommitted as new revisions of the selected docstrings.\n\nConflicts\nSometimes conflicting changes are made in the versions in this system\nand in SVN; also they are listed on this page.\n\nThe conflicts must be resolved manually by editing the docstrings.", 
+      "page": 3, 
+      "timestamp": "2008-10-27 22:06:15", 
+      "author": "Source"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "docweb.wikipagerevision", 
+    "fields": {
+      "comment": "Template", 
+      "text": "See:\n\n* `ReStructuredText quick reference <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_\n* `ReStructuredText primer <http://docutils.sourceforge.net/docs/user/rst/quickstart.html>`_\n* `Our docstring standard <http://projects.scipy.org/scipy/numpy/wiki/CodingStyleGuidelines#docstring-standard>`_\n* `Example docstring <http://svn.scipy.org/svn/numpy/trunk/doc/example.py>`_\n\nLine length\n    Lines should be wrapped at 75 characters. The documentation is\n    meant to be read also interactively in plain text format.\n\nMath:\n    Some text \\:math:\\`A = B C \\\\cos(\\\\alpha)` with inline LaTeX\n    math formula.\n\nAn equation in its own line\n    \\.. math:: A = B C \\\\cos(\\\\alpha)\n\n    Use LaTeX formulas sparingly. Favor readability in plain text\n    form over perfectly tuned typesetting when writing Latex:\n    many of our users will read the documentation interactively\n    in plain text format.\n\nImages::\n    \\.. image:: image-filename.png\n\n    Use images sparingly. Note that our infrastructure needed in including\n    images in the reference manual is not finished yet.\n", 
+      "page": 2, 
+      "timestamp": "2008-10-27 22:06:15", 
+      "author": "Source"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "docweb.wikipagerevision", 
+    "fields": {
+      "comment": "Template revision", 
+      "text": "Insert text for your front page here.\n\nYou may want to:\n\n- Edit \"settings.py\" to match your project.\n\n- Add new users by going to the \"Control\" tab and clicking\n  on the \"Enter the admin site\".\n\n- Customize the following help pages:\n\n  - `Help Registration Done`_  (shown after registering a new account)\n  - `Help Edit Docstring`_  (shown at the bottom of the edit view)\n  - `Help Merge`_  (shown on the merge page)\n  - `Help Merge Docstring`_  (shown on merge conflicts)\n\n", 
+      "page": 1, 
+      "timestamp": "2008-10-27 22:06:15", 
+      "author": "Source"
+    }
+  }
+]
