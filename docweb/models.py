@@ -398,6 +398,7 @@ class Docstring(models.Model):
             Iterator of matching docstring names
 
         """
+        site_id = Site.objects.get_current().id
         if invert:
             not_ = "NOT"
         else:
@@ -412,17 +413,20 @@ class Docstring(models.Model):
         SELECT d.name FROM docweb_docstring AS d
         LEFT JOIN docweb_docstringrevision AS r WHERE d.name = r.docstring_id
         GROUP BY d.name HAVING %s %s (d.name LIKE %%s OR r.text LIKE %%s)
-        """ % (where_, not_,), [s, s])
+        AND d.site_id = %%s
+        """ % (where_, not_,), [s, s, site_id])
         res =  cursor.fetchall()
         cursor.execute("""\
         SELECT name FROM docweb_docstring
-        WHERE name NOT IN (SELECT docstring_id FROM docweb_docstringrevision)
-        AND %s %s (name LIKE %%s OR source_doc LIKE %%s)
-        """ % (where_, not_,), [s, s])
+        WHERE name NOT IN (SELECT DISTINCT docstring_id FROM docweb_docstringrevision)
+        AND %s %s (name LIKE %%s OR source_doc LIKE %%s) AND site_id = %%s
+
+        """ % (where_, not_,), [s, s, site_id])
         return res + cursor.fetchall()
 
     @classmethod
     def get_by_review(cls, review, dirty=None):
+        site_id = Site.objects.get_current().id
         where_ = ""
         if dirty is True:
             where_ += ' AND dirty '
@@ -433,14 +437,14 @@ class Docstring(models.Model):
         cursor.execute("""\
         SELECT d.name FROM docweb_docstring AS d
         LEFT JOIN docweb_docstringrevision AS r WHERE d.name = r.docstring_id
-        GROUP BY d.name HAVING r.review = %%s %s
-        """ % where_, [review])
+        GROUP BY d.name HAVING r.review = %%s %s AND d.site_id = %%s
+        """ % where_, [review, site_id])
         res =  cursor.fetchall()
         cursor.execute("""\
         SELECT name FROM docweb_docstring
         WHERE name NOT IN (SELECT docstring_id FROM docweb_docstringrevision)
-        AND review = %%s %s
-        """ % where_, [review])
+        AND review = %%s %s AND site_id = %%s
+        """ % where_, [review, site_id])
         return res + cursor.fetchall()
 
     @classmethod
