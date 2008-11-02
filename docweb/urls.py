@@ -25,6 +25,7 @@ urlpatterns += patterns(
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/log/$', 'log'),
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/diff/(?P<rev1>[\w-]+)/(?P<rev2>[\w-]+)/$', 'diff'),
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/diff/(?P<rev2>[\w-]+)/$', 'diff_prev'),
+    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/new/$', 'new'),
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/$', 'view'),
     url(r'^docs/$', 'index'),
     url(r'^source/(?P<file_name>.+)$', 'source'),

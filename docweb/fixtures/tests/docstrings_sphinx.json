@@ -1,0 +1,266 @@
+[
+  {
+    "pk": "docs", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "dir", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "docs/index.rst", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc/index.rst", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "file", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": ".. sample_module documentation master file, created by sphinx-quickstart on Sun Sep  7 16:40:03 2008.\n   You can adapt this file completely to your liking, but it should at least\n   contain the root `toctree` directive.\n\nWelcome to sample_module's documentation!\n=========================================\n\nContents:\n\n.. toctree::\n   :maxdepth: 2\n\nIndices and tables\n==================\n\n* :ref:`genindex`\n* :ref:`modindex`\n* :ref:`search`", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "docs/quux.rst", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc/quux.rst", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "file", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": "*******************\nQuux implementation\n*******************\n\nQuuxish work.", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "docs/reference", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": null, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "dir", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": "", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "docs/reference/bar.rst", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc/reference/bar.rst", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "file", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": "***\nBar\n***\n\nBar-ish documentation.", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "docs/reference/foo.rst", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc/reference/foo.rst", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "file", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": "***\nFoo\n***\n\nFoo-ish documentation.", 
+      "dirty": false
+    }
+  }, 
+  {
+    "pk": "docs/reference/index.rst", 
+    "model": "docweb.docstring", 
+    "fields": {
+      "line_number": 1, 
+      "review_code": 0, 
+      "merge_status": 0, 
+      "file_name": "tests/sample_module/doc/reference/index.rst", 
+      "type_name": null, 
+      "objclass": null, 
+      "site": 1, 
+      "argspec": null, 
+      "bases": null, 
+      "type_code": "file", 
+      "timestamp": "2008-11-02 19:04:40", 
+      "base_doc": "", 
+      "source_doc": "***************\nReference index\n***************\n\n.. toctree::\n\n   foo\n   bar", 
+      "dirty": false
+    }
+  },
+  {
+    "pk": 47, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "quux.rst", 
+      "target": "docs/quux.rst", 
+      "parent": "docs"
+    }
+  }, 
+  {
+    "pk": 48, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "index.rst", 
+      "target": "docs/index.rst", 
+      "parent": "docs"
+    }
+  }, 
+  {
+    "pk": 49, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "reference", 
+      "target": "docs/reference", 
+      "parent": "docs"
+    }
+  }, 
+  {
+    "pk": 50, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "foo.rst", 
+      "target": "docs/reference/foo.rst", 
+      "parent": "docs/reference"
+    }
+  }, 
+  {
+    "pk": 51, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "index.rst", 
+      "target": "docs/reference/index.rst", 
+      "parent": "docs/reference"
+    }
+  }, 
+  {
+    "pk": 52, 
+    "model": "docweb.docstringalias", 
+    "fields": {
+      "alias": "bar.rst", 
+      "target": "docs/reference/bar.rst", 
+      "parent": "docs/reference"
+    }
+  }, 
+  {
+    "pk": 52, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs", 
+      "target": "docs", 
+      "label": "docs"
+    }
+  }, 
+  {
+    "pk": 53, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs/quux.rst", 
+      "target": "docs/quux.rst", 
+      "label": "docs/quux.rst"
+    }
+  }, 
+  {
+    "pk": 54, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs/index.rst", 
+      "target": "docs/index.rst", 
+      "label": "docs/index.rst"
+    }
+  }, 
+  {
+    "pk": 55, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs/reference", 
+      "target": "docs/reference", 
+      "label": "docs/reference"
+    }
+  }, 
+  {
+    "pk": 56, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs/reference/foo.rst", 
+      "target": "docs/reference/foo.rst", 
+      "label": "docs/reference/foo.rst"
+    }
+  }, 
+  {
+    "pk": 57, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs/reference/index.rst", 
+      "target": "docs/reference/index.rst", 
+      "label": "docs/reference/index.rst"
+    }
+  }, 
+  {
+    "pk": 58, 
+    "model": "docweb.labelcache", 
+    "fields": {
+      "site": 1, 
+      "title": "docs/reference/bar.rst", 
+      "target": "docs/reference/bar.rst", 
+      "label": "docs/reference/bar.rst"
+    }
+  }
+]

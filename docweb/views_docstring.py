@@ -1,10 +1,11 @@
+import os
 import rst
 from utils import *
 
 from views_comment import ReviewForm
 
 #------------------------------------------------------------------------------
-# Docstrings
+# Docstring index
 #------------------------------------------------------------------------------
 
 def index(request):
@@ -42,6 +43,10 @@ def index(request):
     return render_template(request, 'docstring/index.html',
                            dict(entries=entries))
 
+#------------------------------------------------------------------------------
+# Viewing a docstring
+#------------------------------------------------------------------------------
+
 def view(request, name):
     try:
         doc = Docstring.resolve(name)
@@ -50,23 +55,6 @@ def view(request, name):
             return HttpResponseRedirect(reverse(view, args=[doc.name]))
     except Docstring.DoesNotExist:
         raise Http404()
-
-    # redirect 'dir' entries to a master document
-    index_names = ['index.rst', 'contents.rst', 'index.txt', 'contents.txt']
-
-    if doc.type_code == 'dir' and request.session.get('last-dir-name') != name:
-        for part in index_names:
-            try:
-                doc = Docstring.resolve(name + '/' + part)
-                request.session['last-dir-name'] = name
-                return HttpResponseRedirect(reverse(view, args=[doc.name]))
-            except Docstring.DoesNotExist:
-                pass
-    elif doc.type_code == 'file' and name.split('/')[-1] in index_names:
-        request.session['last-dir-name'] = '/'.join(name.split('/')[:-1])
-    else:
-        try: del request.session['last-dir-name']
-        except KeyError: pass
 
     # display the entry
     try:
@@ -104,6 +92,10 @@ def view(request, name):
                   )
 
     if doc.type_code == 'dir':
+        if request.method == "POST":
+            params['new_page_form'] = NewPageForm(request.POST)
+        else:
+            params['new_page_form'] = NewPageForm()
         return render_template(request, 'docstring/page_dir.html', params)
 
     if revision is None and doc.merge_status == MERGE_CONFLICT:
@@ -118,6 +110,10 @@ def view(request, name):
         return render_template(request, 'docstring/merge.html', params)
     else:
         return render_template(request, 'docstring/page.html', params)
+
+#------------------------------------------------------------------------------
+# Editing
+#------------------------------------------------------------------------------
 
 class EditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(
@@ -193,6 +189,10 @@ def edit(request, name):
                                     source=source,
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
                                     preview_html=None))
+
+#------------------------------------------------------------------------------
+# Log and diff
+#------------------------------------------------------------------------------
 
 def _rev_to_str(rev):
     if rev is None:
@@ -277,6 +277,50 @@ def diff_prev(request, name, rev2):
         rev1 = "svn"
 
     return diff(request, name, rev1, rev2)
+
+#------------------------------------------------------------------------------
+# Creating/deleting 'file' and 'dir' pages
+#------------------------------------------------------------------------------
+
+class NewPageForm(forms.Form):
+    name = forms.RegexField(required=True, label="Name",
+                            regex=r'^[a-zA-Z_.-]+$')
+
+    def clean(self):
+        name = self.cleaned_data.get('name', '')
+        is_dir = 'button_dir' in self.data
+        if is_dir:
+            if '.' in name:
+                raise forms.ValidationError("Directory names can't contain '.'")
+        else:
+            base, ext = os.path.splitext(name)
+            if ext not in ('.txt', '.rst'):
+                raise forms.ValidationError("Pages should have extension '.rst' or '.txt'")
+        return self.cleaned_data
+
+@permission_required('docweb.change_docstring')
+def new(request, name):
+    if request.method != "POST":
+        raise Http404()
+
+    parent = get_object_or_404(Docstring, name=name)
+    if parent.type_code != 'dir':
+        # only 'dir' pages can get new children
+        raise Http404()
+
+    form = NewPageForm(request.POST)
+    if not form.is_valid():
+        return view(request, name)
+
+    is_dir = ('button_dir' in request.POST)
+    name = form.cleaned_data['name']
+
+    if is_dir:
+        doc = Docstring.new_child(parent=parent, name=name, type_code='dir')
+    else:
+        doc = Docstring.new_child(parent=parent, name=name, type_code='file')
+
+    return HttpResponseRedirect(reverse(view, args=[doc.name]))
 
 #------------------------------------------------------------------------------
 # Sources

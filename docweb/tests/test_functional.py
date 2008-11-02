@@ -261,6 +261,42 @@ class DocstringTests(TestCase):
         self.failUnless('New *text*' not in response.content)
         self.failUnless('New *stuff*' not in response.content)
 
+class SphinxTests(TestCase):
+    fixtures = ['tests/users.json', 'tests/docstrings_sphinx.json',
+                'tests/docstrings.json']
+
+    def test_create_page(self):
+        self.client.login(username='editor', password=PASSWORD)
+        
+        response = self.client.get('/docs/docs/')
+        response = self.client.get('/docs/docs/')
+        self.assertContains(response, 'Create sub-page')
+
+        # create a file sub-page
+        response = self.client.post('/docs/docs/new/',
+                                    {'name': 'about.rst',
+                                     'button_file': 'x'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'about.rst\n</h1>')
+
+        # check that it's shown in the page listing
+        response = self.client.get('/docs/docs/')
+        response = self.client.get('/docs/docs/')
+        self.assertContains(response, 'about.rst')
+
+        # edit it
+        response = self.client.post('/docs/docs/about.rst/edit/',
+                                    {'text': 'Initial *edit*',
+                                     'comment': 'Initial comment'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'Initial <em>edit</em>')
+
+        # create a directory sub-page
+        response = self.client.post('/docs/docs/new/',
+                                    {'name': 'user_guide',
+                                     'button_dir': 'x'})
+        response = _follow_redirect(response)
+        self.assertContains(response, 'Subdirectories')
 
 class ReviewTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings.json']

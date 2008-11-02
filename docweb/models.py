@@ -451,6 +451,34 @@ class Docstring(models.Model):
         lines = src.split("\n")
         return "\n".join(lines[:150])
 
+    @classmethod
+    def new_child(cls, parent, name, type_code):
+        """
+        Create a new Sphinx documentation 'file' or 'dir' docstrings.
+        
+        """
+        if parent.type_code != 'dir':
+            raise ValueError("Parent docstring is not a 'dir' docstring")
+
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', name):
+            raise ValueError("New docstring name is invalid")
+
+        if type_code not in ('dir', 'file'):
+            raise ValueError("New docstring type_code is invalid")
+
+        file_name = os.path.join(os.path.basename(parent.file_name), name)
+        page_name = '/'.join([parent.name, name])
+
+        doc = cls(name=page_name, type_code=type_code,
+                  source_doc='', base_doc='',
+                  dirty=True, file_name=file_name, line_number=0,
+                  timestamp=parent.timestamp, site=parent.site)
+        doc.save()
+        alias = DocstringAlias(parent=parent, target=page_name, alias=name)
+        alias.save()
+        LabelCache.cache_docstring(doc)
+        return doc
+
 
 class DocstringRevision(models.Model):
     revno       = models.AutoField(primary_key=True)
