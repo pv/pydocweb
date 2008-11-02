@@ -517,11 +517,28 @@ class LabelCache(models.Model):
         # -- Cache docstring RST labels
         cls.cache_docstring_labels(docstring)
 
-        # -- Cache content aliases
-        if docstring.type_code in ('class', 'module'):
-            for alias in docstring.contents.all():
-                name = '%s.%s' % (docstring.name, alias.alias)
-                cls.cache(name, alias.target, site=docstring.site)
+        # -- Cache docstring aliases
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+        cursor.execute("""
+        INSERT INTO docweb_labelcache (label, target, title, site_id)
+        SELECT d.name || '.' || a.alias, a.target, a.alias, %s
+        FROM docweb_docstring AS d
+        LEFT JOIN docweb_docstringalias AS a
+        ON d.name == a.parent_id
+        WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
+              AND d.site_id = %s AND a.target = %s
+        """, [docstring.site.id, docstring.site.id, docstring.name])
+        cursor.execute("""
+        INSERT INTO docweb_labelcache (label, target, title, site_id)
+        SELECT d.name || '/' || a.alias, a.target, a.alias, %s
+        FROM docweb_docstring AS d
+        LEFT JOIN docweb_docstringalias AS a
+        ON d.name == a.parent_id
+        WHERE d.name || '/' || a.alias != a.target AND d.type_ == 'dir'
+              AND d.site_id = %s AND a.target = %s
+        """, [docstring.site.id, docstring.site.id, docstring.name])
+        transaction.commit_unless_managed()
 
     @classmethod
     def cache_docstring_labels(cls, docstring):

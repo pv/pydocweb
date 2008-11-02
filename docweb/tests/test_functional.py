@@ -211,10 +211,12 @@ class DocstringTests(TestCase):
 
         # Test edit
         response = self.client.post(page + 'edit/',
-                                    {'text': 'New *text*',
+                                    {'text': 'New *text* + `sample_module.func1`_',
                                      'comment': 'Comment 1'})
         response = _follow_redirect(response)
         self.assertContains(response, 'New <em>text</em>')
+        # check that LabelCache is updated properly (#29)
+        self.failIf('Unknown target name' in str(response))
 
         # Another edit by another person
         self.client.login(username='admin', password=PASSWORD)
