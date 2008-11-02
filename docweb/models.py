@@ -466,7 +466,7 @@ class Docstring(models.Model):
         if type_code not in ('dir', 'file'):
             raise ValueError("New docstring type_code is invalid")
 
-        file_name = os.path.join(os.path.basename(parent.file_name), name)
+        file_name = os.path.join(parent.file_name, name)
         page_name = '/'.join([parent.name, name])
 
         doc = cls(name=page_name, type_code=type_code,
@@ -904,6 +904,9 @@ def dump_docs_as_xml(stream, revs=None, only_text=False):
         el.attrib['id'] = rev.name
         el.text = text.encode('utf-8').encode('string-escape')
 
+        if doc.file_name:
+            el.attrib['file'] = doc.file_name
+
         if only_text: continue
         
         if doc.argspec:
@@ -912,8 +915,6 @@ def dump_docs_as_xml(stream, revs=None, only_text=False):
             el.attrib['objclass'] = doc.objclass
         if doc.type_name:
             el.attrib['type'] = doc.type_name
-        if doc.file_name:
-            el.attrib['file'] = doc.file_name
         if doc.line_number:
             el.attrib['line'] = str(doc.line_number)
         if doc.bases:

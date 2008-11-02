@@ -698,7 +698,8 @@ class SourceReplacer(object):
             raise ValueError("No new object for canonical name %s" % new_id)
         
         if el is None:
-            return None
+            # new entry
+            return self.process_new_entry(new_el)
         
         if el.text is None:
             el.text = ""
@@ -852,6 +853,24 @@ class SourceReplacer(object):
             lines[start_line] = pre_stuff + fmt_doc + post_stuff
         
         return file
+
+    def process_new_entry(self, el):
+        """
+        Generate a patch for a file that didn't previously exist.
+        
+        """
+        if el.tag != 'file' or 'file' not in el.attrib:
+            return None
+
+        file_name = el.attrib['file']
+
+        if el.text is None:
+            el.text = ""
+        text = el.text.decode('string-escape')
+
+        self.old_sources[file_name] = []
+        self.new_sources[file_name] = text.splitlines(1)
+        return file_name
 
     def _parse_addnewdoc(self, statement):
         """

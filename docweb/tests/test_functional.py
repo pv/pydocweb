@@ -266,6 +266,10 @@ class SphinxTests(TestCase):
                 'tests/docstrings.json']
 
     def test_create_page(self):
+        self.client.login(username='admin', password=PASSWORD)
+        response = self.client.post('/control/',
+                                    {'update-docstrings': 'Pull'})
+        
         self.client.login(username='editor', password=PASSWORD)
         
         response = self.client.get('/docs/docs/')
@@ -290,6 +294,11 @@ class SphinxTests(TestCase):
                                      'comment': 'Initial comment'})
         response = _follow_redirect(response)
         self.assertContains(response, 'Initial <em>edit</em>')
+
+        # check that it appears in the patch
+        response = self.client.post('/patch/',
+                                    {'docs/about.rst': 'checked'})
+        self.assertContains(response, '+++ sample_module/doc/about.rst')
 
         # create a directory sub-page
         response = self.client.post('/docs/docs/new/',
