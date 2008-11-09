@@ -385,7 +385,7 @@ class Docstring(models.Model):
         return cls.on_site.get(name=sep.join(parts))
 
     def __str__(self):
-        return "<Docstring '%s'>" % self.name
+        return "%s" % self.name
 
     @classmethod
     def fulltext_search(cls, s, invert=False, obj_type=None):
@@ -790,17 +790,15 @@ def _update_docstrings_from_xml(site, stream):
 
     for doc in Docstring.on_site.filter(type_code='file',
                                         timestamp__lt=timestamp).all():
-        # File missing: source docstring is empty
-        doc.source_doc = ""
-        
-        if doc.text == "":
-            # Only 'file' pages with empty text can become obsolete
-            doc.save()
-        else:
-            # Others may cause a merge conflict, but won't become obsolete
+        if doc.text != doc.base_doc and doc.text != "":
+            # Non-empty docstrings won't become obsolete, but may cause
+            # a merge conflict
+            doc.source_doc = ""
             doc.timestamp = timestamp
+            doc.dirty = True
             doc.save()
-            doc.get_merge()
+            if doc.base_doc != doc.source_doc:
+                doc.get_merge()
 
     # -- Handle obsoletion of 'dir' pages missing in SVN
 
@@ -809,7 +807,7 @@ def _update_docstrings_from_xml(site, stream):
         
         # Only 'dir' pages with no remaining children become obsolete
         children = Docstring.get_non_obsolete().filter(
-            name__like=doc.name + '/%').all()
+            name__startswith=doc.name + '/').all()
         if not children:
             continue
         else:
