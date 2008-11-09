@@ -132,6 +132,8 @@ def edit(request, name):
 
     source = doc.get_source_snippet()
 
+    show_delete = (doc.type_code == 'file')
+
     if request.method == 'POST':
         if request.POST.get('button_cancel'):
             return HttpResponseRedirect(reverse(view, args=[name]))
@@ -151,7 +153,23 @@ def edit(request, name):
                                             source=source,
                                             diff_html=diff_html,
                                             preview_html=preview_html,
+                                            show_delete=show_delete,
                                             ))
+            elif show_delete and request.POST.get('button_delete'):
+                try:
+                    doc.edit('', request.user.username, data['comment'])
+                    parent_name = '/'.join(name.split('/')[:-1])
+                    try:
+                        parent = Docstring.resolve(parent_name)
+                        return HttpResponseRedirect(reverse(view,
+                                                            args=[parent.name]))
+                    except Docstring.DoesNotExist:
+                        # no parent -- redirect to front page
+                        # this should be a rare condition
+                        return HttpResponseRedirect(reverse(
+                            'pydocweb.docweb.views_docstring.frontpage'))
+                except RuntimeError, e:
+                    pass
             else:
                 try:
                     doc.edit(data['text'],
@@ -182,11 +200,13 @@ def edit(request, name):
                                     source=source,
                                     merge_warning=(doc.merge_status==MERGE_MERGE),
                                     conflict_warning=(doc.merge_status==MERGE_CONFLICT),
+                                    show_delete=show_delete,
                                     preview_html=None))
     else:
         return render_template(request, 'docstring/edit.html',
                                dict(form=form, name=name, revision=revision,
                                     source=source,
+                                    show_delete=show_delete,
                                     merge_warning=(doc.merge_status!=MERGE_NONE),
                                     preview_html=None))
 

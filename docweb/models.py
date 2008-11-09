@@ -218,12 +218,16 @@ class Docstring(models.Model):
         # Update dirtiness
         self.dirty = (self.source_doc != new_text)
                     
-        # Editing 'file' docstrings can resurrect them from obsoletion
+        # Editing 'file' docstrings can resurrect them from obsoletion,
+        # or hide them (ie. remove their connection to their parent 'dir')
         if self.type_code == 'file' and new_text and self.is_obsolete:
             # make not obsolete
             self.timestamp = Docstring.get_current_timestamp()
             self.save()
             self._add_to_parent()
+        elif self.type_code == 'file' and not new_text:
+            # hide
+            self._remove_aliases()
 
         # Add a revision (if necessary)
         if new_text != self.text:

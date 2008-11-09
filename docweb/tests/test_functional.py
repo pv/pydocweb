@@ -290,6 +290,24 @@ class SphinxTests(TestCase):
         response = _follow_redirect(response)
         self.assertContains(response, 'Subdirectories')
 
+    def test_delete_page(self):
+        self.client.login(username='editor', password=PASSWORD)
+
+        # Delete a page by pressing the delete button
+        response = self.client.get('/docs/docs/quux.rst/edit/')
+        self.assertContains(response, 'name="button_delete" value="Delete"')
+        response = self.client.post('/docs/docs/quux.rst/edit/',
+                                    {'text': 'foo',
+                                     'comment': 'some comment',
+                                     'button_delete': 'Delete'})
+
+        # The UI should now redirect to the parent directory page.
+        # The deleted file should not appear in the 'Files' list.
+        response = _follow_redirect(response)
+        self.assertContains(response, 'Files')
+        self.assertContains(response, 'index.rst')
+        self.failUnless('quux.rst' not in str(response))
+
 class ReviewTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings.json']
     
