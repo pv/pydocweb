@@ -157,7 +157,7 @@ class TestMerge(LocalTestCase):
         doc = self.get_docstring('docs/deleted_svn_edited.rst')
         self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
 
-        # deleted in svn dir should remain, if it has non-obsolete content
+        # deleted-in-svn but existing-here should generate a conflict
         doc = self.get_docstring('docs/deleted_dir/content.rst')
         self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
         self.assertEqual(doc.get_merge(),
@@ -166,10 +166,12 @@ class TestMerge(LocalTestCase):
                          "=======\n"
                          "\n"
                          ">>>>>>> new svn version")
+        
+        # deleted-in-svn dir should be preserved, if non-obsolete content
         doc = self.get_docstring('docs/deleted_dir')
         self.assertEqual(doc.merge_status, models.MERGE_NONE)
 
-        # deleted in svn dir should become obsolete, if no non-obsolete content
+        # deleted-in-svn dir should become obsolete, if no non-obsolete content
         self.assertRaises(models.Docstring.DoesNotExist,
                           self.get_docstring,
                           'docs/deleted_dir2')
