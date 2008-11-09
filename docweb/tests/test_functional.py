@@ -7,24 +7,7 @@ import os, sys, re
 from django.test import TestCase
 from django.conf import settings
 
-#--
-
-TESTDIR = os.path.abspath(os.path.dirname(__file__))
-settings.MODULE_DIR = TESTDIR
-settings.PULL_SCRIPT = os.path.join(TESTDIR, 'pull-test.sh')
-
-settings.MIDDLEWARE_CLASSES = list(settings.MIDDLEWARE_CLASSES)
-try:
-    # the CSRF middleware prevents the Django test client from working
-    settings.MIDDLEWARE_CLASSES.remove(
-        'django.contrib.csrf.middleware.CsrfMiddleware')
-except IndexError:
-    pass
-
-#--
-
 PASSWORD='asdfasd'
-
 
 class AccessTests(TestCase):
     """
