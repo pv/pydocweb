@@ -239,6 +239,8 @@ class TestMerge(LocalTestCase):
             self.assertEqual(doc.merge_status, models.MERGE_NONE)
 
 
+class TestEdit(LocalTestCase):
+
     EDIT_DATA_1 = {
         'docs(dir)': '',
         'docs/a(file)': 'text',
