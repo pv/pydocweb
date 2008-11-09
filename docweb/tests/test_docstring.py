@@ -70,6 +70,16 @@ class TestMerge(LocalTestCase):
         self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
         self.failUnless('<<<<' in doc.get_merge())
 
+        # check obsoleted docstrings
+        self.assertRaises(models.Docstring.DoesNotExist,
+                          models.Docstring.get_non_obsolete().get,
+                          name='module.func_deleted')
+
+        # check new docstrings
+        doc = models.Docstring.get_non_obsolete().get(name='module.func_new')
+        self.assertEqual(doc.text, 'text')
+        self.assertEqual(doc.merge_status, models.MERGE_NONE)
+        
         # check automatic merging
         doc = models.Docstring.on_site.get(name='module.func_merge')
         doc.automatic_merge('Author')
@@ -78,6 +88,19 @@ class TestMerge(LocalTestCase):
         
         doc = models.Docstring.on_site.get(name='module.func_conflict')
         self.assertRaises(RuntimeError, doc.automatic_merge, 'Author')
+
+        # check conflict resolution by editing
+        self.edit_docstring('module.func_conflict', 'text edited')
+        doc = models.Docstring.on_site.get(name='module.func_conflict')
+        self.assertEqual(doc.merge_status, models.MERGE_NONE)
+
+        # check merge idempotency
+        for k in range(2):
+            self.update_docstrings(self.SIMPLE_DATA_2)
+            for name in self.SIMPLE_DATA_2.keys():
+                name = name[:name.index('(')]
+                doc = models.Docstring.get_non_obsolete().get(name=name)
+                self.assertEqual(doc.merge_status, models.MERGE_NONE)
 
 # -----------------------------------------------------------------------------
 # Utilities
