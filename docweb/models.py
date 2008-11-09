@@ -801,8 +801,8 @@ def _update_docstrings_from_xml(site, stream):
     LEFT JOIN docweb_docstringalias AS a
     ON d.name == a.parent_id
     WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
-          AND d.site_id = %s
-    """, [site.id, site.id])
+          AND d.site_id = %s AND d.timestamp = %s
+    """, [site.id, site.id, timestamp])
     cursor.execute("""
     INSERT INTO docweb_labelcache (label, target, title, site_id)
     SELECT d.name || '/' || a.alias, a.target, a.alias, %s
@@ -810,20 +810,20 @@ def _update_docstrings_from_xml(site, stream):
     LEFT JOIN docweb_docstringalias AS a
     ON d.name == a.parent_id
     WHERE d.name || '/' || a.alias != a.target AND d.type_ == 'dir'
-          AND d.site_id = %s
-    """, [site.id, site.id])
+          AND d.site_id = %s AND d.timestamp = %s
+    """, [site.id, site.id, timestamp])
     cursor.execute("""
     INSERT INTO docweb_labelcache (label, target, title, site_id)
     SELECT d.name, d.name, d.name, %s
     FROM docweb_docstring AS d
-    WHERE d.site_id = %s
-    """, [site.id, site.id])
+    WHERE d.site_id = %s AND d.timestamp = %s
+    """, [site.id, site.id, timestamp])
 
     # Raw SQL needs a manual flush
     transaction.commit_unless_managed()
 
     # Do the part of the work that's not possible using SQL only
-    for doc in Docstring.on_site.filter(type_code='file').all():
+    for doc in Docstring.get_non_obsolete().filter(type_code='file').all():
         LabelCache.cache_docstring_labels(doc)
 
 
