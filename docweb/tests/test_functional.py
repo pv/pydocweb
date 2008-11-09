@@ -399,7 +399,7 @@ class PullMergeTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings_changed.json']
 
     def tearDown(self):
-        xmlfile = os.path.join(TESTDIR, 'base-examplecom.xml')
+        xmlfile = os.path.join(settings.MODULE_DIR, 'base-examplecom.xml')
         if os.path.isfile(xmlfile):
             os.unlink(xmlfile)
 
@@ -484,7 +484,7 @@ class PatchTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings_changed.json']
 
     def tearDown(self):
-        xmlfile = os.path.join(TESTDIR, 'base-examplecom.xml')
+        xmlfile = os.path.join(settings.MODULE_DIR, 'base-examplecom.xml')
         if os.path.isfile(xmlfile):
             os.unlink(xmlfile)
 
