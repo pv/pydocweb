@@ -241,22 +241,31 @@ class TestMerge(LocalTestCase):
 
     EDIT_DATA_1 = {
         'docs(dir)': '',
+        'docs/a(file)': 'text',
         'docs/dir(dir)': '',
         'docs/dir/dir2(dir)': '',
         'docs/dir/dir2/b(file)': 'text',
     }
     EDIT_DATA_2 = {
         'docs(dir)': '',
+        'docs/a(file)': 'text',
     }
 
-    def test_edit_obsoletion(self):
+    def test_dir_file_edit(self):
         """
-        'file' and 'dir' docstrings may become non-obsolete
+        'file' and 'dir' docstrings may become non-obsolete or hidden
         when they are edited. Check that this works appropriately.
 
         """
         self.update_docstrings(self.EDIT_DATA_1)
         self.update_docstrings(self.EDIT_DATA_2)
+
+        # editing a non-obsolete 'file' text with empty new text should
+        # dissociate it from its parent 'dir'
+        doc = self.get_docstring('docs')
+        self.failUnless(doc.contents.all())
+        self.edit_docstring('docs/a', '')
+        self.failUnless(not doc.contents.all())
 
         # editing an obsolete 'file' docstring should mark it and its parent
         # non-obsolete
