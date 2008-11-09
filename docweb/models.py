@@ -141,7 +141,11 @@ class Docstring(models.Model):
 
     @property
     def is_obsolete(self):
-        return (self.timestamp != Docstring.on_site.order_by('-timestamp')[0].timestamp)
+        return (self.timestamp != Docstring.get_current_timestamp())
+
+    @classmethod
+    def get_current_timestamp(self):
+        return Docstring.on_site.order_by('-timestamp')[0].timestamp
 
     @property
     def child_objects(self):
@@ -200,6 +204,9 @@ class Docstring(models.Model):
         """
         new_text = strip_spurious_whitespace(new_text)
 
+        if self.type_code == 'dir':
+            raise RuntimeError("'dir' docstrings cannot be edited")
+        
         if ('<<<<<<' in new_text or '>>>>>>' in new_text):
             raise RuntimeError('New text still contains merge conflict markers')
 
@@ -208,40 +215,90 @@ class Docstring(models.Model):
         self.base_doc = self.source_doc
         self.save()
 
-        if new_text == self.text:
-            # NOOP
-            return
-
-        new_review_code = {
-            REVIEW_NEEDS_EDITING: REVIEW_BEING_WRITTEN,
-            REVIEW_NEEDS_WORK: REVIEW_REVISED,
-            REVIEW_NEEDS_PROOF: REVIEW_REVISED,
-            REVIEW_PROOFED: REVIEW_REVISED
-        }.get(self.review, self.review)
-
+        # Update dirtiness
         self.dirty = (self.source_doc != new_text)
+                    
+        # Editing 'file' docstrings can resurrect them from obsoletion
+        if self.type_code == 'file' and new_text and self.is_obsolete:
+            # make not obsolete
+            self.timestamp = Docstring.get_current_timestamp()
+            self.save()
+            self._add_to_parent()
+
+        # Add a revision (if necessary)
+        if new_text != self.text:
+            new_review_code = {
+                REVIEW_NEEDS_EDITING: REVIEW_BEING_WRITTEN,
+                REVIEW_NEEDS_WORK: REVIEW_REVISED,
+                REVIEW_NEEDS_PROOF: REVIEW_REVISED,
+                REVIEW_PROOFED: REVIEW_REVISED
+            }.get(self.review, self.review)
+
+            if self.revisions.count() == 0:
+                # Store the SVN revision the initial edit was based on,
+                # for making statistics later on.
+                base_rev = DocstringRevision(docstring=self,
+                                             text=self.source_doc,
+                                             author="Source",
+                                             comment="Initial source revision",
+                                             review_code=self.review)
+                base_rev.timestamp = self.timestamp
+                base_rev.save()
+
+            rev = DocstringRevision(docstring=self,
+                                    text=new_text,
+                                    author=author,
+                                    comment=comment,
+                                    review_code=new_review_code)
+            rev.save()
+
+        # Save
         self.save()
-
-        if self.revisions.count() == 0:
-            # Store the SVN revision the initial edit was based on,
-            # for making statistics later on.
-            base_rev = DocstringRevision(docstring=self,
-                                         text=self.source_doc,
-                                         author="Source",
-                                         comment="Initial source revision",
-                                         review_code=self.review)
-            base_rev.timestamp = self.timestamp
-            base_rev.save()
-
-        rev = DocstringRevision(docstring=self,
-                                text=new_text,
-                                author=author,
-                                comment=comment,
-                                review_code=new_review_code)
-        rev.save()
 
         # Update cross-reference cache
         LabelCache.cache_docstring(self)
+
+    def _add_to_parent(self):
+        """
+        Add a DocstringAlias to the parent docstring, if missing,
+        and do the same recursively for its parent.
+
+        """
+        if self.type_code not in ('dir', 'file'):
+            raise ValueError("_add_to_parent works only for 'dir' and 'file' "
+                             "docstrings, not for '%s'" % self.type_code)
+        if '/' not in self.name:
+            return # nothing to do, it's a top-level entry
+
+        base_name = self.name.split('/')[-1]
+        parent_name = '/'.join(self.name.split('/')[:-1])
+        try:
+            parent = Docstring.on_site.get(name=parent_name)
+            parent.timestamp = Docstring.get_current_timestamp()
+            parent.save()
+            parent._add_to_parent()
+            try:
+                alias = DocstringAlias.objects.get(parent=parent,
+                                                   target=self.name,
+                                                   alias=base_name)
+                # nothing to do -- alias exists already
+                return
+            except DocstringAlias.DoesNotExist:
+                alias = DocstringAlias(parent=parent, target=self.name,
+                                       alias=base_name)
+                alias.save()
+        except Docstring.DoesNotExist:
+            # no parent found... do nothing
+            return
+
+    def _remove_aliases(self):
+        """
+        Remove DocstringAliases of this docstring
+
+        """
+        if self.type_code != 'file':
+            raise ValueError("_add_to_parent works only for 'file' docstrings")
+        DocstringAlias.objects.filter(target=self.name).delete()
 
     def get_merge(self):
         """
@@ -474,8 +531,7 @@ class Docstring(models.Model):
                   dirty=True, file_name=file_name, line_number=0,
                   timestamp=parent.timestamp, site=parent.site)
         doc.save()
-        alias = DocstringAlias(parent=parent, target=page_name, alias=name)
-        alias.save()
+        doc._add_to_parent()
         LabelCache.cache_docstring(doc)
         return doc
 
@@ -790,10 +846,10 @@ def _update_docstrings_from_xml(site, stream):
 
     for doc in Docstring.on_site.filter(type_code='file',
                                         timestamp__lt=timestamp).all():
+        doc.source_doc = ""
         if doc.text != doc.base_doc and doc.text != "":
             # Non-empty docstrings won't become obsolete, but may cause
             # a merge conflict
-            doc.source_doc = ""
             doc.timestamp = timestamp
             doc.dirty = True
             doc.save()

@@ -204,7 +204,7 @@ class TestMerge(LocalTestCase):
         doc = models.Docstring.new_child(doc_dir, 'new_file2.rst', 'file')
         self.edit_docstring('docs/new_dir/new_file2.rst', 'text edited')
         self.edit_docstring('docs/new_dir/new_file2.rst', '')
-        
+
         doc = models.Docstring.new_child(doc_dir, 'new_file3.rst', 'file')
         
         doc = models.Docstring.new_child(doc_dir, 'new_dir2', 'dir')
@@ -229,7 +229,7 @@ class TestMerge(LocalTestCase):
                               self.get_docstring,
                               'docs/new_dir/new_file3.rst')
 
-            # new_file2.rst is non-empty and edited
+            # new_file.rst is non-empty and edited
             # -> should be preserved AND *not* create conflicts
             doc = self.get_docstring('docs/new_dir/new_file.rst')
             self.assertEqual(doc.merge_status, models.MERGE_NONE)
@@ -238,6 +238,36 @@ class TestMerge(LocalTestCase):
             doc = self.get_docstring('docs/new_dir')
             self.assertEqual(doc.merge_status, models.MERGE_NONE)
 
+
+    EDIT_DATA_1 = {
+        'docs(dir)': '',
+        'docs/dir(dir)': '',
+        'docs/dir/dir2(dir)': '',
+        'docs/dir/dir2/b(file)': 'text',
+    }
+    EDIT_DATA_2 = {
+        'docs(dir)': '',
+    }
+
+    def test_edit_obsoletion(self):
+        """
+        'file' and 'dir' docstrings may become non-obsolete
+        when they are edited. Check that this works appropriately.
+
+        """
+        self.update_docstrings(self.EDIT_DATA_1)
+        self.update_docstrings(self.EDIT_DATA_2)
+
+        # editing an obsolete 'file' docstring should mark it and its parent
+        # non-obsolete
+        self.assertRaises(models.Docstring.DoesNotExist,
+                          self.get_docstring,
+                          'docs/dir/dir2/b')
+        doc = models.Docstring.on_site.get(name='docs/dir/dir2/b')
+        doc.edit('text', 'Author', 'Comment')
+
+        doc = self.get_docstring('docs/dir/dir2/b')
+        doc = self.get_docstring('docs/dir/dir2')
 
 # -----------------------------------------------------------------------------
 # Utilities
