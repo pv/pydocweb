@@ -786,6 +786,43 @@ def _update_docstrings_from_xml(site, stream):
             alias.alias = ref.attrib['name']
             alias.save()
 
+    # -- Handle obsoletion of 'file' pages missing in SVN
+
+    for doc in Docstring.on_site.filter(type_code='file',
+                                        timestamp__lt=timestamp).all():
+        # File missing: source docstring is empty
+        doc.source_doc = ""
+        
+        if doc.text == "":
+            # Only 'file' pages with empty text can become obsolete
+            doc.save()
+        else:
+            # Others may cause a merge conflict, but won't become obsolete
+            doc.timestamp = timestamp
+            doc.save()
+            doc.get_merge()
+
+    # -- Handle obsoletion of 'dir' pages missing in SVN
+
+    for doc in Docstring.on_site.filter(type_code='dir',
+                                        timestamp__lt=timestamp).all():
+        
+        # Only 'dir' pages with no remaining children become obsolete
+        children = Docstring.get_non_obsolete().filter(
+            name__like=doc.name + '/%').all()
+        if not children:
+            continue
+        else:
+            # For others, insert deduced children
+            doc.timestamp = timestamp
+            for child in children:
+                alias = DocstringAlias()
+                alias.target = child.name
+                alias.parent = doc
+                alias.alias = child.name.split('/')[-1]
+                alias.save()
+            doc.save()
+
     # -- Update label cache
 
     LabelCache.clear(site=site)
