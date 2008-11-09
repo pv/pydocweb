@@ -4,3 +4,4 @@ media/math/*
 data.db
 modules/*
 doc/_build/*
+docweb/tests/base-examplecom.xml
