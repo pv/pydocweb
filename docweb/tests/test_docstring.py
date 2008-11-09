@@ -18,8 +18,11 @@ class LocalTestCase(TestCase):
         models.update_docstrings_from_xml(self.site, form_test_xml(docstrings))
 
     def edit_docstring(self, name, text):
-        doc = models.Docstring.on_site.get(name=name)
+        doc = self.get_docstring(name)
         doc.edit(text, author="Test editor", comment="Comment")
+
+    def get_docstring(self, name):
+        return models.Docstring.get_non_obsolete().get(name=name)
 
 class TestMerge(LocalTestCase):
 
@@ -29,6 +32,10 @@ class TestMerge(LocalTestCase):
         'module.func_merge(callable)': 'text\n\nmore',
         'module.func_conflict(callable)': 'text',
         'module.func_delete(callable)': 'text',
+        'docs(dir)': '',
+        'docs/file_noop.rst(file)': 'text',
+        'docs/file_merge.rst(file)': 'text\n\nmore',
+        'docs/file_conflict.rst(file)': 'text',
     }
     SIMPLE_DATA_2 = {
         'module(module)': '',
@@ -36,6 +43,11 @@ class TestMerge(LocalTestCase):
         'module.func_merge(callable)': 'text\n\nmore 2',
         'module.func_conflict(callable)': 'text 2',
         'module.func_new(callable)': 'text',
+        'docs(dir)': '',
+        'docs/file_noop.rst(file)': 'text',
+        'docs/file_merge.rst(file)': 'text\n\nmore 2',
+        'docs/file_conflict.rst(file)': 'text 2',
+        'docs/file_new.rst(file)': 'text',
     }
 
     def test_docstring_merging(self):
@@ -47,28 +59,33 @@ class TestMerge(LocalTestCase):
         self.update_docstrings(self.SIMPLE_DATA_1)
 
         # edit docstrings
-        for name in ['module.func_noop', 'module.func_conflict',
+        for name in ['module.func_noop', 'docs/file_noop.rst',
+                     'module.func_conflict', 'docs/file_conflict.rst',
                      'module.func_delete']:
             self.edit_docstring(name, 'text edited')
         self.edit_docstring('module.func_merge', 'text edited\n\nmore')
+        self.edit_docstring('docs/file_merge.rst', 'text edited\n\nmore')
 
         # pull again
         self.update_docstrings(self.SIMPLE_DATA_2)
 
         # check merge status
-        doc = models.Docstring.on_site.get(name='module.func_noop')
-        self.assertEqual(doc.text, 'text edited')
-        self.assertEqual(doc.merge_status, models.MERGE_NONE)
-        
-        doc = models.Docstring.on_site.get(name='module.func_merge')
-        self.assertEqual(doc.text, 'text edited\n\nmore')
-        self.assertEqual(doc.merge_status, models.MERGE_MERGE)
-        self.assertEqual(doc.get_merge(), 'text edited\n\nmore 2')
-        
-        doc = models.Docstring.on_site.get(name='module.func_conflict')
-        self.assertEqual(doc.text, 'text edited')
-        self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
-        self.failUnless('<<<<' in doc.get_merge())
+        for name in ['module.func_noop', 'docs/file_noop.rst']:
+            doc = self.get_docstring(name)
+            self.assertEqual(doc.text, 'text edited')
+            self.assertEqual(doc.merge_status, models.MERGE_NONE)
+
+        for name in ['module.func_merge', 'docs/file_merge.rst']:
+            doc = self.get_docstring(name)
+            self.assertEqual(doc.text, 'text edited\n\nmore')
+            self.assertEqual(doc.merge_status, models.MERGE_MERGE)
+            self.assertEqual(doc.get_merge(), 'text edited\n\nmore 2')
+
+        for name in ['module.func_conflict', 'docs/file_conflict.rst']:
+            doc = self.get_docstring(name)
+            self.assertEqual(doc.text, 'text edited')
+            self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
+            self.failUnless('<<<<' in doc.get_merge())
 
         # check obsoleted docstrings
         self.assertRaises(models.Docstring.DoesNotExist,
@@ -76,31 +93,149 @@ class TestMerge(LocalTestCase):
                           name='module.func_deleted')
 
         # check new docstrings
-        doc = models.Docstring.get_non_obsolete().get(name='module.func_new')
-        self.assertEqual(doc.text, 'text')
-        self.assertEqual(doc.merge_status, models.MERGE_NONE)
+        for name in ['module.func_new', 'docs/file_new.rst']:
+            doc = self.get_docstring(name)
+            self.assertEqual(doc.text, 'text')
+            self.assertEqual(doc.merge_status, models.MERGE_NONE)
         
         # check automatic merging
-        doc = models.Docstring.on_site.get(name='module.func_merge')
-        doc.automatic_merge('Author')
-        self.assertEqual(doc.text, 'text edited\n\nmore 2')
-        self.assertEqual(doc.merge_status, models.MERGE_NONE)
+        for name in ['module.func_merge', 'docs/file_merge.rst']:
+            doc = self.get_docstring(name)
+            doc.automatic_merge('Author')
+            self.assertEqual(doc.text, 'text edited\n\nmore 2')
+            self.assertEqual(doc.merge_status, models.MERGE_NONE)
         
-        doc = models.Docstring.on_site.get(name='module.func_conflict')
+        doc = self.get_docstring('module.func_conflict')
         self.assertRaises(RuntimeError, doc.automatic_merge, 'Author')
 
         # check conflict resolution by editing
-        self.edit_docstring('module.func_conflict', 'text edited')
-        doc = models.Docstring.on_site.get(name='module.func_conflict')
-        self.assertEqual(doc.merge_status, models.MERGE_NONE)
+        for name in ['module.func_conflict', 'docs/file_conflict.rst']:
+            self.edit_docstring(name, 'text edited')
+            doc = self.get_docstring(name)
+            self.assertEqual(doc.merge_status, models.MERGE_NONE)
 
         # check merge idempotency
         for k in range(2):
             self.update_docstrings(self.SIMPLE_DATA_2)
             for name in self.SIMPLE_DATA_2.keys():
                 name = name[:name.index('(')]
-                doc = models.Docstring.get_non_obsolete().get(name=name)
+                doc = self.get_docstring(name)
                 self.assertEqual(doc.merge_status, models.MERGE_NONE)
+
+
+    SPHINX_DATA_1 = {
+        'docs(dir)': '',
+        'docs/deleted_svn_unedited.rst(file)': 'text',
+        'docs/deleted_svn_edited.rst(file)': 'text',
+        'docs/deleted_both_edited.rst(file)': 'text',
+        'docs/deleted_dir(dir)': '',
+        'docs/deleted_dir/content.rst(file)': 'text',
+        'docs/deleted_dir2(dir)': '',
+        'docs/deleted_dir2/content.rst(file)': 'text',
+    }
+    SPHINX_DATA_2 = {
+        'docs(dir)': '',
+    }
+    
+    def test_dir_file_obsoletion(self):
+        """
+        Check that deleting/obsoletion of 'file' and 'dir' entries works
+        as intended.
+
+        """
+        self.update_docstrings(self.SPHINX_DATA_1)
+        self.edit_docstring('docs/deleted_svn_edited.rst', 'text edited')
+        self.edit_docstring('docs/deleted_both_edited.rst', '')
+        self.edit_docstring('docs/deleted_dir/content.rst', 'text edited')
+
+        # idempotency-checking merge
+        for k in xrange(3):
+            self.update_docstrings(self.SPHINX_DATA_1)
+            self.update_docstrings(self.SPHINX_DATA_2)
+
+        # deleted-in-svn but existing-here should generate a conflict
+        doc = self.get_docstring('docs/deleted_svn_edited.rst')
+        self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
+
+        # deleted in svn dir should remain, if it has non-obsolete content
+        doc = self.get_docstring('docs/deleted_dir/content.rst')
+        self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
+        self.assertEqual(doc.get_merge(),
+                         "<<<<<<< web version\n"
+                         "text edited\n"
+                         "=======\n"
+                         "\n"
+                         ">>>>>>> new svn version")
+        doc = self.get_docstring('docs/deleted_dir')
+        self.assertEqual(doc.merge_status, models.MERGE_NONE)
+
+        # deleted in svn dir should become obsolete, if no non-obsolete content
+        self.assertRaises(models.Docstring.DoesNotExist,
+                          self.get_docstring,
+                          'docs/deleted_dir2')
+
+        # deleted in both should become obsolete
+        self.assertRaises(models.Docstring.DoesNotExist,
+                          self.get_docstring,
+                          'docs/deleted_both_edited.rst')
+
+        # deleted in SVN but not edited should become obsolete as usual
+        self.assertRaises(models.Docstring.DoesNotExist,
+                          self.get_docstring,
+                          'docs/deleted_svn_unedited.rst')
+
+    def test_new_dir_file(self):
+        """
+        Check that new 'dir' and 'file' entries are handled as intended
+        
+        """
+        self.update_docstrings(self.SPHINX_DATA_1)
+
+        # add new docstrings
+        doc = self.get_docstring('docs')
+        
+        doc_dir = models.Docstring.new_child(doc, 'new_dir', 'dir')
+        
+        doc = models.Docstring.new_child(doc_dir, 'new_file.rst', 'file')
+        self.edit_docstring('docs/new_dir/new_file.rst', 'text edited')
+        
+        doc = models.Docstring.new_child(doc_dir, 'new_file2.rst', 'file')
+        self.edit_docstring('docs/new_dir/new_file2.rst', 'text edited')
+        self.edit_docstring('docs/new_dir/new_file2.rst', '')
+        
+        doc = models.Docstring.new_child(doc_dir, 'new_file3.rst', 'file')
+        
+        doc = models.Docstring.new_child(doc_dir, 'new_dir2', 'dir')
+
+        # merge, checking idempotency
+        for k in xrange(3):
+            self.update_docstrings(self.SPHINX_DATA_2)
+            self.update_docstrings(self.SPHINX_DATA_1)
+
+            # new_dir2 is empty -> should become obsolete
+            self.assertRaises(models.Docstring.DoesNotExist,
+                              self.get_docstring,
+                              'docs/new_dir/new_dir2')
+
+            # new_file2.rst is now empty -> should become obsolete
+            self.assertRaises(models.Docstring.DoesNotExist,
+                              self.get_docstring,
+                              'docs/new_dir/new_file2.rst')
+
+            # new_file3.rst was never edited -> should become obsolete
+            self.assertRaises(models.Docstring.DoesNotExist,
+                              self.get_docstring,
+                              'docs/new_dir/new_file3.rst')
+
+            # new_file2.rst is non-empty and edited
+            # -> should be preserved AND *not* create conflicts
+            doc = self.get_docstring('docs/new_dir/new_file.rst')
+            self.assertEqual(doc.merge_status, models.MERGE_NONE)
+
+            # new_dir contains non-obsolete entries -> should be preserved
+            doc = self.get_docstring('docs/new_dir')
+            self.assertEqual(doc.merge_status, models.MERGE_NONE)
+
 
 # -----------------------------------------------------------------------------
 # Utilities
@@ -171,7 +306,7 @@ def form_test_xml(docstrings):
 
     # insert children
     for alias, target in aliases.items():
-        if els[target].attrib['type'] in ('dir', 'file'):
+        if els[target].tag in ('dir', 'file'):
             sep = '/'
         else:
             sep = '.'
