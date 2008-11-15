@@ -97,22 +97,6 @@ lit_admonition_directive = blurb_directive(
     lambda d, c: (["    .. admonition:: %s" % d, "", "       ::", ""]
                   + _indent(c, 4+3+4)))
 
-register_directive('moduleauthor', admonition_directive)
-register_directive('cfunction', admonition_directive)
-register_directive('cmember', admonition_directive)
-register_directive('cmacro', admonition_directive)
-register_directive('ctype', admonition_directive)
-register_directive('cvar', admonition_directive)
-register_directive('data', admonition_directive)
-register_directive('exception', admonition_directive)
-register_directive('function', admonition_directive)
-register_directive('class', admonition_directive)
-register_directive('attribute', admonition_directive)
-register_directive('method', admonition_directive)
-register_directive('staticmethod', admonition_directive)
-register_directive('opcode', admonition_directive)
-register_directive('cmdoption', admonition_directive)
-register_directive('envvar', admonition_directive)
 register_directive('describe', admonition_directive)
 register_directive('versionadded', blurb_directive(
     lambda d, c: ["    *New in version %s*:" % c[0]] + _indent(c[1:])))
@@ -135,6 +119,78 @@ register_directive('sourcecode', blurb_directive(
     lambda d, c: ["::", ""] + _indent(c[1:], 4)))
 register_directive('doctest', blurb_directive(
     lambda d, c: ["::", ""] + _indent(c[1:], 4)))
+
+#------------------------------------------------------------------------------
+# class:: etc.
+#------------------------------------------------------------------------------
+
+_CALLABLE_RE = re.compile(r"^(?P<pre>.*?)(?P<module>[a-zA-Z0-9_.]*?)\s*(?P<name>[a-zA-Z0-9_]+)\s*\((?P<args>.*?)\)(?P<rest>\s*->.*?)?$")
+_OTHER_RE = re.compile(r"^(?P<pre>.*?)(?P<module>[a-zA-Z0-9_.]*?)\s*(?P<name>[a-zA-Z0-9_]+)\s*$")
+
+def codeitem_directive(dirname, arguments, options, content, lineno,
+                       content_offset, block_text, state, state_machine):
+    if not content:
+        content = [u""]
+
+    m = _CALLABLE_RE.match(u"".join(arguments))
+    m2 = _OTHER_RE.match(u"".join(arguments))
+    if m:
+        g = m.groupdict()
+        if g['rest'] is None:
+            g['rest'] = ''
+        if g['args'].strip():
+            firstline = "%s%s **%s** (``%s``) %s" % (g['pre'].replace('*', r'\*'),
+                                                     g['module'], g['name'],
+                                                     g['args'], g['rest'])
+        else: 
+            firstline = "%s%s **%s** () %s" % (g['pre'].replace('*', r'\*'),
+                                               g['module'], g['name'],
+                                               g['rest'])
+        if g['module']:
+            target = '%s%s' % (g['module'], g['name'])
+        else:
+            target = g['name']
+    elif m2:
+        g = m2.groupdict()
+        firstline = "%s%s **%s**" % (g['pre'].replace('*', r'\*'),
+                                     g['module'], g['name'])
+        if g['module']:
+            target = '%s%s' % (g['module'], g['name'])
+        else:
+            target = g['name']
+    else:
+        firstline = u"".join(arguments)
+        target = None
+
+    lines = []
+    if target:
+        lines += ['.. _%s:' % target, '']
+    lines.append(firstline)
+    lines += _indent(content, 4)
+    
+    node = nodes.paragraph()
+    _nested_parse(state, lines, node)
+    return [node]
+
+codeitem_directive.arguments = (1, 0, True)
+codeitem_directive.content = True
+
+register_directive('moduleauthor', codeitem_directive)
+register_directive('cfunction', codeitem_directive)
+register_directive('cmember', codeitem_directive)
+register_directive('cmacro', codeitem_directive)
+register_directive('ctype', codeitem_directive)
+register_directive('cvar', codeitem_directive)
+register_directive('data', codeitem_directive)
+register_directive('exception', codeitem_directive)
+register_directive('function', codeitem_directive)
+register_directive('class', codeitem_directive)
+register_directive('attribute', codeitem_directive)
+register_directive('method', codeitem_directive)
+register_directive('staticmethod', codeitem_directive)
+register_directive('opcode', codeitem_directive)
+register_directive('cmdoption', codeitem_directive)
+register_directive('envvar', codeitem_directive)
 
 #------------------------------------------------------------------------------
 # Variable setters
@@ -275,27 +331,30 @@ register_directive('autosummary', autosummary_directive)
 
 def auto_directive(dirname, arguments, options, content, lineno,
                   content_offset, block_text, state, state_machine):
+    print "AUTOXXXXX"
+    
     if not content:
         content = [u""]
 
-    target = content[0].strip()
+    target = arguments[0].strip()
+    lines = []
 
-    lines = ["**%s** :ref:`%s`" % (dirname, target), "", ""]
-    
     try:
         doc = models.Docstring.resolve(target)
         text = str(NumpyDocString(doc.text))
         lines.extend(text.split("\n"))
+        if doc['Signature']:
+            arg = doc['Signature']
+        else:
+            arg = target
     except models.Docstring.DoesNotExist:
-        pass
+        arg = target
 
-    lines += [""] + list(content[1:])
+    lines += [""] + list(content)
+    return codeitem_directive(dirname, [arg], options, lines, lineno,
+                              content_offset, block_text, state, state_machine)
 
-    node = nodes.paragraph()
-    _nested_parse(state, lines, node)
-    return [node]
-
-auto_directive.arguments = (0, 0, False)
+auto_directive.arguments = (1, 0, True)
 auto_directive.options = {}
 auto_directive.content = True
 

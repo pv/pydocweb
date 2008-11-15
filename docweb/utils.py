@@ -35,8 +35,17 @@ def get_author_map():
     return author_map
 
 def cache_memoize(max_age):
+    """
+    Memoize decorator that uses Django's cache facility.
+
+    Parameters
+    ----------
+    max_age : int
+        Maximum age of memoized results, in seconds.
+    
+    """
     def decorator(func):
-        key_prefix = 'cache_memoize__%s' % func.__name__
+        key_prefix = 'cache_memoize__%s_%s' % (func.__module__, func.__name__)
         def wrapper(*a, **kw):
             key = '%s__%s' % (key_prefix, hash(pickle.dumps((a, kw))))
             cached = cache.get(key)

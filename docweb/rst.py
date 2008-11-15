@@ -66,8 +66,9 @@ class RstWriter(docutils.writers.html4css1.Writer):
             # try to search cross-site
             items = models.LabelCache.objects.filter(label__in=names)
         if items:
+            linkname = re.sub('[^a-z0-9.]', '-', name.lower())
             url = reverse('pydocweb.docweb.views_docstring.view',
-                          kwargs=dict(name=items[0].target)) + '#' + name
+                          kwargs=dict(name=items[0].target)) + '#' + linkname
             return items[0].full_url(url)
 
         if self.resolve_to_wiki and name and name[0].lower() != name[0]:
@@ -77,7 +78,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
     
     resolver.priority = 001
 
-@cache_memoize(max_age=60*60)
+@cache_memoize(max_age=30*24*60*60)
 def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
                 resolve_suffixes=[]):
     # Fix Django clobbering
