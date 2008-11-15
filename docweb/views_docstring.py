@@ -89,7 +89,7 @@ def view(request, name):
                   file_name=strip_module_dir_prefix(doc.file_name),
                   line_number=doc.line_number,
                   revision=revision,
-                  toctree_chain=ToctreeCache.get_chain(doc),
+                  toctree_chain=ToctreeCache.get_chain(doc)[:-1],
                   )
 
     if doc.type_code == 'dir':

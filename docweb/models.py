@@ -672,8 +672,10 @@ class ToctreeCache(models.Model):
     parent = models.ForeignKey(Docstring, related_name="toctree_children")
     child = models.ForeignKey(Docstring, related_name="toctree_parents")
 
-    _toctree_re = re.compile('^\s*.. toctree::\s*$')
+    _toctree_re = re.compile('^\s*.. (toctree|autosummary)::\s*$')
     _toctree_content_re = re.compile('^(|\s*:.*|\s*[a-zA-Z/.-]+\s*)$')
+    _auto_re = re.compile(r'^\s*.. (module|automodule|autoclass|automethod|autofunction|autoattribute)::\s+(.*)\s*$')
+    _module_re = re.compile(r'^\s*.. (currentmodule|module|automodule)::\s+(.*?)\s*$')
 
     @classmethod
     def cache_docstring(cls, docstring):
@@ -687,28 +689,45 @@ class ToctreeCache(models.Model):
         cls.objects.filter(parent=docstring).delete()
 
         # -- parse text
-        children = []
+        toc_children = []
+        code_children = []
+        module = None
         in_toctree = False
+        in_autosummary = False
         for line in docstring.text.split("\n"):
-            if in_toctree:
+            if in_toctree or in_autosummary:
                 m = cls._toctree_content_re.match(line)
                 if m:
                     item = line.strip()
                     if item.startswith(':'):
                         pass
                     elif item:
-                        children.append(item)
+                        if in_toctree:
+                            toc_children.append(item)
+                        elif in_autosummary:
+                            code_children.append((module, item))
                 else:
                     in_toctree = False
             else:
                 m = cls._toctree_re.match(line)
                 if m:
-                    in_toctree = True
+                    in_toctree = (m.group(1) == 'toctree')
+                    in_autosummary = (m.group(1) == 'autosummary')
+                    continue
 
-        # -- resolve children
+                m = cls._module_re.match(line)
+                if m:
+                    module = m.group(2) + '.'
+
+                m = cls._auto_re.match(line)
+                if m:
+                    code_children.append((module, m.group(2)))
+                    continue
+
+        # -- resolve TOC children
         base_path = '/'.join(docstring.name.split('/')[:-1])
         suffixes = ['', '.rst', '.txt']
-        for child in children:
+        for child in toc_children:
             doc = None
 
             for suffix in suffixes:
@@ -724,15 +743,31 @@ class ToctreeCache(models.Model):
                 tocref = cls(parent=docstring, child=doc)
                 tocref.save()
 
+        # -- resolve code children
+        for module, child in code_children:
+            doc = None
+
+            for prefix in [module, '']:
+                if prefix is None:
+                    continue
+                try:
+                    doc = Docstring.resolve(name=prefix + child)
+                    break
+                except Docstring.DoesNotExist:
+                    # unknown page, skip it
+                    pass
+
+            print module, child, ">>", doc
+            if doc is not None:
+                tocref = cls(parent=docstring, child=doc)
+                tocref.save()
+
     @classmethod
     def get_chain(cls, docstring):
         """
         Return a direct path from root toctree:: item to the given item.
         
         """
-        if docstring.type_code != 'file':
-            return []
-
         seen = {}
         chain = [docstring]
 
