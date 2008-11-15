@@ -73,9 +73,11 @@ class RstWriter(docutils.writers.html4css1.Writer):
             ref = self.reference_cache[(name, is_label)]
             if ref is None:
                 raise ValueError()
+            else:
+                return ref
         except KeyError:
             pass
-        
+
         names = ['%s%s%s' % (p, name, s)
                  for p in [''] + self.resolve_prefixes
                  for s in [''] + self.resolve_suffixes]
@@ -88,8 +90,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
             url = reverse('pydocweb.docweb.views_docstring.view',
                           kwargs=dict(name=items[0].target)) + '#' + linkname
             ref = items[0].full_url(url)
-
-        if self.resolve_to_wiki and name and name[0].lower() != name[0]:
+        elif self.resolve_to_wiki and name and name[0].lower() != name[0]:
             ref = reverse('pydocweb.docweb.views_wiki.view', args=[name])
         else:
             self.reference_cache[(name, is_label)] = None
