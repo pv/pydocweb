@@ -1,1 +1,1 @@
-insert into docweb_dbschema (version) values (2);
+insert into docweb_dbschema (version) values (3);

@@ -259,8 +259,9 @@ class Docstring(models.Model):
         # Save
         self.save()
 
-        # Update cross-reference cache
+        # Update cross-reference and toctree caches
         LabelCache.cache_docstring(self)
+        ToctreeCache.cache_docstring(self)
 
     def _add_to_parent(self):
         """
@@ -661,6 +662,95 @@ class LabelCache(models.Model):
             return "http://%s%s" % (self.site.domain, url_part)
 
 
+# -- Sphinx Toctree cache
+
+class ToctreeCache(models.Model):
+    """
+    Cache for toctree:: (Sphinx directive) generated relationships.
+
+    """
+    parent = models.ForeignKey(Docstring, related_name="toctree_children")
+    child = models.ForeignKey(Docstring, related_name="toctree_parents")
+
+    _toctree_re = re.compile('^\s*.. toctree::\s*$')
+    _toctree_content_re = re.compile('^(|\s*:.*|\s*[a-zA-Z/.-]+\s*)$')
+
+    @classmethod
+    def cache_docstring(cls, docstring):
+        """
+        Update cache items associated with given (parent) docstring.
+        
+        """
+        if docstring.type_code != 'file':
+            return
+
+        cls.objects.filter(parent=docstring).delete()
+
+        # -- parse text
+        children = []
+        in_toctree = False
+        for line in docstring.text.split("\n"):
+            if in_toctree:
+                print "Parsing", line
+                m = cls._toctree_content_re.match(line)
+                if m:
+                    item = line.strip()
+                    if item.startswith(':'):
+                        pass
+                    elif item:
+                        children.append(item)
+                else:
+                    in_toctree = False
+            else:
+                m = cls._toctree_re.match(line)
+                if m:
+                    in_toctree = True
+
+        # -- resolve children
+        print docstring, ">>", children
+        
+        base_path = '/'.join(docstring.name.split('/')[:-1])
+        suffixes = ['', '.rst', '.txt']
+        for child in children:
+            doc = None
+
+            for suffix in suffixes:
+                try:
+                    path = os.path.join(base_path, child) + suffix
+                    print "TRY:", path
+                    doc = Docstring.on_site.get(name=path)
+                    break
+                except Docstring.DoesNotExist:
+                    # unknown page, skip it
+                    pass
+
+            if doc is not None:
+                tocref = cls(parent=docstring, child=doc)
+                tocref.save()
+
+    @classmethod
+    def get_chain(cls, docstring):
+        """
+        Return a direct path from root toctree:: item to the given item.
+        
+        """
+        if docstring.type_code != 'file':
+            return []
+
+        seen = {}
+        chain = [docstring]
+
+        while True:
+            seen[chain[0]] = True
+            try:
+                parent = ToctreeCache.objects.filter(child=chain[0])[0].parent
+            except IndexError:
+                break
+            if parent in seen:
+                break
+            chain.insert(0, parent)
+        return chain
+
 # -- Wiki pages
 
 class WikiPage(models.Model):
@@ -920,6 +1010,7 @@ def _update_docstrings_from_xml(site, stream):
     # Do the part of the work that's not possible using SQL only
     for doc in Docstring.get_non_obsolete().filter(type_code='file').all():
         LabelCache.cache_docstring_labels(doc)
+        ToctreeCache.cache_docstring(doc)
 
 
 def update_docstrings(site):

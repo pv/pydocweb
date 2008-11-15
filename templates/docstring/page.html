@@ -31,6 +31,18 @@
 
 {% block content %}
 <div id="document">
+  {% if toctree_chain %}
+  <div style="margin-left: 1em; margin-bottom: 1em;">
+    Toc tree:
+    {% for item in toctree_chain %}
+      {% if forloop.first %}
+      {% else %}
+      &raquo;
+      {% endif %}
+      <span><a href="{% url pydocweb.docweb.views_docstring.view item %}">{{item.name}}</a></span>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% if doc.is_obsolete %}
   <div style="margin:1em; padding: 1em; border: 2px solid red;">
     <b>Note:</b> This docstring is obsolete; the corresponding object
