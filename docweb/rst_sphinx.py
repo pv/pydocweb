@@ -221,6 +221,40 @@ register_local_role('ref', ref_role)
 # XXX: register_local_role('rfc', ...)
 # XXX: register_directive('autosummary', ...)
 
+def autosummary_directive(dirname, arguments, options, content, lineno,
+                          content_offset, block_text, state, state_machine):
+
+    names = [x.strip() for x in content if x.strip()]
+
+    table = nodes.table('')
+    group = nodes.tgroup('', cols=2)
+    table.append(group)
+    group.append(nodes.colspec('', colwidth=30))
+    group.append(nodes.colspec('', colwidth=70))
+    body = nodes.tbody('')
+    group.append(body)
+
+    def append_row(*column_texts):
+        row = nodes.row('')
+        for text in column_texts:
+            node = nodes.paragraph('')
+            vl = ViewList()
+            vl.append(text, '<autosummary>')
+            state.nested_parse(vl, 0, node)
+            row.append(nodes.entry('', node))
+        body.append(row)
+
+    for name in names:
+        append_row(':ref:`%s`' % name, '<automatically filled-in summary>')
+
+    return [table]
+
+autosummary_directive.options = {'toctree': directives.unchanged,
+                                 'nosignatures': directives.flag}
+autosummary_directive.content = True
+autosummary_directive.arguments = (0, 0, False)
+register_directive('autosummary', autosummary_directive)
+
 #------------------------------------------------------------------------------
 # Content-inserting
 #------------------------------------------------------------------------------
