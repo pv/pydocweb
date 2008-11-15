@@ -165,12 +165,15 @@ def latex_to_uri(in_text, with_baseline=False):
 import docutils
 import docutils.utils
 import docutils.core, docutils.nodes, docutils.parsers.rst
+from docutils.parsers.rst import directives
 
 def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     i = rawtext.find('`')
     latex = rawtext[i+1:-1]
     try:
-        uri, baseline_off = latex_to_uri(ur'$%s$' % latex, with_baseline=True)
+        if 'nowrap' not in options:
+            latex = ur'$%s$' % latex
+        uri, baseline_off = latex_to_uri(latex, with_baseline=True)
         img = docutils.nodes.image("", uri=uri,
                                    alt=latex,
                                    classes=["img-offset-%d" % baseline_off])
@@ -182,8 +185,11 @@ def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 
 def math_directive(name, arguments, options, content, lineno,
                    content_offset, block_text, state, state_machine):
+    latex = u'\n'.join(content)
     try:
-        uri = latex_to_uri(ur'\begin{align*}%s\end{align*}' % u'\n'.join(content))
+        if 'nowrap' not in options:
+            latex = ur'\begin{align*}%s\end{align*}' % latex
+        uri = latex_to_uri(latex)
         img = docutils.nodes.image("",
                                    uri=uri,
                                    alt=u'\n'.join(content),
@@ -211,7 +217,9 @@ math_directive.arguments = (
     0, # number of optional arguments
     False # whether final argument can contain whitespace
 )
-math_directive.options = {}
+math_directive.options = {
+    'nowrap': directives.flag
+}
 math_directive.content = True # whether content is allowed
 
 docutils.parsers.rst.directives.register_directive('math', math_directive)
