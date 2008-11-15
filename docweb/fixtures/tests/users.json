@@ -4,7 +4,7 @@
     "model": "auth.group", 
     "fields": {
       "name": "Editor", 
-      "permissions": [ 29, 48, 42 ]
+      "permissions": [ 29, 45, 51 ]
     }
   }, 
   {
@@ -12,7 +12,7 @@
     "model": "auth.group", 
     "fields": {
       "name": "Reviewer", 
-      "permissions": [ 31, 29, 48, 42 ]
+      "permissions": [ 31, 29, 45, 51 ]
     }
   }, 
   {
