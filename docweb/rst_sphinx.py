@@ -25,7 +25,7 @@ from docscrape import NumpyDocString
 
 #------------------------------------------------------------------------------
 
-def _nested_parse(state, text, node):
+def _nested_parse(state, text, node, with_titles=False):
     result = ViewList()
     if isinstance(text, str):
         for line in text.split("\n"):
@@ -33,11 +33,24 @@ def _nested_parse(state, text, node):
     else:
         for line in text:
             result.append(line, '<nested>')
-    state.nested_parse(result, 0, node)
+    if with_titles:
+        _nested_parse_with_titles(state, result, node)
+    else:
+        state.nested_parse(result, 0, node)
+
+def _nested_parse_with_titles(state, content, node):
+    # hack around title style bookkeeping
+    surrounding_title_styles = state.memo.title_styles
+    surrounding_section_level = state.memo.section_level
+    state.memo.title_styles = []
+    state.memo.section_level = 0
+    state.nested_parse(content, 0, node, match_titles=1)
+    state.memo.title_styles = surrounding_title_styles
+    state.memo.section_level = surrounding_section_level
 
 def _indent(lines, nindent=4):
     return [u" "*nindent + line for line in lines]
-    
+
 #------------------------------------------------------------------------------
 # toctree::
 #------------------------------------------------------------------------------
@@ -253,7 +266,7 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         link = text[1:]
         text = text[1:].split('.')[-1]
     else:
-        m = re.compile(r'^([a-zA-Z0-9_]*)(.*?)$', re.S).match(text)
+        m = re.compile(r'^([a-zA-Z0-9._]*)(.*?)$', re.S).match(text)
         link = m.group(1)
 
     ref = nodes.reference(rawtext, text, name=link,
@@ -327,6 +340,9 @@ register_directive('autosummary', autosummary_directive)
 # sphinx.ext.autodoc
 #------------------------------------------------------------------------------
 
+_title_re = re.compile(r'^\s*[#*=]{4,}\n[a-z0-9 -]+\n[#*=]{4,}\s*',
+                       re.I|re.S)
+
 def auto_directive(dirname, arguments, options, content, lineno,
                   content_offset, block_text, state, state_machine):
     if not content:
@@ -337,16 +353,27 @@ def auto_directive(dirname, arguments, options, content, lineno,
 
     try:
         doc = models.Docstring.resolve(target)
-        text = str(NumpyDocString(doc.text))
+        ndoc = NumpyDocString(doc.text)
+        text = str(ndoc).strip()
+
+        # Strip top title
+        text = _title_re.sub('', text)
+
+        # Put lines in
         lines.extend(text.split("\n"))
-        if doc['Signature']:
-            arg = doc['Signature']
+        if ndoc['Signature']:
+            arg = ndoc['Signature']
         else:
             arg = target
     except models.Docstring.DoesNotExist:
         arg = target
 
     lines += [""] + list(content)
+    if dirname == 'automodule':
+        lines = ['|        <automodule :ref:`%s`>' % target, '', ''] + lines
+        node = nodes.paragraph()
+        _nested_parse(state, lines, node, with_titles=True)
+        return node.children
     return codeitem_directive(dirname, [arg], options, lines, lineno,
                               content_offset, block_text, state, state_machine)
 
