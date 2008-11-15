@@ -209,15 +209,11 @@ register_directive('envvar', codeitem_directive)
 # Variable setters
 #------------------------------------------------------------------------------
 
-# XXX: these should affect reference resolution
-
 def module_directive(dirname, arguments, options, content, lineno,
                      content_offset, block_text, state, state_machine):
-    text = '.. %s:: %s' % (dirname, arguments[0])
-    node = nodes.literal_block('', text)
     state._current_module = arguments[0].strip()
     state.inliner._current_module = arguments[0].strip()
-    return [node]
+    return []
 
 module_directive.arguments = (1, 0, False)
 module_directive.content = False
