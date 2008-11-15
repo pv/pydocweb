@@ -246,12 +246,15 @@ register_generic_role('samp', nodes.literal)
 def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     link = text
 
-    m = re.compile(r'^(.*)\n*<(.*?)>\s*$', re.S).match(text)
+    m  = re.compile(r'^(.*)\n*<(.*?)>\s*$', re.S).match(text)
     if m:
         text, link = m.group(1).strip(), m.group(2).strip()
     elif text.startswith('~'):
         link = text[1:]
         text = text[1:].split('.')[-1]
+    else:
+        m = re.compile(r'^([a-zA-Z0-9_]*)(.*?)$', re.S).match(text)
+        link = m.group(1)
 
     ref = nodes.reference(rawtext, text, name=link,
                           refname=':ref:`%s`' % link)
