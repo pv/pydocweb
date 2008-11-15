@@ -267,18 +267,22 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         m = re.compile(r'^([a-zA-Z0-9._]*)(.*?)$', re.S).match(text)
         link = m.group(1)
 
+    ref = _parse_ref(rawtext, text, link, inliner)
+    return [ref], []
 
+def _parse_ref(rawtext, text, link, inliner):
     if hasattr(inliner, '_current_module'):
         try:
             new_link = inliner._current_module + '.' + link
+            print "try:", new_link
             ref = models.LabelCache.on_site.get(label=new_link)
+            print "got:", ref
             link = ref.target
         except models.LabelCache.DoesNotExist:
             pass
 
-    ref = nodes.reference(rawtext, text, name=link,
-                          refname=':ref:`%s`' % link)
-    return [ref], []
+    return nodes.reference(rawtext, text, name=link,
+                           refname=':ref:`%s`' % link)
 
 register_local_role('mod', ref_role)
 register_local_role('func', ref_role)
@@ -308,18 +312,14 @@ def autosummary_directive(dirname, arguments, options, content, lineno,
     body = nodes.tbody('')
     group.append(body)
 
-    def append_row(*column_texts):
-        row = nodes.row('')
-        for text in column_texts:
-            node = nodes.paragraph('')
-            vl = ViewList()
-            vl.append(text, '<autosummary>')
-            state.nested_parse(vl, 0, node)
-            row.append(nodes.entry('', node))
-        body.append(row)
-
     for name in names:
-        append_row(':ref:`%s`' % name, '<automatically filled-in summary>')
+        row = nodes.row('')
+        ref = _parse_ref(':ref:`%s`' % name, name, name, state.inliner)
+        col1 = nodes.entry('', nodes.paragraph('', '', ref))
+        col2 = nodes.entry('', nodes.paragraph(''))
+        row.append(col1)
+        row.append(col2)
+        body.append(row)
 
     return [table]
 
