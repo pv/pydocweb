@@ -691,7 +691,6 @@ class ToctreeCache(models.Model):
         in_toctree = False
         for line in docstring.text.split("\n"):
             if in_toctree:
-                print "Parsing", line
                 m = cls._toctree_content_re.match(line)
                 if m:
                     item = line.strip()
@@ -707,8 +706,6 @@ class ToctreeCache(models.Model):
                     in_toctree = True
 
         # -- resolve children
-        print docstring, ">>", children
-        
         base_path = '/'.join(docstring.name.split('/')[:-1])
         suffixes = ['', '.rst', '.txt']
         for child in children:
@@ -717,7 +714,6 @@ class ToctreeCache(models.Model):
             for suffix in suffixes:
                 try:
                     path = os.path.join(base_path, child) + suffix
-                    print "TRY:", path
                     doc = Docstring.on_site.get(name=path)
                     break
                 except Docstring.DoesNotExist:
