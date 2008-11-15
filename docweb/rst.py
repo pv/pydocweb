@@ -6,6 +6,7 @@ from django.conf import settings
 from django.template import Context
 from django.template.loader import get_template
 
+from django.core.cache import cache
 import pydocweb.docweb.models as models
 
 from utils import cache_memoize
@@ -32,7 +33,16 @@ class RstWriter(docutils.writers.html4css1.Writer):
         self.resolve_to_wiki = resolve_to_wiki
         self.resolve_prefixes = resolve_prefixes
         self.resolve_suffixes = resolve_suffixes
-    
+
+        self.reference_key = ("__reference_cache_" + "#".join(resolve_prefixes)
+                              + '@' + "#".join(resolve_suffixes)
+                              + '@' + str(resolve_to_wiki))
+        self.reference_cache = cache.get(self.reference_key, {})
+
+    def done(self):
+        cache.set(self.reference_key, self.reference_cache,
+                  timeout=15*60)
+
     def resolver(self, node):
         """
         Normally an unknown reference would be an error in an reST document.
@@ -56,8 +66,16 @@ class RstWriter(docutils.writers.html4css1.Writer):
             return False
         self.nodes.append(node)
         return True
-    
+
     def _resolve_name(self, name, is_label=False):
+        try:
+            # try to get it first from cache
+            ref = self.reference_cache[(name, is_label)]
+            if ref is None:
+                raise ValueError()
+        except KeyError:
+            pass
+        
         names = ['%s%s%s' % (p, name, s)
                  for p in [''] + self.resolve_prefixes
                  for s in [''] + self.resolve_suffixes]
@@ -69,12 +87,16 @@ class RstWriter(docutils.writers.html4css1.Writer):
             linkname = re.sub('[^a-z0-9.]', '-', name.lower())
             url = reverse('pydocweb.docweb.views_docstring.view',
                           kwargs=dict(name=items[0].target)) + '#' + linkname
-            return items[0].full_url(url)
+            ref = items[0].full_url(url)
 
         if self.resolve_to_wiki and name and name[0].lower() != name[0]:
-            return reverse('pydocweb.docweb.views_wiki.view', args=[name])
+            ref = reverse('pydocweb.docweb.views_wiki.view', args=[name])
         else:
+            self.reference_cache[(name, is_label)] = None
             raise ValueError()
+
+        self.reference_cache[(name, is_label)] = ref
+        return ref
     
     resolver.priority = 001
 
@@ -83,11 +105,12 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
                 resolve_suffixes=[]):
     # Fix Django clobbering
     docutils.parsers.rst.roles.DEFAULT_INTERPRETED_ROLE = 'title-reference'
+    writer = RstWriter(resolve_to_wiki=resolve_to_wiki,
+                       resolve_prefixes=resolve_prefixes,
+                       resolve_suffixes=resolve_suffixes)
     parts = docutils.core.publish_parts(
         text,
-        writer=RstWriter(resolve_to_wiki=resolve_to_wiki,
-                         resolve_prefixes=resolve_prefixes,
-                         resolve_suffixes=resolve_suffixes),
+        writer=writer,
         settings_overrides = dict(halt_level=5,
                                   traceback=True,
                                   file_insertion_enabled=0,
@@ -98,6 +121,7 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
                                   link_base='',
                                   )
     )
+    writer.done()
     return parts['html_body'].encode('utf-8')
 
 #------------------------------------------------------------------------------
@@ -200,11 +224,20 @@ def render_sphinx_html(doc, text):
     else:
         prefixes = []
 
+    profile = False
+    if profile:
+        import hotshot
+        prof = hotshot.Profile('dump.prof')
+        prof.start()
+
     # Docstring body
     body_html = render_html(unicode(text),
                             resolve_to_wiki=False,
                             resolve_prefixes=prefixes,
                             resolve_suffixes=['.rst', '.txt'])
+
+    if profile:
+        prof.stop()
 
     # Full HTML output
     t = get_template('docstring/body.html')
