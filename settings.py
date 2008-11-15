@@ -65,6 +65,12 @@ MAX_DOCSTRING_WIDTH = 79
 DEFAULT_USER_GROUPS = ()
 
 
+# Cache
+# -----
+
+CACHE_BACKEND = 'file://' + relative_dir('cache')   # file cache
+
+
 #------------------------------------------------------------------------------
 # Standard Django settings
 #------------------------------------------------------------------------------
@@ -98,12 +104,6 @@ DATABASE_HOST = ''             # Set to empty string for localhost.
                                #     Not used with sqlite3.
 DATABASE_PORT = ''             # Set to empty string for default.
                                #     Not used with sqlite3.
-
-
-# Cache
-# -----
-
-CACHE_BACKEND = 'locmem:///'   # local-memory cache
 
 
 # Site paths and URLs
