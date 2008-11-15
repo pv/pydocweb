@@ -274,9 +274,7 @@ def _parse_ref(rawtext, text, link, inliner):
     if hasattr(inliner, '_current_module'):
         try:
             new_link = inliner._current_module + '.' + link
-            print "try:", new_link
             ref = models.LabelCache.on_site.get(label=new_link)
-            print "got:", ref
             link = ref.target
         except models.LabelCache.DoesNotExist:
             pass
