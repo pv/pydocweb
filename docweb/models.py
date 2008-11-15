@@ -757,7 +757,6 @@ class ToctreeCache(models.Model):
                     # unknown page, skip it
                     pass
 
-            print module, child, ">>", doc
             if doc is not None:
                 tocref = cls(parent=docstring, child=doc)
                 tocref.save()
