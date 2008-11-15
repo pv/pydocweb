@@ -215,6 +215,8 @@ def module_directive(dirname, arguments, options, content, lineno,
                      content_offset, block_text, state, state_machine):
     text = '.. %s:: %s' % (dirname, arguments[0])
     node = nodes.literal_block('', text)
+    state._current_module = arguments[0].strip()
+    state.inliner._current_module = arguments[0].strip()
     return [node]
 
 module_directive.arguments = (1, 0, False)
@@ -268,6 +270,15 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     else:
         m = re.compile(r'^([a-zA-Z0-9._]*)(.*?)$', re.S).match(text)
         link = m.group(1)
+
+
+    if hasattr(inliner, '_current_module'):
+        try:
+            new_link = inliner._current_module + '.' + link
+            ref = models.LabelCache.on_site.get(label=new_link)
+            link = ref.target
+        except models.LabelCache.DoesNotExist:
+            pass
 
     ref = nodes.reference(rawtext, text, name=link,
                           refname=':ref:`%s`' % link)
@@ -370,6 +381,9 @@ def auto_directive(dirname, arguments, options, content, lineno,
 
     lines += [""] + list(content)
     if dirname == 'automodule':
+        state._current_module = target.strip()
+        state.inliner._current_module = target.strip()
+        
         lines = ['|        <automodule :ref:`%s`>' % target, '', ''] + lines
         node = nodes.paragraph()
         _nested_parse(state, lines, node, with_titles=True)
