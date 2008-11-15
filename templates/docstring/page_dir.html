@@ -5,17 +5,17 @@
   <a href="{% url pydocweb.docweb.views_docstring.view name %}#discussion-sec">Discussion</a>
 {% endblock %}
 
-{% block discussion %}
+{% block content %}
 {{block.super}}
 
-<h2>Add sub-pages</h2>
+<h2>New item</h2>
 <div style="margin-top: 2ex; margin-bottom: 2ex;">
   <form action="{% url pydocweb.docweb.views_docstring.new name %}" method="post">
     <ul>
       {{ new_page_form.as_ul }}
       <li><label></label>
-	<input type="submit" name="button_file" value="Create sub-page" />
-	<input type="submit" name="button_dir" value="Create sub-directory" />
+	<input type="submit" name="button_file" value="Create file" />
+	<input type="submit" name="button_dir" value="Create directory" />
       </li>
     </ul>
   </form>

@@ -257,7 +257,7 @@ class SphinxTests(TestCase):
         
         response = self.client.get('/docs/docs/')
         response = self.client.get('/docs/docs/')
-        self.assertContains(response, 'Create sub-page')
+        self.assertContains(response, 'Create file')
 
         # create a file sub-page
         response = self.client.post('/docs/docs/new/',
