@@ -272,11 +272,6 @@ register_local_role('cmacro', ref_role)
 register_local_role('ctype', ref_role)
 register_local_role('ref', ref_role)
 
-# XXX: these are missing: 
-# XXX: register_local_role('pep', ...)
-# XXX: register_local_role('rfc', ...)
-# XXX: register_directive('autosummary', ...)
-
 def autosummary_directive(dirname, arguments, options, content, lineno,
                           content_offset, block_text, state, state_machine):
 
@@ -331,8 +326,6 @@ register_directive('autosummary', autosummary_directive)
 
 def auto_directive(dirname, arguments, options, content, lineno,
                   content_offset, block_text, state, state_machine):
-    print "AUTOXXXXX"
-    
     if not content:
         content = [u""]
 
