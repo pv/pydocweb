@@ -314,7 +314,7 @@ def autosummary_directive(dirname, arguments, options, content, lineno,
         row = nodes.row('')
         ref = _parse_ref(':ref:`%s`' % name, name, name, state.inliner)
         col1 = nodes.entry('', nodes.paragraph('', '', ref))
-        col2 = nodes.entry('', nodes.paragraph(''))
+        col2 = nodes.entry('', nodes.paragraph('', '<automatically filled-in summary>'))
         row.append(col1)
         row.append(col2)
         body.append(row)
