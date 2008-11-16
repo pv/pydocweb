@@ -58,15 +58,37 @@ def _indent(lines, nindent=4):
 
 def toctree_directive(dirname, arguments, options, content, lineno,
                       content_offset, block_text, state, state_machine):
-    lines = [".. admonition:: Toctree", ""]
+
+    node = nodes.admonition()
+    node['classes'] += ['admonition-toctree']
+    node += nodes.title('', 'Toctree')
+
+    para = nodes.paragraph('')
+    node += para
+    
+    ul = nodes.bullet_list()
+    para += ul
+    
     for line in content:
         line = line.strip()
         if not line or line.startswith(':'): continue
 
-        lines.append("   - `%s`_" % line)
+        try:
+            uri, name = resolve_name(line, state.inliner)
+            title = name
+            try:
+                doc = models.Docstring.on_site.get(name=name)
+                if doc.title:
+                    title = doc.title
+            except models.Docstring.DoesNotExist:
+                pass
+            entry = nodes.reference('', title, refuri=uri)
+        except ValueError:
+            entry = nodes.reference('', line, name=line,
+                                    refname=':ref:`%s`' % line)
 
-    node = nodes.paragraph()
-    _nested_parse(state, lines, node)
+        ul += nodes.list_item('', nodes.paragraph('', '', entry))
+
     return [node]
 
 toctree_directive.arguments = (0, 0, False)
@@ -352,7 +374,7 @@ def autosummary_directive(dirname, arguments, options, content, lineno,
             ref = nodes.reference(name, name, name=name,
                                   refname=':obj:`%s`' % name)
             col1 = nodes.paragraph('', '', ref)
-            col2 = nodes.paragraph('', '<automatically filled-in summary>')
+            col2 = nodes.paragraph('', '<summary not found>')
                                 
         row.append(nodes.entry('', col1))
         row.append(nodes.entry('', col2))
