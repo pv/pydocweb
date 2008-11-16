@@ -52,15 +52,15 @@ class RstWriter(docutils.writers.html4css1.Writer):
         """
         try:
             if hasattr(node, 'indirect_reference_name'):
-                node['refuri'] = self._resolve_name(node.indirect_reference_name)
+                node['refuri'], dummy = self._resolve_name(node.indirect_reference_name)
             elif (len(node['ids']) != 0):
                 # If the node has an id then it's probably an internal link. Let
                 # docutils generate an error.
                 return False
             elif node.hasattr('name'):
-                node['refuri'] = self._resolve_name(node['name'])
+                node['refuri'], dummy = self._resolve_name(node['name'])
             else:
-                node['refuri'] = self._resolve_name(node['refname'])
+                node['refuri'], dummy = self._resolve_name(node['refname'])
             del node['refname']
             node.resolved = 1
         except ValueError:
@@ -90,9 +90,10 @@ class RstWriter(docutils.writers.html4css1.Writer):
             linkname = make_target_id(name)
             url = reverse('pydocweb.docweb.views_docstring.view',
                           kwargs=dict(name=items[0].target)) + '#' + linkname
-            ref = items[0].full_url(url)
+            ref = (items[0].full_url(url), items[0].target)
         elif self.resolve_to_wiki and name and name[0].lower() != name[0]:
-            ref = reverse('pydocweb.docweb.views_wiki.view', args=[name])
+            ref = (reverse('pydocweb.docweb.views_wiki.view', args=[name]),
+                   name)
         else:
             self.reference_cache[(name, is_label)] = None
             raise ValueError()

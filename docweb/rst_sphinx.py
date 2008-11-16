@@ -281,19 +281,31 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     ref = _parse_ref(rawtext, text, link, inliner)
     return [ref], []
 
-def _parse_ref(rawtext, text, link, inliner):
-    resolve_name = inliner.document.settings.resolve_name
+def resolve_name(link, inliner, postpone=False):
+    _resolve = inliner.document.settings.resolve_name
     
     if hasattr(inliner, '_current_module'):
         try:
             new_link = inliner._current_module + '.' + link
-            uri = resolve_name(new_link)
-            return nodes.reference(text, text, refuri=uri)
+            uri, name = _resolve(new_link)
+            return uri, name
         except ValueError:
             pass
 
-    ref = nodes.reference(text, text, name=link, refname=':ref:`%s`' % link)
-    return ref
+    if postpone:
+        return None, link
+
+    uri, name = _resolve(link)
+    return uri, name
+
+def _parse_ref(rawtext, text, link, inliner):
+    uri, name = resolve_name(link, inliner, postpone=True)
+    if uri:
+        return nodes.reference(text, text, refuri=uri)
+    else:
+        # postpone resolution to generate warnings about failing links
+        ref = nodes.reference(text, text, name=link, refname=':ref:`%s`'%link)
+        return ref
 
 register_local_role('mod', ref_role)
 register_local_role('func', ref_role)
@@ -325,11 +337,25 @@ def autosummary_directive(dirname, arguments, options, content, lineno,
 
     for name in names:
         row = nodes.row('')
-        ref = _parse_ref(':ref:`%s`' % name, name, name, state.inliner)
-        col1 = nodes.entry('', nodes.paragraph('', '', ref))
-        col2 = nodes.entry('', nodes.paragraph('', '<automatically filled-in summary>'))
-        row.append(col1)
-        row.append(col2)
+
+        try:
+            uri, real_name = resolve_name(name, state.inliner)
+            try:
+                doc = models.Docstring.on_site.get(name=real_name)
+                ndoc = NumpyDocString(doc.text)
+                col1 = nodes.paragraph('', '',
+                                       nodes.reference(name, name, refuri=uri))
+                col2 = nodes.paragraph('', " ".join(ndoc['Summary']))
+            except models.Docstring.DoesNotExist:
+                raise ValueError()
+        except ValueError:
+            ref = nodes.reference(name, name, name=name,
+                                  refname=':obj:`%s`' % name)
+            col1 = nodes.paragraph('', '', ref)
+            col2 = nodes.paragraph('', '<automatically filled-in summary>')
+                                
+        row.append(nodes.entry('', col1))
+        row.append(nodes.entry('', col2))
         body.append(row)
 
     return [table]
