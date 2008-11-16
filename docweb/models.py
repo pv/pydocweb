@@ -104,6 +104,10 @@ class Docstring(models.Model):
                                       help_text="Line number in source file")
     timestamp   = models.DateTimeField(default=datetime.datetime.now,
                                        help_text="Time of last SVN pull")
+
+    title       = models.CharField(max_length=MAX_NAME_LEN, null=True,
+                                   help_text="Title of the page (if present)")
+
     # contents  = [DocstringAlias...]
     # revisions = [DocstringRevision...]
     # comments  = [ReviewComment...]
@@ -262,6 +266,7 @@ class Docstring(models.Model):
         # Update cross-reference and toctree caches
         LabelCache.cache_docstring(self)
         ToctreeCache.cache_docstring(self)
+        self._update_title()
 
     def _add_to_parent(self):
         """
@@ -304,6 +309,27 @@ class Docstring(models.Model):
         if self.type_code != 'file':
             raise ValueError("_add_to_parent works only for 'file' docstrings")
         DocstringAlias.objects.filter(target=self.name).delete()
+
+    _title_re = re.compile(r'^.*?\s*([#*=]{4,}\n)?(?P<title>[a-z0-9 -]+)\n[#*=]{4,}\s*',
+                           re.I|re.S)
+    
+    def _update_title(self):
+        """
+        Update the 'title' field.
+
+        If the page begins with a reStructuredText title, it is used,
+        otherwise the name of the docstring is used.
+
+        """
+        if self.type_code != 'file':
+            return
+
+        m = self._title_re.match(self.text)
+        if m:
+            self.title = m.groupdict()['title'].strip()
+        else:
+            self.title = self.name
+        self.save()
 
     def get_merge(self):
         """
@@ -1041,7 +1067,7 @@ def _update_docstrings_from_xml(site, stream):
     for doc in Docstring.get_non_obsolete().filter(type_code='file').all():
         LabelCache.cache_docstring_labels(doc)
         ToctreeCache.cache_docstring(doc)
-
+        doc._update_title()
 
 def update_docstrings(site):
     """

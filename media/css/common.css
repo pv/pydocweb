@@ -372,7 +372,12 @@ dl dt {
 #document dl.code-item dt {
   font-weight: normal;
 }
-
+#document div.toctree-links { 
+  padding-left: 1em; 
+  margin-bottom: 1em;
+  border-bottom: 1px solid #ccc;
+  background: #eee;
+}
 
 /*
  * Comments
