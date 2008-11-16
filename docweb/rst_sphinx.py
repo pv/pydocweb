@@ -20,6 +20,7 @@ from docutils.parsers.rst.roles import (register_local_role,
                                         register_generic_role)
 
 import models
+import rst
 
 from docscrape import NumpyDocString
 
@@ -137,8 +138,8 @@ register_directive('doctest', blurb_directive(
 # class:: etc.
 #------------------------------------------------------------------------------
 
-_CALLABLE_RE = re.compile(r"^(?P<pre>.*?)(?P<module>[a-zA-Z0-9_.]*?)\s*(?P<name>[a-zA-Z0-9_]+)\s*\((?P<args>.*?)\)(?P<rest>\s*->.*?)?$")
-_OTHER_RE = re.compile(r"^(?P<pre>.*?)(?P<module>[a-zA-Z0-9_.]*?)\s*(?P<name>[a-zA-Z0-9_]+)\s*$")
+_CALLABLE_RE = re.compile(r"^(?P<pre>.*?)(?P<module>[a-zA-Z0-9_.]*?)(?P<name>[a-zA-Z0-9_]+)\s*\((?P<args>.*?)\)(?P<rest>\s*->.*?)?$")
+_OTHER_RE = re.compile(r"^(?P<pre>.*?)(?P<module>[a-zA-Z0-9_.]*?)(?P<name>[a-zA-Z0-9_]+)\s*$")
 
 def codeitem_directive(dirname, arguments, options, content, lineno,
                        content_offset, block_text, state, state_machine):
@@ -175,15 +176,25 @@ def codeitem_directive(dirname, arguments, options, content, lineno,
         firstline = u"".join(arguments)
         target = None
 
-    lines = []
-    if target:
-        lines += ['.. _%s:' % target, '']
-    lines.append(firstline)
-    lines += _indent(content, 4)
+
+    dl = nodes.definition_list()
+    di = nodes.definition_list_item()
+    dl += di
     
-    node = nodes.paragraph()
-    _nested_parse(state, lines, node)
-    return [node]
+    title_stuff, messages = state.inline_text(firstline, lineno)
+    dt = nodes.term(firstline, *title_stuff)
+    di += dt
+
+    dd = nodes.definition()
+    di += dd
+    
+    if target:
+        dt['ids'] += [rst.make_target_id(target)]
+
+    dl['classes'] += [dirname, 'code-item']
+    _nested_parse(state, content, dd)
+    
+    return [dl]
 
 codeitem_directive.arguments = (1, 0, True)
 codeitem_directive.content = True
@@ -271,16 +282,18 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     return [ref], []
 
 def _parse_ref(rawtext, text, link, inliner):
+    resolve_name = inliner.document.settings.resolve_name
+    
     if hasattr(inliner, '_current_module'):
         try:
             new_link = inliner._current_module + '.' + link
-            ref = models.LabelCache.on_site.get(label=new_link)
-            link = ref.target
-        except models.LabelCache.DoesNotExist:
+            uri = resolve_name(new_link)
+            return nodes.reference(text, text, refuri=uri)
+        except ValueError:
             pass
 
-    return nodes.reference(rawtext, text, name=link,
-                           refname=':ref:`%s`' % link)
+    ref = nodes.reference(text, text, name=link, refname=':ref:`%s`' % link)
+    return ref
 
 register_local_role('mod', ref_role)
 register_local_role('func', ref_role)

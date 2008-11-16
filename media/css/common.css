@@ -356,6 +356,9 @@ dl dt {
 #document .admonition-toctree.admonition { 
   border: none;
 }
+#document dl.code-item dt {
+  font-weight: normal;
+}
 
 
 /*

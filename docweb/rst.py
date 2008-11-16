@@ -17,6 +17,7 @@ from utils import cache_memoize
 import docutils.core
 import docutils.writers.html4css1
 import docutils.parsers.rst.roles
+import docutils.nodes
 import re
 
 class RstWriter(docutils.writers.html4css1.Writer):
@@ -86,7 +87,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
             # try to search cross-site
             items = models.LabelCache.objects.filter(label__in=names)
         if items:
-            linkname = re.sub('[^a-z0-9.]', '-', name.lower())
+            linkname = make_target_id(name)
             url = reverse('pydocweb.docweb.views_docstring.view',
                           kwargs=dict(name=items[0].target)) + '#' + linkname
             ref = items[0].full_url(url)
@@ -100,6 +101,13 @@ class RstWriter(docutils.writers.html4css1.Writer):
         return ref
     
     resolver.priority = 001
+
+def make_target_id(text):
+    """Generate a good-for-HTML identifier based on given text"""
+    # disambiguate UPPERCASE parts from CamelCase or lowercase parts
+    target_id = re.sub('[A-Z_.-][A-Z_.-]+', lambda m: m.group(0) + '-upper',
+                       text)
+    return docutils.nodes.make_id(target_id)
 
 @cache_memoize(max_age=30*24*60*60)
 def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
@@ -120,6 +128,7 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
                                   template='',
                                   default_reference_context='title-reference',
                                   link_base='',
+                                  resolve_name=writer._resolve_name
                                   )
     )
     writer.done()
@@ -227,9 +236,10 @@ def render_sphinx_html(doc, text):
 
     profile = False
     if profile:
-        import hotshot
+        import hotshot, time
         prof = hotshot.Profile('dump.prof')
         prof.start()
+        start = time.time()
 
     # Docstring body
     body_html = render_html(unicode(text),
@@ -239,6 +249,7 @@ def render_sphinx_html(doc, text):
 
     if profile:
         prof.stop()
+        print "TIME TO RENDER RST:", time.time() - start
 
     # Full HTML output
     t = get_template('docstring/body.html')
