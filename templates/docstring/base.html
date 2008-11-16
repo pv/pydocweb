@@ -19,3 +19,16 @@
   {% endblock %}
 </div>
 {% endblock %}
+
+
+{% block extra_headers %}
+{{block.super}}
+<script>
+/* toggle showing docutils system messages */
+$(document).ready(function(){
+    $("div.system-messages h1").click(function () {
+        $("div.system-messages div.system-message").toggle();
+    });
+});
+</script>
+{% endblock %}
