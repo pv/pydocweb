@@ -186,6 +186,9 @@ def math_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 def math_directive(name, arguments, options, content, lineno,
                    content_offset, block_text, state, state_machine):
     latex = u'\n'.join(content)
+    if arguments and arguments[0]:
+        latex = arguments[0] + "\n" + latex
+
     try:
         if 'nowrap' not in options:
             latex = ur'\begin{align*}%s\end{align*}' % latex
@@ -206,16 +209,9 @@ def math_directive(name, arguments, options, content, lineno,
 # -----------------------------------------------------------------------------
 
 math_directive.arguments = (
-    1, # number of required arguments
-    1, # number of optional arguments
-    False # whether final argument can contain whitespace
-)
-math_directive.options = {
-}
-math_directive.arguments = (
     0, # number of required arguments
-    0, # number of optional arguments
-    False # whether final argument can contain whitespace
+    1, # number of optional arguments
+    True # whether final argument can contain whitespace
 )
 math_directive.options = {
     'nowrap': directives.flag
