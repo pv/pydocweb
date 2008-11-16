@@ -310,7 +310,7 @@ class Docstring(models.Model):
             raise ValueError("_add_to_parent works only for 'file' docstrings")
         DocstringAlias.objects.filter(target=self.name).delete()
 
-    _title_re = re.compile(r'^.*?\s*([#*=]{4,}\n)?(?P<title>[a-z0-9 -]+)\n[#*=]{4,}\s*',
+    _title_re = re.compile(r'^.*?\s*([#*=]{4,}\n)?(?P<title>[a-zA-Z0-9][^\n]+)\n[#*=]{4,}\s*',
                            re.I|re.S)
     
     def _update_title(self):
