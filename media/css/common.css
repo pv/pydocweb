@@ -324,6 +324,12 @@ dl dt {
 #document h6 a:hover { 
   text-decoration: none;
 }
+#document div.system-messages { 
+  float: none;
+  padding: 1em;
+  margin: 0.5em;
+  border: 1px dashed red;
+}
 #document div.system-message { 
   font-size: 80%;
   float:right;
@@ -332,14 +338,21 @@ dl dt {
   color:red;
   margin: 0.5em;
 }
-#document div.system-messages { 
-  float:right;
-  padding-bottom: 2em;
-  padding-right: 2em;
-  margin: 0.5em;
+#document div.system-messages div.system-message { 
+  display: none;
+  float: none;
 }
 #document div.system-messages h1 { 
   color: red;
+  margin: 0;
+  padding: 0;
+}
+#document div.system-messages h1:hover { 
+  text-decoration: underline;
+  cursor: pointer;
+}
+#document div.system-messages h1:after { 
+  content: " +";
 }
 #document .system-message-title { 
   font-weight: bold;
