@@ -188,7 +188,7 @@ def edit(request, name):
             raise Http404()
 
         if revision is not None:
-            data['comment'] = "Reverted"
+            data['comment'] = "Reverted to %s" % revision.revno
         if revision is None and doc.merge_status != MERGE_NONE:
             data['text'] = doc.get_merge()
             data['comment'] = "Merged"
