@@ -81,6 +81,7 @@ CACHE_BACKEND = 'file://' + relative_dir('cache')   # file cache
 # Should be set to False on a production system
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+PROFILE = False
 
 
 # Administrators
@@ -183,6 +184,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',
 )
+
+if PROFILE:
+    MIDDLEWARE_CLASSES += ('pydocweb.docweb.profile_middleware.ProfileMiddleware',)
 
 ROOT_URLCONF = 'pydocweb.urls'
 

@@ -105,7 +105,7 @@ class RstWriter(docutils.writers.html4css1.Writer):
 def make_target_id(text):
     """Generate a good-for-HTML identifier based on given text"""
     # disambiguate UPPERCASE parts from CamelCase or lowercase parts
-    target_id = re.sub('[A-Z_.-][A-Z_.-]+', lambda m: m.group(0) + '-upper',
+    target_id = re.sub('[A-Z][A-Z_.-]*[A-Z]', lambda m: m.group(0) + '-uc',
                        text)
     return docutils.nodes.make_id(target_id)
 
@@ -234,22 +234,11 @@ def render_sphinx_html(doc, text):
     else:
         prefixes = []
 
-    profile = False
-    if profile:
-        import hotshot, time
-        prof = hotshot.Profile('dump.prof')
-        prof.start()
-        start = time.time()
-
     # Docstring body
     body_html = render_html(unicode(text),
                             resolve_to_wiki=False,
                             resolve_prefixes=prefixes,
                             resolve_suffixes=['.rst', '.txt'])
-
-    if profile:
-        prof.stop()
-        print "TIME TO RENDER RST:", time.time() - start
 
     # Full HTML output
     t = get_template('docstring/body.html')
