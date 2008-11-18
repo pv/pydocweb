@@ -447,7 +447,7 @@ def auto_directive(dirname, arguments, options, content, lineno,
                               content_offset, block_text, state, state_machine)
 
 auto_directive.arguments = (1, 0, True)
-auto_directive.options = {}
+auto_directive.options = {'members': directives.flag}
 auto_directive.content = True
 
 register_directive('automodule', auto_directive)
