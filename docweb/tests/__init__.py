@@ -6,6 +6,7 @@ from django.conf import settings
 TESTDIR = os.path.abspath(os.path.dirname(__file__))
 settings.MODULE_DIR = TESTDIR
 settings.PULL_SCRIPT = os.path.join(TESTDIR, 'pull-test.sh')
+settings.SITE_ID = 1
 
 # The CSRF middleware prevents the Django test client from working, so
 # disable it.
