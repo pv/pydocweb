@@ -150,7 +150,7 @@ def _extend_sys_path(doc, cmd_opts):
         if pth not in sys.path:
             sys.path.insert(0, pth)
 
-    if hasattr(cmd_opts, 'path'):
+    if hasattr(cmd_opts, 'path') and cmd_opts.path:
         for pth in reversed(cmd_opts.path.split(os.path.pathsep)):
             pth = os.path.abspath(pth)
             if pth not in doc_paths:
@@ -386,33 +386,51 @@ def cmd_pyrex_docs(args):
 
     Get source line information from Pyrex source files.
     """
-    import Pyrex.Compiler.Nodes as Nodes
-    import Pyrex.Compiler.Main
-    import Pyrex.Compiler.ModuleNode
-
     options_list = [
         make_option("-f", "--file", action="append", dest="files",
-                    help="FILE:MODULE, files to look in and corresponding modules")
+                    help="FILE:MODULE, files to look in and corresponding modules"),
+        make_option("-c", "--cython", action="store_true", dest="cython",
+                    default=False, help="Use Cython instead of Pyrex")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
                                       indoc=True, outfile=True, nargs=0,
                                       syspath=True)
+
+    if opts.cython:
+        import Cython.Compiler.Nodes as Nodes
+        import Cython.Compiler.Main as Main
+        import Cython.Compiler.ModuleNode as ModuleNode
+    else:
+        import Pyrex.Compiler.Nodes as Nodes
+        import Pyrex.Compiler.Main as Main
+        import Pyrex.Compiler.ModuleNode as ModuleNode
     
     doc = opts.indoc
     _extend_sys_path(doc, opts)
     
-    def pyrex_parse_source(source):
-        Pyrex.Compiler.Main.Errors.num_errors = 0
+    def pyrex_parse_source(source, mod_name):
+        Main.Errors.num_errors = 0
         source = os.path.abspath(source)
-        options = Pyrex.Compiler.Main.CompilationOptions()
-        context = Pyrex.Compiler.Main.Context(options.include_path)
-        module_name = context.extract_module_name(source)
-        scope = context.find_module(module_name, pos=(source,1,0), need_pxd=0)
-        tree = context.parse(source, scope.type_names, pxd=0)
+        options = Main.CompilationOptions()
+        if opts.cython:
+            context = Main.Context(options.include_path, {})
+            source_desc = Main.FileSourceDescriptor(filename=source)
+            module_name = context.extract_module_name(source, options)
+        else:
+            context = Main.Context(options.include_path)
+            module_name = context.extract_module_name(source)
+            source_desc = source
+        scope = context.find_module(module_name, pos=(source_desc,1,0),
+                                    need_pxd=0)
+        if opts.cython:
+            tree = context.parse(source_desc, scope, pxd=0,
+                                 full_module_name=mod_name)
+        else:
+            tree = context.parse(source, scope.type_names, pxd=0)
         return tree
 
     def pyrex_walk_tree(node, file_name, base_name, locations={}):
-        if isinstance(node, Pyrex.Compiler.ModuleNode.ModuleNode):
+        if isinstance(node, ModuleNode.ModuleNode):
             locations[base_name] = (file_name,) + node.pos[1:]
             pyrex_walk_tree(node.body, file_name, base_name, locations)
         elif isinstance(node, Nodes.StatListNode):
@@ -431,7 +449,7 @@ def cmd_pyrex_docs(args):
     for file_mod_name in opts.files:
         file_name, module_name = file_mod_name.rsplit(':', 1)
         file_name = os.path.abspath(file_name)
-        tree = pyrex_parse_source(file_name)
+        tree = pyrex_parse_source(file_name, file_mod_name)
         pyrex_walk_tree(tree, file_name, module_name, locations)
     
     for name, (file, line, offset) in locations.iteritems():
