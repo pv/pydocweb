@@ -699,7 +699,7 @@ class ToctreeCache(models.Model):
     child = models.ForeignKey(Docstring, related_name="toctree_parents")
 
     _toctree_re = re.compile('^\s*.. (toctree|autosummary)::\s*$')
-    _toctree_content_re = re.compile('^(|\s*:.*|\s*[a-zA-Z/.-]+\s*)$')
+    _toctree_content_re = re.compile('^(\s*|\s+:.*|\s+[a-zA-Z/.-]+\s*)$')
     _auto_re = re.compile(r'^\s*.. (module|automodule|autoclass|automethod|autofunction|autoattribute)::\s+(.*)\s*$')
     _module_re = re.compile(r'^\s*.. (currentmodule|module|automodule)::\s+(.*?)\s*$')
 
