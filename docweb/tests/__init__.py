@@ -19,6 +19,7 @@ except IndexError:
 # -- Test cases
 from test_functional import *
 from test_docstring import *
+from test_toctreecache import *
 
 # -- Allow Django test command to find the script tests
 test_dir = os.path.join(os.path.dirname(__file__), '..', '..',
