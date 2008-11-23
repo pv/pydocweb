@@ -297,7 +297,7 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         link = text[1:]
         text = text[1:].split('.')[-1]
     else:
-        m = re.compile(r'^([a-zA-Z0-9._]*)(.*?)$', re.S).match(text)
+        m = re.compile(r'^([a-zA-Z0-9._-]*)(.*?)$', re.S).match(text)
         link = m.group(1)
 
     ref = _parse_ref(rawtext, text, link, inliner)
