@@ -130,6 +130,10 @@ Additional tools
    lagrange
    approximate_taylor_polynomial
 
+.. autosummary::
+
+   not_linked_to_toctree
+
 .. toctree::
 
    bar

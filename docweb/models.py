@@ -768,13 +768,15 @@ class ToctreeCache(models.Model):
                 m = cls._toctree_content_re.match(line)
                 if m:
                     item = line.strip()
-                    if item.startswith(':'):
+                    if item.startswith(':toctree:'):
+                        in_toctree = True
+                    elif item.startswith(':'):
                         pass
                     elif item:
-                        if in_toctree:
-                            toc_children.append(item)
-                        elif in_autosummary:
+                        if in_autosummary and in_toctree:
                             code_children.append((module, item))
+                        elif in_toctree:
+                            toc_children.append(item)
                     continue
                 else:
                     in_toctree = False
