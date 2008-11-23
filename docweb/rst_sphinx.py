@@ -419,8 +419,15 @@ def auto_directive(dirname, arguments, options, content, lineno,
 
     try:
         doc = models.Docstring.resolve(target)
-        ndoc = NumpyDocString(doc.text)
-        text = str(ndoc).strip()
+        ndoc = {'Signature': ''}
+        if dirname == 'automodule':
+            text = doc.text
+        else:
+            try:
+                ndoc = NumpyDocString(doc.text)
+                text = str(ndoc).strip()
+            except ValueError:
+                text = doc.text
 
         # Strip top title
         text = _title_re.sub('', text)
