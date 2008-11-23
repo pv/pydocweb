@@ -32,20 +32,6 @@ python2.5 setup.py install --prefix=$PWD/dist
 
 popd
 
-#  b) numpy-docs
-
-if test ! -d numpy-docs; then
-    svn co http://svn.scipy.org/svn/numpy/numpy-docs/trunk numpy-docs
-fi
-
-pushd numpy-docs
-
-svn up
-svn revert -R .
-
-popd
-
-
 # 3. Extract docstrings
 
 export SITEPATH=$PWD/numpy/dist/lib/python2.5/site-packages
@@ -59,7 +45,7 @@ python2.5 $PYDOCTOOL collect -s $SITEPATH \
 | $PYDOCTOOL pyrex-docs -i - -s $SITEPATH \
     -f numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand \
 | $PYDOCTOOL sphinx-docs -i - -n numpy-docs -e .rst \
-    numpy-docs/source \
+    numpy/doc/source \
 > "$1"
 
 # NB: you can consider adding "$PYDOCTOOL mangle -i -" after prune in the pipe
