@@ -283,6 +283,9 @@ def cmd_prune(args):
                            and target.attrib['id'] == '%s.%s'%(el.attrib['id'],
                                                                name))):
                 el.remove(ref)
+            # remove non-existent stuff
+            elif ref.attrib['ref'] not in doc._id_cache:
+                el.remove(ref)
 
     doc.recache()
 
