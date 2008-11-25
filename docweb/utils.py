@@ -45,7 +45,10 @@ def cache_memoize(max_age):
     
     """
     def decorator(func):
-        key_prefix = 'cache_memoize__%s_%s' % (func.__module__, func.__name__)
+        site = Site.objects.get_current()
+        key_prefix = 'cache_memoize_%d__%s_%s' % (site.id,
+                                                  func.__module__,
+                                                  func.__name__)
         def wrapper(*a, **kw):
             key = '%s__%s' % (key_prefix, hash(pickle.dumps((a, kw))))
             cached = cache.get(key)
