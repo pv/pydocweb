@@ -635,6 +635,7 @@ class LabelCache(models.Model):
         # -- Cache docstring aliases
         from django.db import connection, transaction
         cursor = connection.cursor()
+        # 1st dereference level (normal docstrings)
         cursor.execute("""
         INSERT INTO docweb_labelcache (label, target, title, site_id)
         SELECT d.name || '.' || a.alias, a.target, a.alias, %s
@@ -644,6 +645,7 @@ class LabelCache(models.Model):
         WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
               AND d.site_id = %s AND a.target = %s
         """, [docstring.site.id, docstring.site.id, docstring.name])
+        # 1st dereference level (.rst pages)
         cursor.execute("""
         INSERT INTO docweb_labelcache (label, target, title, site_id)
         SELECT d.name || '/' || a.alias, a.target, a.alias, %s
@@ -1050,7 +1052,17 @@ def _update_docstrings_from_xml(site, stream):
     from django.db import connection, transaction
     cursor = connection.cursor()
 
-    # Insert docstring names at once using raw SQL (fast!)
+    # -- Insert docstring names at once using raw SQL (fast!)
+
+    # direct names
+    cursor.execute("""
+    INSERT INTO docweb_labelcache (label, target, title, site_id)
+    SELECT d.name, d.name, d.name, %s
+    FROM docweb_docstring AS d
+    WHERE d.site_id = %s AND d.timestamp = %s
+    """, [site.id, site.id, timestamp])
+
+    # 1st dereference level (normal docstrings)
     cursor.execute("""
     INSERT INTO docweb_labelcache (label, target, title, site_id)
     SELECT d.name || '.' || a.alias, a.target, a.alias, %s
@@ -1060,6 +1072,8 @@ def _update_docstrings_from_xml(site, stream):
     WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
           AND d.site_id = %s AND d.timestamp = %s
     """, [site.id, site.id, timestamp])
+    
+    # 1st dereference level (for .rst pages; they can have only 1 level)
     cursor.execute("""
     INSERT INTO docweb_labelcache (label, target, title, site_id)
     SELECT d.name || '/' || a.alias, a.target, a.alias, %s
@@ -1069,17 +1083,11 @@ def _update_docstrings_from_xml(site, stream):
     WHERE d.name || '/' || a.alias != a.target AND d.type_ == 'dir'
           AND d.site_id = %s AND d.timestamp = %s
     """, [site.id, site.id, timestamp])
-    cursor.execute("""
-    INSERT INTO docweb_labelcache (label, target, title, site_id)
-    SELECT d.name, d.name, d.name, %s
-    FROM docweb_docstring AS d
-    WHERE d.site_id = %s AND d.timestamp = %s
-    """, [site.id, site.id, timestamp])
 
-    # Raw SQL needs a manual flush
+    # -- Raw SQL needs a manual flush
     transaction.commit_unless_managed()
 
-    # Do the part of the work that's not possible using SQL only
+    # -- Do the part of the work that's not possible using SQL only
     for doc in Docstring.get_non_obsolete().filter(type_code='file').all():
         LabelCache.cache_docstring_labels(doc)
         ToctreeCache.cache_docstring(doc)
