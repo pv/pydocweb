@@ -360,22 +360,26 @@ def autosummary_directive(dirname, arguments, options, content, lineno,
     for name in names:
         row = nodes.row('')
 
+        ref = nodes.reference(name, name, name=name,
+                              refname=':obj:`%s`' % name)
+        col1 = nodes.paragraph('', '', ref)
+        
         try:
             uri, real_name = resolve_name(name, state.inliner)
+            col1 = nodes.paragraph('', '',
+                                   nodes.reference(name, name, refuri=uri))
             try:
                 doc = models.Docstring.on_site.get(name=real_name)
-                ndoc = NumpyDocString(doc.text)
-                col1 = nodes.paragraph('', '',
-                                       nodes.reference(name, name, refuri=uri))
-                col2 = nodes.paragraph('', " ".join(ndoc['Summary']))
+                try: 
+                    ndoc = NumpyDocString(doc.text)
+                    col2 = nodes.paragraph('', " ".join(ndoc['Summary']))
+                except ValueError:
+                    raise ValueError("failed to parse summary")
             except models.Docstring.DoesNotExist:
-                raise ValueError()
-        except ValueError:
-            ref = nodes.reference(name, name, name=name,
-                                  refname=':obj:`%s`' % name)
-            col1 = nodes.paragraph('', '', ref)
-            col2 = nodes.paragraph('', '<summary not found>')
-                                
+                raise ValueError("target does not exist")
+        except ValueError, exc:
+            col2 = nodes.paragraph('', '<%s>' % exc)
+
         row.append(nodes.entry('', col1))
         row.append(nodes.entry('', col2))
         body.append(row)
