@@ -84,6 +84,16 @@ class RstWriter(docutils.writers.html4css1.Writer):
                  for s in [''] + self.resolve_suffixes]
         items = models.LabelCache.on_site.filter(label__in=names)
         if not items:
+            # try to resolve a docstring (somewhat expensive)
+            for item_name in names:
+                try:
+                    doc = models.Docstring.resolve(item_name)
+                    items = [models.LabelCache(label=name, target=doc.name,
+                                               site=doc.site)]
+                    break
+                except models.Docstring.DoesNotExist:
+                    pass
+        if not items:
             # try to search cross-site
             items = models.LabelCache.objects.filter(label__in=names)
         if items:

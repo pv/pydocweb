@@ -689,7 +689,10 @@ class LabelCache(models.Model):
                 url_part = url_part[len(settings.SITE_PREFIX):]
             return "http://%s%s" % (self.site.domain, url_part)
 
+    def __repr__(self):
+        return "<LabeCache %s: %s>" % (self.label, self.target)
 
+        
 # -- Sphinx Toctree cache
 
 class ToctreeCache(models.Model):

@@ -63,7 +63,7 @@
     "pk": 1,
     "model": "docweb.docstringalias", 
     "fields": {
-      "alias": "sample1", 
+      "alias": "sample1_alias", 
       "target": "sample_module.sample1", 
       "parent": "sample_module"
     }
@@ -72,13 +72,22 @@
     "pk": 2,
     "model": "docweb.docstringalias", 
     "fields": {
+      "alias": "sample1", 
+      "target": "sample_module.sample1", 
+      "parent": "sample_module"
+    }
+  }, 
+  {
+    "pk": 3,
+    "model": "docweb.docstringalias", 
+    "fields": {
       "alias": "func1", 
       "target": "sample_module.sample1.func1", 
       "parent": "sample_module"
     }
   },
   {
-    "pk": 12, 
+    "pk": 4, 
     "model": "docweb.docstringalias", 
     "fields": {
       "alias": "func1", 

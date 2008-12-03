@@ -17,10 +17,14 @@ try:
 except IndexError:
     pass
 
+# Disable cache
+settings.CACHE_BACKEND = ""
+
 # -- Test cases
 from test_functional import *
 from test_docstring import *
 from test_toctreecache import *
+from test_rst import *
 
 # -- Allow Django test command to find the script tests
 test_dir = os.path.join(os.path.dirname(__file__), '..', '..',
