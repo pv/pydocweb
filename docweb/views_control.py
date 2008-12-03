@@ -1,5 +1,6 @@
 from django.contrib.sites.models import Site
 from utils import *
+import socket
 
 #------------------------------------------------------------------------------
 # Control
@@ -71,3 +72,32 @@ def control(request):
 
     return render_template(request, 'control.html',
                            dict(users=User.objects.filter()))
+
+def periodic_update(request, key):
+    if key != settings.PULL_TRIGGER_KEY:
+        raise Http404()
+
+    if not match_ip(request.META['REMOTE_ADDR'], settings.PULL_TRIGGER_IPS):
+        raise Http404()
+    
+    site = Site.objects.get_current()
+    update_docstrings(site)
+    return HttpResponse('Done.')
+
+def match_ip(address, mask):
+    """Check if an ip address matches the specified net mask"""
+
+    if isinstance(address, str):
+        addr_ip = socket.inet_aton(address)
+
+    if '/' not in mask:
+        return address == mask
+    
+    if isinstance(mask, str):
+        mask, nbits = mask.split('/', 1)
+        mask_ip = socket.inet_aton(mask)
+    else:
+        mask_ip = mask
+        nbits = 0
+
+    return (addr_ip >> nbits) == (mask_ip >> nbits)

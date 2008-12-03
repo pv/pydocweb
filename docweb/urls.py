@@ -38,6 +38,7 @@ urlpatterns += patterns(
     url(r'^merge/$', 'merge'),
     url(r'^patch/$', 'patch'),
     url(r'^dump/$', 'dump'),
+    url(r'^periodic-update/(?P<key>.+)$', 'periodic_update'),
 )
 
 urlpatterns += patterns(

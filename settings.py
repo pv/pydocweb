@@ -71,6 +71,24 @@ DEFAULT_USER_GROUPS = ()
 
 CACHE_BACKEND = 'file://' + relative_dir('cache')   # file cache
 
+# Automatic updating
+# ------------------
+
+# Updating the system periodically eg. from cron may be useful.
+#
+# You can trigger a pull by running 'update-docstrings.sh',
+# or by doing a HTTP GET to the URL
+#
+#     /periodic-update/PULL_TRIGGER_KEY
+#
+# from an ip address matching PULL_TRIGGER_IPS.
+#
+# The latter works around possible permission problems that can occur
+# unless you can run 'update-docstrings.sh' as the user the webservice
+# runs as.
+
+PULL_TRIGGER_KEY = "PHqTx8XuAhwIJMkqFdkhFazuCgRr3dz4"
+PULL_TRIGGER_IPS = "127.0.0.1"
 
 #------------------------------------------------------------------------------
 # Standard Django settings
