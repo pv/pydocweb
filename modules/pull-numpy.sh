@@ -41,7 +41,7 @@ python2.5 $PYDOCTOOL collect -s $SITEPATH \
 | $PYDOCTOOL prune -i - \
 | $PYDOCTOOL numpy-docs -i - -s $SITEPATH \
     -f numpy/numpy/add_newdocs.py \
-    -f numpy/numpy/core/code_generators/docstrings.py \
+    -f numpy/numpy/core/code_generators/ufunc_docstrings.py \
 | $PYDOCTOOL pyrex-docs -i - -s $SITEPATH \
     -f numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand \
 | $PYDOCTOOL sphinx-docs -i - -n numpy-docs -e .rst \
