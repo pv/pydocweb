@@ -18,3 +18,18 @@ class RstTests(TestCase):
         html = rst.render_html(':obj:`sample_module.sample1_alias.func1`',
                                resolve_to_wiki=False)
         self.failUnless('/docs/sample_module.sample1.func' in html)
+
+    def test_review(self):
+        """Test the :review: role"""
+        doc = models.Docstring.on_site.get(name='sample_module.sample1.func1')
+        doc.review = models.REVIEW_REVISED
+        doc.save()
+        html = rst.render_html(':review:`sample_module.sample1.func1`',
+                               cache_max_age=0)
+        self.failUnless('class="revised' in html)
+        doc.edit('foo', 'author', 'comment')
+        doc.review = models.REVIEW_PROOFED
+        doc.save()
+        html = rst.render_html(':review:`sample_module.sample1.func1`',
+                               cache_max_age=0)
+        self.failUnless('class="proofed' in html)
