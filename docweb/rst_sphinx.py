@@ -393,6 +393,26 @@ autosummary_directive.arguments = (0, 0, False)
 register_directive('autosummary', autosummary_directive)
 
 #------------------------------------------------------------------------------
+# Some extensions
+#------------------------------------------------------------------------------
+
+def review_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    """Role linking to a docstring, and displaying its review status"""
+    name = text.strip()
+    try:
+        uri, name = resolve_name(name, inliner)
+        doc = models.Docstring.on_site.get(name=name)
+        ref = nodes.reference('', name, refuri=uri)
+        cls = models.REVIEW_STATUS_CODES.get(doc.review_code, 'needs-editing')
+    except (models.Docstring.DoesNotExist, ValueError):
+        ref = nodes.reference('', name, name=name, refname=':review:`%s`'%name)
+        cls = 'needs-editing'
+    ref['classes'].append(cls)
+    return [ref], []
+
+register_local_role('review', review_role)
+
+#------------------------------------------------------------------------------
 # Content-inserting
 #------------------------------------------------------------------------------
 # XXX: |release|

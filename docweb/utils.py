@@ -50,13 +50,17 @@ def cache_memoize(max_age):
                                                   func.__module__,
                                                   func.__name__)
         def wrapper(*a, **kw):
+            if 'cache_max_age' in kw:
+                real_max_age = int(kw.pop('cache_max_age'))
+            else:
+                real_max_age = max_age
             key = '%s__%s' % (key_prefix, hash(pickle.dumps((a, kw))))
             cached = cache.get(key)
             if cached is not None:
                 return cached
             else:
                 ret = func(*a, **kw)
-            cache.set(key, ret, max_age)
+            cache.set(key, ret, real_max_age)
             return ret
         return wrapper
     return decorator

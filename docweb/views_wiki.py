@@ -22,7 +22,7 @@ def view(request, name):
 
         if not rev.text and revision is None:
             raise WikiPage.DoesNotExist()
-        body = rst.render_html(rev.text)
+        body = rst.render_html(rev.text, cache_max_age=15*60)
         if body is None:
             raise WikiPage.DoesNotExist()
         return render_template(request, 'wiki/page.html',
