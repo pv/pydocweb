@@ -54,6 +54,8 @@ def cache_memoize(max_age):
                 real_max_age = int(kw.pop('cache_max_age'))
             else:
                 real_max_age = max_age
+            if real_max_age <= 0:
+                return func(*a, **kw)
             key = '%s__%s' % (key_prefix, hash(pickle.dumps((a, kw))))
             cached = cache.get(key)
             if cached is not None:

@@ -7,7 +7,7 @@ from views_docstring import EditForm
 # Wiki
 #------------------------------------------------------------------------------
 
-WIKI_CACHE_AGE = 15*60
+WIKI_CACHE_AGE = 60
 
 def frontpage(request):
     return HttpResponsePermanentRedirect(reverse(view, args=['Front Page']))
