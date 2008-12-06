@@ -7,6 +7,8 @@ from views_docstring import EditForm
 # Wiki
 #------------------------------------------------------------------------------
 
+WIKI_CACHE_AGE = 15*60
+
 def frontpage(request):
     return HttpResponsePermanentRedirect(reverse(view, args=['Front Page']))
 
@@ -22,7 +24,7 @@ def view(request, name):
 
         if not rev.text and revision is None:
             raise WikiPage.DoesNotExist()
-        body = rst.render_html(rev.text, cache_max_age=15*60)
+        body = rst.render_html(rev.text, cache_max_age=WIKI_CACHE_AGE)
         if body is None:
             raise WikiPage.DoesNotExist()
         return render_template(request, 'wiki/page.html',
@@ -45,7 +47,8 @@ def edit(request, name):
         if form.is_valid():
             data = form.cleaned_data
             if request.POST.get('button_preview'):
-                preview = rst.render_html(data['text'])
+                preview = rst.render_html(data['text'],
+                                          cache_max_age=WIKI_CACHE_AGE)
                 try:
                     prev_text = WikiPage.on_site.get(name=name).text
                     prev_text = prev_text.decode('utf-8')
