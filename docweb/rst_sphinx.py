@@ -400,8 +400,8 @@ def review_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     """Role linking to a docstring, and displaying its review status"""
     name = text.strip()
     try:
-        uri, name = resolve_name(name, inliner)
-        doc = models.Docstring.on_site.get(name=name)
+        uri, real_name = resolve_name(name, inliner)
+        doc = models.Docstring.on_site.get(name=real_name)
         ref = nodes.reference('', name, refuri=uri)
         cls = models.REVIEW_STATUS_CODES.get(doc.review_code, 'needs-editing')
     except (models.Docstring.DoesNotExist, ValueError):
