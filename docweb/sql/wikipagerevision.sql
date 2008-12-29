@@ -1,4 +1,4 @@
-INSERT INTO 'docweb_wikipagerevision' VALUES (1, 1,
+INSERT INTO docweb_wikipagerevision VALUES (1, 1,
 'Insert text for your front page here.
 
 You may want to:
@@ -16,9 +16,9 @@ You may want to:
   - `Help Merge Docstring`_  (shown on merge conflicts)
 
 ',
-'Source','Template revision',datetime('now'));
+'Source','Template revision','2008-12-29 14:29:00');
 
-INSERT INTO 'docweb_wikipagerevision' VALUES (2, 2,
+INSERT INTO docweb_wikipagerevision VALUES (2, 2,
 'See:
 
 * `ReStructuredText quick reference <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_
@@ -48,9 +48,9 @@ Images::
     Use images sparingly. Note that our infrastructure needed in including
     images in the reference manual is not finished yet.
 ',
-'Source','Template',datetime('now'));
+'Source','Template','2008-12-29 14:29:00');
 
-INSERT INTO 'docweb_wikipagerevision' VALUES (3, 3,
+INSERT INTO docweb_wikipagerevision VALUES (3, 3,
 'Merging docstrings with SVN can go wrong:
 either the merge fails and causes a conflict, or the merge succeeds
 but the result does not make sense. Hence, human confirmation of the
@@ -71,9 +71,9 @@ Sometimes conflicting changes are made in the versions in this system
 and in SVN; also they are listed on this page.
 
 The conflicts must be resolved manually by editing the docstrings.',
-'Source','Template',datetime('now'));
+'Source','Template','2008-12-29 14:29:00');
 
-INSERT INTO 'docweb_wikipagerevision' VALUES (4, 4, 
+INSERT INTO docweb_wikipagerevision VALUES (4, 4, 
 'Merging docstrings with SVN can go wrong:
 either the merging fails and causes a conflict, or the merge succeeds
 but the result does not make sense. Hence, human confirmation of the
@@ -117,10 +117,10 @@ revision of the docstring in this system, and the part between
 ``=======`` and ``>>>>>>>`` is that currently in SVN. The editor
 must now manually remove the conflict markers and combine
 the two versions so that the results make sense.',
-'Source','Template',datetime('now'));
+'Source','Template','2008-12-29 14:29:00');
 
-INSERT INTO 'docweb_wikipagerevision' VALUES (5, 5, 
+INSERT INTO docweb_wikipagerevision VALUES (5, 5, 
 'To get **edit permissions**, mail to the administrators.
 
 For more information, see our `Front Page`_.',
-'Source','Template',datetime('now'));
+'Source','Template','2008-12-29 14:29:00');
