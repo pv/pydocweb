@@ -25,6 +25,14 @@ def main():
         print "Already at newest schema version."
         return
 
+    print "-- Upgrading from schema version %s to %s" % (current_version,
+                                                         newest_version)
+    print "-- Backup before conversion is recommended."
+    confirm = raw_input("-- Continue [y/n]? ")
+    if confirm.lower() != 'y':
+        print "-- Aborted"
+        return
+
     while current_version < newest_version:
         try:
             next_version, script = scripts[current_version]
@@ -47,7 +55,7 @@ def main():
         current_version = next_version
         print "-- Done."
 
-    print "-- All done. You may need to re-pull from sources."
+    print "-- All done. You may need to re-pull docstrings from sources."
         
 def run_python(*args):
     cmd = [sys.executable] + list(args)
