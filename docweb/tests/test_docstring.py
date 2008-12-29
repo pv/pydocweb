@@ -2,7 +2,7 @@
 Unit tests for Docstring functionality and docstring merging.
 
 """
-import os, sys, re
+import os, sys, re, time
 from django.test import TestCase
 from django.conf import settings
 from StringIO import StringIO
@@ -13,9 +13,17 @@ import docweb.models as models
 class LocalTestCase(TestCase):
     def setUp(self):
         self.site = models.Site.objects.get_current()
+        models.Docstring.on_site.all().delete()
+        models.DocstringRevision.objects.all().delete()
 
     def update_docstrings(self, docstrings):
+        start = time.time()
         models.update_docstrings_from_xml(self.site, form_test_xml(docstrings))
+        if settings.DATABASE_ENGINE == 'mysql':
+            # mysql's datetime field has accuracy of one second;
+            # hence, add some delay so that obsoletion timestamps are
+            # resolved in the tests.
+            time.sleep(max(0, start + 1 - time.time()))
 
     def edit_docstring(self, name, text):
         doc = self.get_docstring(name)

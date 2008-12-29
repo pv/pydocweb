@@ -499,9 +499,10 @@ class Docstring(models.Model):
         cursor = connection.cursor()
         cursor.execute("""\
         SELECT d.name FROM docweb_docstring AS d
-        LEFT JOIN docweb_docstringrevision AS r WHERE d.name = r.docstring_id
-        GROUP BY d.name HAVING %s %s (d.name LIKE %%s OR r.text LIKE %%s)
+        LEFT JOIN docweb_docstringrevision AS r ON d.name = r.docstring_id
+        WHERE %s %s (d.name LIKE %%s OR r.text LIKE %%s)
         AND d.site_id = %%s
+        GROUP BY d.name
         """ % (where_, not_,), [s, s, site_id])
         res =  cursor.fetchall()
         cursor.execute("""\
@@ -636,25 +637,25 @@ class LabelCache(models.Model):
         from django.db import connection, transaction
         cursor = connection.cursor()
         # 1st dereference level (normal docstrings)
-        cursor.execute("""
+        cursor.execute(port_sql("""
         INSERT INTO docweb_labelcache (label, target, title, site_id)
         SELECT d.name || '.' || a.alias, a.target, a.alias, %s
         FROM docweb_docstring AS d
         LEFT JOIN docweb_docstringalias AS a
-        ON d.name == a.parent_id
+        ON d.name = a.parent_id
         WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
               AND d.site_id = %s AND a.target = %s
-        """, [docstring.site.id, docstring.site.id, docstring.name])
+        """), [docstring.site.id, docstring.site.id, docstring.name])
         # 1st dereference level (.rst pages)
-        cursor.execute("""
+        cursor.execute(port_sql("""
         INSERT INTO docweb_labelcache (label, target, title, site_id)
         SELECT d.name || '/' || a.alias, a.target, a.alias, %s
         FROM docweb_docstring AS d
         LEFT JOIN docweb_docstringalias AS a
-        ON d.name == a.parent_id
-        WHERE d.name || '/' || a.alias != a.target AND d.type_ == 'dir'
+        ON d.name = a.parent_id
+        WHERE d.name || '/' || a.alias != a.target AND d.type_ = 'dir'
               AND d.site_id = %s AND a.target = %s
-        """, [docstring.site.id, docstring.site.id, docstring.name])
+        """), [docstring.site.id, docstring.site.id, docstring.name])
         transaction.commit_unless_managed()
 
     @classmethod
@@ -882,9 +883,10 @@ class WikiPage(models.Model):
         cursor = connection.cursor()
         cursor.execute("""\
         SELECT p.name FROM docweb_wikipagerevision AS r
-        LEFT JOIN docweb_wikipage AS p WHERE r.page_id = p.id
-        GROUP BY p.name HAVING %s (p.name LIKE %%s OR r.text LIKE %%s)
+        LEFT JOIN docweb_wikipage AS p ON r.page_id = p.id
+        WHERE %s (p.name LIKE %%s OR r.text LIKE %%s)
         AND p.site_id = %%s
+        GROUP BY p.name
         """ % (not_,), [s, s, site_id])
         return cursor.fetchall()
 
@@ -1066,26 +1068,26 @@ def _update_docstrings_from_xml(site, stream):
     """, [site.id, site.id, timestamp])
 
     # 1st dereference level (normal docstrings)
-    cursor.execute("""
+    cursor.execute(port_sql("""
     INSERT INTO docweb_labelcache (label, target, title, site_id)
     SELECT d.name || '.' || a.alias, a.target, a.alias, %s
     FROM docweb_docstring AS d
     LEFT JOIN docweb_docstringalias AS a
-    ON d.name == a.parent_id
+    ON d.name = a.parent_id
     WHERE d.name || '.' || a.alias != a.target AND d.type_ != 'dir'
           AND d.site_id = %s AND d.timestamp = %s
-    """, [site.id, site.id, timestamp])
+    """), [site.id, site.id, timestamp])
     
     # 1st dereference level (for .rst pages; they can have only 1 level)
-    cursor.execute("""
+    cursor.execute(port_sql("""
     INSERT INTO docweb_labelcache (label, target, title, site_id)
     SELECT d.name || '/' || a.alias, a.target, a.alias, %s
     FROM docweb_docstring AS d
     LEFT JOIN docweb_docstringalias AS a
-    ON d.name == a.parent_id
-    WHERE d.name || '/' || a.alias != a.target AND d.type_ == 'dir'
+    ON d.name = a.parent_id
+    WHERE d.name || '/' || a.alias != a.target AND d.type_ = 'dir'
           AND d.site_id = %s AND d.timestamp = %s
-    """, [site.id, site.id, timestamp])
+    """), [site.id, site.id, timestamp])
 
     # -- Raw SQL needs a manual flush
     transaction.commit_unless_managed()
@@ -1375,3 +1377,31 @@ def set_user_default_groups(user):
         except Group.DoesNotExist:
             pass
         group.user_set.add(user)
+
+def port_sql(orig_text):
+    """
+    Port some common SQL expressions from SQLite format to the currently
+    active DATABASE_ENGINE format.
+
+    .. warning::
+
+       This does *only* very limited porting; as necessary as to make the
+       raw SQL statements above to work.
+
+    """
+    text = orig_text
+
+    if settings.DATABASE_ENGINE == 'mysql':
+        def _concat(m):
+            items = [s.strip() for s in m.group(0).split('||')]
+            return 'concat(%s)' % ', '.join(items)
+        text = re.sub(r'(?:[a-zA-Z0-9\'._/]+\s*\|\|\s*)+\s*(?:[a-zA-Z0-9\'._/]+)',
+                      _concat, text)
+        text = text.replace("datetime('now')", "now()")
+
+#    print >> sys.stderr, "-"*60
+#    print >> sys.stderr,  orig_text
+#    print >> sys.stderr,  "...."
+#    print >> sys.stderr,  text
+        
+    return text
