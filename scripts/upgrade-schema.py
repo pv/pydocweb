@@ -17,21 +17,31 @@ def main():
     if len(args) != 0:
         p.error('Wrong number of arguments')
 
+    upgrade()
+
+def upgrade(verbose=True):
     current_version = get_schema_version()
     scripts = get_upgrade_scripts()
     newest_version = max(scripts.keys())
 
+    if verbose:
+        def do_print(s):
+            print s
+    else:
+        do_print = lambda s: None
+
     if current_version == newest_version:
-        print "Already at newest schema version."
+        do_print("Already at newest schema version.")
         return
 
-    print "-- Upgrading from schema version %s to %s" % (current_version,
-                                                         newest_version)
-    print "-- Backup before conversion is recommended."
-    confirm = raw_input("-- Continue [y/n]? ")
-    if confirm.lower() != 'y':
-        print "-- Aborted"
-        return
+    if verbose:
+        print "-- Upgrading from schema version %s to %s" % (current_version,
+                                                             newest_version)
+        print "-- Backup before conversion is recommended."
+        confirm = raw_input("-- Continue [y/n]? ")
+        if confirm.lower() != 'y':
+            print "-- Aborted"
+            return
 
     while current_version < newest_version:
         try:
@@ -40,11 +50,11 @@ def main():
             raise RuntimeError("No upgrade path found! This is a bug, please "
                                "report.")
 
-        print "-- Upgrading schema version from %g to %g" % (current_version,
-                                                             next_version)
+        do_print("-- Upgrading schema version from %g to %g" % (current_version,
+                                                                next_version))
         
         if script.endswith('.sql'):
-            run_sql(script)
+            run_sql(script, verbose=verbose)
         elif script.endswith('.py'):
             run_python(script)
         else:
@@ -53,26 +63,47 @@ def main():
 
         set_schema_version(next_version)
         current_version = next_version
-        print "-- Done."
+        do_print("-- Done.")
 
-    print "-- All done. You may need to re-pull docstrings from sources."
-        
+    do_print("-- All done. You may need to re-pull docstrings from sources.")
+
 def run_python(*args):
     cmd = [sys.executable] + list(args)
     subprocess.call(cmd)
 
-def run_sql(filename):
+def run_sql(filename, verbose=True):
     from django.db import connection, transaction
+    from django.conf import settings
+    
     cursor = connection.cursor()
 
     sql = open(filename, 'r').read()
 
     sql = re.compile('^\s*--.*$', re.M).sub('', sql)
+    engine_re = re.compile('^<(\w+)>(.*)$', re.S)
+
+    last_engines = []
 
     for entry in sql.split(';'):
         entry = entry.strip()
         if not entry: continue
-        print entry + ";"
+        m = engine_re.match(entry)
+        if m:
+            engine = m.group(1).lower()
+            active_engine = settings.DATABASE_ENGINE.lower()
+            if engine == 'other':
+                if active_engine in last_engines:
+                    continue
+            elif engine != active_engine:
+                last_engines.append(engine)
+                continue
+            entry = m.group(2)
+            last_engines.append(engine)
+        else:
+            last_engines = []
+
+        if verbose:
+            print entry + ";"
         cursor.execute(entry)
     transaction.commit_unless_managed()
 

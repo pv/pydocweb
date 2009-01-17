@@ -31,3 +31,4 @@ test_dir = os.path.join(os.path.dirname(__file__), '..', '..',
                         'scripts', 'tests')
 sys.path.append(test_dir)
 from test_pydoc_tool import *
+from test_db_upgrade import *

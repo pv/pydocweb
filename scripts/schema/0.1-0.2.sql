@@ -9,9 +9,9 @@ create index docweb_docstringrevision_docstring_id ON docweb_docstringrevision (
 create index docweb_reviewcomment_docstring_id ON docweb_reviewcomment (docstring_id);
 create index docweb_reviewcomment_rev_id ON docweb_reviewcomment (rev_id);
 create index docweb_wikipagerevision_page_id ON docweb_wikipagerevision (page_id);
-drop index doc_docstringalias_parent_id;
-drop index doc_docstringrevision_docstring_id;
-drop index doc_reviewcomment_docstring_id;
-drop index doc_reviewcomment_rev_id;
-drop index doc_wikipagerevision_page_id;
+-- drop index doc_docstringalias_parent_id;
+-- drop index doc_docstringrevision_docstring_id;
+-- drop index doc_reviewcomment_docstring_id;
+-- drop index doc_reviewcomment_rev_id;
+-- drop index doc_wikipagerevision_page_id;
 update django_content_type set app_label = 'docweb' where app_label = 'doc';
