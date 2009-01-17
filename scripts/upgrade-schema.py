@@ -83,14 +83,16 @@ def run_sql(filename, verbose=True):
     engine_re = re.compile('^<(\w+)>(.*)$', re.S)
 
     last_engines = []
+    active_engine = settings.DATABASE_ENGINE.lower()
 
     for entry in sql.split(';'):
         entry = entry.strip()
         if not entry: continue
+
+        # process: engine selection statement
         m = engine_re.match(entry)
         if m:
             engine = m.group(1).lower()
-            active_engine = settings.DATABASE_ENGINE.lower()
             if engine == 'other':
                 if active_engine in last_engines:
                     continue
@@ -102,6 +104,13 @@ def run_sql(filename, verbose=True):
         else:
             last_engines = []
 
+        # process: auto increment literal
+        if active_engine == 'mysql':
+            entry = entry.replace('@AUTO_INCREMENT@', 'AUTO_INCREMENT')
+        else:
+            entry = entry.replace('@AUTO_INCREMENT@', '')
+
+        # execute
         if verbose:
             print entry + ";"
         cursor.execute(entry)

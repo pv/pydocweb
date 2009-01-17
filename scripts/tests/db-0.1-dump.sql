@@ -20,18 +20,18 @@ DROP TABLE auth_user_groups;
 DROP TABLE auth_user_user_permissions;
 
 CREATE TABLE auth_message (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     user_id integer NOT NULL,
     message text NOT NULL
 );
 CREATE TABLE auth_group (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     name varchar(80) NOT NULL
 );
 INSERT INTO auth_group VALUES(1,'Editor');
 INSERT INTO auth_group VALUES(2,'Reviewer');
 CREATE TABLE auth_user (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     username varchar(30) NOT NULL,
     first_name varchar(30) NOT NULL,
     last_name varchar(30) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE auth_user (
     date_joined datetime NOT NULL
 );
 CREATE TABLE auth_permission (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     name varchar(50) NOT NULL,
     content_type_id integer NOT NULL,
     codename varchar(100) NOT NULL
@@ -90,7 +90,7 @@ INSERT INTO auth_permission VALUES(38,'Can add wiki page revision',13,'add_wikip
 INSERT INTO auth_permission VALUES(39,'Can change wiki page revision',13,'change_wikipagerevision');
 INSERT INTO auth_permission VALUES(40,'Can delete wiki page revision',13,'delete_wikipagerevision');
 CREATE TABLE django_content_type (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     name varchar(100) NOT NULL,
     app_label varchar(100) NOT NULL,
     model varchar(100) NOT NULL
@@ -114,7 +114,7 @@ CREATE TABLE django_session (
     expire_date datetime NOT NULL
 );
 CREATE TABLE django_admin_log (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     action_time datetime NOT NULL,
     user_id integer NOT NULL,
     content_type_id integer NULL,
@@ -161,7 +161,7 @@ INSERT INTO doc_wikipage VALUES('Help Merge');
 INSERT INTO doc_wikipage VALUES('Help Merge Docstring');
 INSERT INTO doc_wikipage VALUES('Help Registration Done');
 CREATE TABLE doc_reviewcomment (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     docstring_id varchar(256) NOT NULL,
     rev_id integer NULL,
     text text NOT NULL,
@@ -203,7 +203,7 @@ But I''m not sure now that this is always the case, even though this is likely.
 
 Either way, I agree this should be documented.','pauli','2008-06-01 01:51:45.309677',0);
 CREATE TABLE doc_docstringrevision (
-    revno integer NOT NULL PRIMARY KEY,
+    revno integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     docstring_id varchar(256) NOT NULL,
     text text NOT NULL,
     author varchar(256) NOT NULL,
@@ -603,7 +603,7 @@ INSERT INTO doc_docstring VALUES('numpy.lib.function_base.unwrap','callable','__
 ''discont'' to their 2*pi complement along the given axis.','Unwrap radian phase p by changing absolute jumps greater than
 ''discont'' to their 2*pi complement along the given axis.',0,0,0,'/home/moinwiki/NumpyDocWiki/numpydoc/pydocweb/numpy/dist/lib/python2.5/site-packages/numpy/lib/function_base.py',836, '1970-01-01 00:00:00');
 CREATE TABLE doc_docstringalias (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     parent_id varchar(256) NOT NULL,
     target varchar(256) NULL,
     alias varchar(256) NOT NULL
@@ -656,7 +656,7 @@ INSERT INTO doc_docstringalias VALUES(37337,'numpy.lib.function_base','numpy.lib
 INSERT INTO doc_docstringalias VALUES(37338,'numpy.lib.function_base','numpy.lib.function_base.unique','unique');
 INSERT INTO doc_docstringalias VALUES(37339,'numpy.lib.function_base','numpy.lib.function_base.unwrap','unwrap');
 CREATE TABLE doc_wikipagerevision (
-    revno integer NOT NULL PRIMARY KEY,
+    revno integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     page_id varchar(256) NOT NULL,
     text text NOT NULL,
     author varchar(256) NOT NULL,
@@ -755,7 +755,7 @@ INSERT INTO doc_wikipagerevision VALUES(29,'Help Merge','Merging docstrings with
 either the merge fails and causes a conflict, or the merge succeeds
 but the re','pauli','Fix 02:00 AM English','2008-06-01 01:22:37.999283');
 CREATE TABLE auth_group_permissions (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     group_id integer NOT NULL,
     permission_id integer NOT NULL
 );
@@ -797,7 +797,7 @@ INSERT INTO auth_group_permissions VALUES(35,2,38);
 INSERT INTO auth_group_permissions VALUES(36,2,39);
 INSERT INTO auth_group_permissions VALUES(37,2,40);
 CREATE TABLE auth_user_groups (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     user_id integer NOT NULL,
     group_id integer NOT NULL
 );
@@ -818,7 +818,7 @@ INSERT INTO auth_user_groups VALUES(23,10,1);
 INSERT INTO auth_user_groups VALUES(24,10,2);
 INSERT INTO auth_user_groups VALUES(25,11,1);
 CREATE TABLE auth_user_user_permissions (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     user_id integer NOT NULL,
     permission_id integer NOT NULL
 );

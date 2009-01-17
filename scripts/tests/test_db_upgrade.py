@@ -29,3 +29,6 @@ class TestDatabaseUpgrade(unittest.TestCase):
         assert revs[0].revno == 113
         assert revs[1].revno == 108
         assert revs[2].revno == 21
+
+        page = models.WikiPage.on_site.get(name='Front Page')
+        revs = page.revisions.all()
