@@ -136,7 +136,6 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
                                   file_insertion_enabled=0,
                                   raw_enabled=0,
                                   stylesheet_path='',
-                                  template='',
                                   default_reference_context='title-reference',
                                   link_base='',
                                   resolve_name=writer._resolve_name
