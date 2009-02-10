@@ -8,8 +8,7 @@ from views_wiki import frontpage
 
 class LoginForm(forms.Form):
     username = forms.CharField(required=True)
-    password = forms.CharField(widget=forms.PasswordInput, required=True,
-                               min_length=7)
+    password = forms.CharField(widget=forms.PasswordInput, required=True)
 
 class PasswordChangeForm(forms.Form):
     first_name = forms.CharField(required=True)
