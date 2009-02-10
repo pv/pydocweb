@@ -133,12 +133,14 @@ def render_html(text, resolve_to_wiki=True, resolve_prefixes=[],
         writer=writer,
         settings_overrides = dict(halt_level=5,
                                   traceback=True,
-                                  file_insertion_enabled=0,
-                                  raw_enabled=0,
-                                  stylesheet_path='',
                                   default_reference_context='title-reference',
                                   link_base='',
-                                  resolve_name=writer._resolve_name
+                                  resolve_name=writer._resolve_name,
+                                  stylesheet_path='',
+                                  # security settings:
+                                  raw_enabled=0,
+                                  file_insertion_enabled=0,
+                                  _disable_config=1,
                                   )
     )
     writer.done()
