@@ -18,7 +18,7 @@ SAMPLE_MODULE = os.path.abspath(os.path.join(os.path.dirname(__file__),
 
 # -----------------------------------------------------------------------------
 
-class TestRoundtrip(unittest.TestCase):
+class TestPydoctool(unittest.TestCase):
 
     def test_roundtrip(self):
         cwd = os.getcwd()
@@ -59,6 +59,13 @@ class TestRoundtrip(unittest.TestCase):
                     ok = True
                     break
             assert ok, name
+
+        # -- check if something unnecessary is there
+
+        extra = [x for x in doc.getroot().getchildren()
+                 if not (x.attrib['id'].startswith('sample_module')
+                         or 'docs' in x.attrib['id'])]
+        assert extra == [], [x.attrib['id'] for x in extra[:3]]
 
         # -- generate garbage replacement docstring
 
@@ -143,17 +150,8 @@ class TestRoundtrip(unittest.TestCase):
             os.chdir(self.orig_cwd)
             self.orig_cwd = None
 
-def garbage_generator(length=40*2):
-    letters = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-               "0123456789\\\\\\\n\n\n\n\n\n\"\"\"\"\"\"''''''      ")
-    result = ""
-    for j in xrange(length):
-        result += letters[random.randint(0, len(letters)-1)]
-    return result + "\"\"\""
-
 # -----------------------------------------------------------------------------
 
-class TestOther(unittest.TestCase):
     def test_iter_statements(self):
         t1 = """\
 
@@ -175,3 +173,12 @@ class TestOther(unittest.TestCase):
         assert isinstance(s[1][0], compiler.ast.Discard)
         assert isinstance(s[1][0].getChildNodes()[0], compiler.ast.Const)
         assert isinstance(s[2][0], compiler.ast.Pass)
+
+
+def garbage_generator(length=40*2):
+    letters = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+               "0123456789\\\\\\\n\n\n\n\n\n\"\"\"\"\"\"''''''      ")
+    result = ""
+    for j in xrange(length):
+        result += letters[random.randint(0, len(letters)-1)]
+    return result + "\"\"\""

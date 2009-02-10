@@ -3,6 +3,8 @@ sample1 docstring
 
 """
 
+from os import *
+
 def func1():
     """sample1.func1 docstrings"""
     pass

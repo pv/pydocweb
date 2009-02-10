@@ -181,25 +181,7 @@ def cmd_collect(args):
     _extend_sys_path(doc, opts)
 
     for m in args:
-        doc.add_module(m)
-
-    if not opts.all:
-        # NOTE: el.remove is very slow in xml.etree.ElementTree.
-        #       It's much faster to first call 'clear' and then
-        #       append all good elements than to remove bad elements.
-        to_retain = []
-        for el in doc.root.getchildren():
-            ok = False
-            for m in args:
-                if el.attrib['id'].startswith(m):
-                    ok = True
-            if ok:
-                to_retain.append(el)
-        old_attr = dict(doc.root.attrib)
-        doc.root.clear()
-        doc.root.attrib.update(old_attr)
-        for el in to_retain:
-            doc.root.append(el)
+        doc.add_module(m, limit_crawl=not opts.all)
 
     doc.dump(opts.outfile)
 
@@ -1059,10 +1041,15 @@ class Documentation(object):
         self._parents = {}
         self._obj_name_cache = {}
 
-    def add_module(self, module_name):
+    def add_module(self, module_name, limit_crawl=False):
         """Crawl given module for documentation"""
         __import__(module_name)
         mod = sys.modules[module_name]
+
+        if limit_crawl:
+            self.crawl_limit = module_name + '.'
+        else:
+            self.crawl_limit = None
 
         # import sub-packages (only one level)
         if hasattr(mod, '__path__'):
@@ -1194,6 +1181,9 @@ class Documentation(object):
 
         cname = self._canonical_name(obj, parent, name)
         
+        if self.crawl_limit and not (cname+'.').startswith(self.crawl_limit):
+            return None
+
         if cname in self._id_cache:
             return cname
         elif inspect.ismodule(obj):
