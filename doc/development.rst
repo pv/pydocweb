@@ -5,7 +5,7 @@ Pydocweb development
 Running tests
 =============
 
-To run Pydocweb's test suite, do
+To run Pydocweb's test suite, do::
 
     ./manage.py test
 

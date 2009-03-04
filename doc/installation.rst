@@ -29,6 +29,8 @@ instead of doing it on the deployment server.
    - Adjust the database setup, if you want to use something else than
      SQLite for the database.
 
+     .. warning:: Using anything else than SQLite or MySQL may not work yet.
+
 2. Create database by running::
 
        ./manage.py syncdb
