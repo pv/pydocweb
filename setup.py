@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name = "pydocweb",
-    version = "0.4",
+    version = "0.5.dev",
     packages = find_packages(),
     author = "Pauli Virtanen",
     author_email = "pav@iki.fi",
