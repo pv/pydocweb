@@ -8,5 +8,3 @@ docweb/tests/base-examplecom.xml
 *.egg-info
 cache
 dist
-*.xml
-*.lst
