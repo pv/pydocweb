@@ -5,3 +5,4 @@ recursive-include media *.css *.js
 recursive-include templates *.html
 recursive-include doc *.rst Makefile *.py
 include modules/*.sh
+include settings.py manage.py urls.py __init__.py *.sh *.txt
