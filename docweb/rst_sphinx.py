@@ -347,7 +347,8 @@ register_local_role('ref', ref_role)
 def autosummary_directive(dirname, arguments, options, content, lineno,
                           content_offset, block_text, state, state_machine):
 
-    names = [x.strip() for x in content if x.strip()]
+    names = [x.strip().split()[0] for x in content
+             if x.strip() and re.search(r'^[a-zA-Z_]', x.strip()[0])]
 
     table = nodes.table('')
     group = nodes.tgroup('', cols=2)
