@@ -141,6 +141,23 @@ class Docstring(models.Model):
 
     review = property(_get_review, _set_review)
 
+    def _get_ok_to_apply(self):
+        try:
+            return self.revisions.all()[0].ok_to_apply
+        except IndexError:
+            # no revisions: OK to apply, since it's a no-op
+            return True
+
+    def _set_ok_to_apply(self, value):
+        try:
+            last_rev = self.revisions.all()[0]
+            last_rev.ok_to_apply = value
+            last_rev.save()
+        except IndexError:
+            pass
+
+    ok_to_apply = property(_get_ok_to_apply, _set_ok_to_apply)
+
     # --
 
     @property
@@ -249,7 +266,8 @@ class Docstring(models.Model):
                                              text=self.source_doc,
                                              author="Source",
                                              comment="Initial source revision",
-                                             review_code=self.review)
+                                             review_code=self.review,
+                                             ok_to_apply=False)
                 base_rev.timestamp = self.timestamp
                 base_rev.save()
 
@@ -257,7 +275,8 @@ class Docstring(models.Model):
                                     text=new_text,
                                     author=author,
                                     comment=comment,
-                                    review_code=new_review_code)
+                                    review_code=new_review_code,
+                                    ok_to_apply=False)
             rev.save()
 
         # Save
@@ -578,6 +597,8 @@ class DocstringRevision(models.Model):
     review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
                                       help_text="Review status")
+    ok_to_apply = models.BooleanField(
+        default=False, help_text="Reviewer deemed suitable for inclusion")
 
     # comments = [ReviewComment...]
 

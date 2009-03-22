@@ -15,6 +15,8 @@ urlpatterns += patterns(
     'pydocweb.docweb.views_comment',
     #--
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/review/$', 'review'), 
+    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/ok-to-apply/$', 'ok_to_apply'),
+    url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/ok-to-apply/(?P<revision>\d+)/$', 'ok_to_apply'),
     url(r'^docs/(?P<name>[a-zA-Z0-9./_<>-]+)/comment/(?P<comment_id>[\w-]+)/$', 'edit'),
 )
 

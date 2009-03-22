@@ -9,6 +9,7 @@
 <input type="submit" value="Generate patch" />
 <a href="" onclick="check_all_proofed(); return false;">Select proofed</a>
 <a href="" onclick="check_all_reviewed(); return false;">Select reviewed</a>
+<a href="" onclick="check_ok(); return false;">Select OK to apply</a>
 <a href="" onclick="check_all(); return false;">Select all</a>
 <a href="" onclick="check_none(); return false;">Unselect all</a>
 <table id="patch-select">
@@ -17,11 +18,12 @@
     <th>Name</th>
     <th>Review</th>
     <th>Merge</th>
+    <th>OK to apply</th>
   </tr>
   {% for entry in changed %}
   <tr>
     <td>
-      <input class="{{entry.status_code|escape}} {{entry.merge_status_code|escape}}" 
+      <input class="{{entry.status_code|escape}} {{entry.merge_status_code|escape}} {% if entry.ok_to_apply %}ok-to-apply{% endif %}"
              type="checkbox" name="{{entry.name|escape}}"
       {% if entry.included %}
 	     checked/>
@@ -34,6 +36,7 @@
     </td>
     <td class="{{entry.status_code|escape}}">{{entry.status|escape}}</td>
     <td class="{{entry.merge_status_code|escape}}">{{entry.merge_status|escape}}</td>
+    <td class="{{entry.ok_to_apply|escape}}">{{entry.ok_to_apply|escape}}</td>
   </tr>
   {% endfor %}
 </table>
@@ -57,6 +60,12 @@ function check_all_proofed() {
 }
 function check_all_reviewed() {
     check_none();
+    $("#patch-select input.ok.reviewed:checkbox").attr('checked', 1);
+    $("#patch-select input.ok.proofed:checkbox").attr('checked', 1);
+}
+function check_ok() {
+    check_none();
+    $("#patch-select input.ok.ok-to-apply:checkbox").attr('checked', 1);
     $("#patch-select input.ok.reviewed:checkbox").attr('checked', 1);
     $("#patch-select input.ok.proofed:checkbox").attr('checked', 1);
 }

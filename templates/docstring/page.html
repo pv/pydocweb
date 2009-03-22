@@ -4,13 +4,16 @@
 
 {% block actions_items %}
 {{block.super}}
+
 {% if file_name %}
 <a href="{% url pydocweb.docweb.views_docstring.source file_name %}#{{line_number|escape}}">Source</a>
 {% endif %}
+
 {% if revision %}
 <a href="{% url pydocweb.docweb.views_docstring.view name %}">Current revision</a>
 <span id="revision-header">Revision {{revision.revno|escape}}</span>
 {% else %}
+
 <span id="review-status" class="{{status_code|escape}}">
   {% if perms.docweb.change_docstring %}
   <form action="{% url pydocweb.docweb.views_comment.review name %}" method="post">
@@ -25,6 +28,33 @@
     </ul>
   {% endif %}
 </span>
+
+{% if perms.docweb.can_review %}
+<span id="review-ok-to-apply">
+  OK to apply:
+  <form action="{% url pydocweb.docweb.views_comment.ok_to_apply name %}" method="post">
+    <ul>
+      {% if doc.ok_to_apply %}
+      <li><span>Yes</span></li>
+      <li><input type="submit" id="submit-ok-to-change" value="Change to No" /></li>
+      <input type="hidden" name="ok" value="0"/>
+      {% else %}
+      <li><span>No</span></li>
+      <li><input type="submit" id="submit-ok-to-change" value="Change to Yes" /></li>
+      <input type="hidden" name="ok" value="1"/>
+      {% endif %}
+    </ul>
+  </form>
+</span>
+{% else %}
+{% if doc.ok_to_apply %}
+<span id="review-status">
+<ul>
+  <li>OK to apply</li>
+</ul>
+</span>
+{% endif %}
+{% endif %}
 {% endif %}
 {% endblock %}
 

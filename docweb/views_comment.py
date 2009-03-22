@@ -111,3 +111,29 @@ def review(request, name):
     else:
         raise Http404()
 
+@permission_required('docweb.can_review')
+def ok_to_apply(request, name, revision=None):
+    if request.method == 'POST':
+        doc = get_object_or_404(Docstring, name=name)
+
+        try:
+            ok = (request.POST['ok'].strip() == '1')
+            if revision is None:
+                doc.ok_to_apply = ok
+                doc.save()
+            else:
+                print "considering revision", request.POST, int(revision)
+                rev = doc.revisions.get(revno=int(revision))
+                rev.ok_to_apply = ok
+                rev.save()
+        except (ValueError, TypeError, KeyError,
+                DocstringRevision.DoesNotExist):
+            # invalid input
+            pass
+
+        referrer = request.META.get('HTTP_REFERER')
+        if referrer:
+            return HttpResponseRedirect(referrer)
+        return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name]))
+    else:
+        raise Http404()

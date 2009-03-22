@@ -279,7 +279,7 @@ def diff(request, name, rev1, rev2):
 
     return render_template(request, 'docstring/diff.html',
                            dict(name=name, name1=name1, name2=name2,
-                                diff_html=diff))
+                                rev1=rev1, rev2=rev2, diff_html=diff))
 
 def diff_prev(request, name, rev2):
     doc = get_object_or_404(Docstring, name=name)

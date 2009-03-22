@@ -244,6 +244,7 @@ class DocstringTests(TestCase):
         self.failUnless('New *text*' not in response.content)
         self.failUnless('New *stuff*' not in response.content)
 
+
 class SphinxTests(TestCase):
     fixtures = ['tests/users.json', 'tests/docstrings_sphinx.json',
                 'tests/docstrings.json']
@@ -344,6 +345,40 @@ class ReviewTests(TestCase):
                                     {'status': '5'})
         response = _follow_redirect(response)
         self.assertContains(response, 'id="review-status" class="reviewed"')
+
+    def test_ok_to_apply(self):
+        # Prepare initial status, ensure there's a revision
+        import docweb.models as models
+        doc = models.Docstring.get_non_obsolete().get(name='sample_module')
+        doc.edit('test text', 'editor', 'comment')
+        doc.ok_to_apply = False
+        doc.save()
+
+        # Initial status: not OK
+        response = self.client.get('/docs/sample_module/')
+        self.failUnless('<li>OK</li>' not in response.content)
+
+        # Not OK to change it as an editor
+        self.client.login(username='editor', password=PASSWORD)
+        
+        response = self.client.post('/docs/sample_module/ok-to-apply/',
+                                    {'ok': 'ok'})
+        response = _follow_redirect(response)
+        self.failUnless('<li>OK</li>' not in response.content)
+
+        # OK to change it as an admin
+        self.client.login(username='admin', password=PASSWORD)
+        
+        response = self.client.post('/docs/sample_module/ok-to-apply/',
+                                    {'ok': '1'})
+        response = _follow_redirect(response)
+        self.failUnless('id="submit-ok-to-change" value="Change to No"' in response.content)
+
+        # Change it back
+        response = self.client.post('/docs/sample_module/ok-to-apply/',
+                                    {'ok': '0'})
+        response = _follow_redirect(response)
+        self.failUnless('id="submit-ok-to-change" value="Change to Yes"' in response.content)
 
 
 class CommentTests(TestCase):

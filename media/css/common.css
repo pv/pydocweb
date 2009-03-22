@@ -279,6 +279,40 @@ dl dt {
 }
 
 /*
+ * Ok-to-apply form
+ */
+#review-ok-to-apply { 
+  display: block;
+  margin: 0;
+  padding-top: 1ex;
+}
+#review-ok-to-apply li { 
+  display: inline;
+}
+
+#review-ok-to-apply ul { 
+  display: inline;
+  padding-left: 0;
+}
+#review-ok-to-apply form { 
+  display: inline;
+  border: none;
+}
+#review-ok-to-apply form ul { 
+  border: none;
+  margin:0;
+  padding:0;
+}
+#review-ok-to-apply form li { 
+  border: none;
+}
+#review-ok-to-apply form span { 
+  font-weight: bold;
+}
+#review-ok-to-apply form input { 
+}
+
+/*
  * Review states
  */
 

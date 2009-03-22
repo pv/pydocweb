@@ -25,7 +25,8 @@ def patch(request):
              status_code=REVIEW_STATUS_CODES[entry.review],
              review=entry.review,
              merge_status_id=entry.merge_status,
-             name=entry.name)
+             name=entry.name,
+             ok_to_apply=entry.ok_to_apply)
         for entry in docs
     ]
     docs.sort(key=lambda x: (x['merge_status_id'], -x['review'], x['name']))

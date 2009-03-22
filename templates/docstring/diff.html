@@ -1,5 +1,31 @@
 {% extends "docstring/base.html" %}
 
+{% block actions_items %}
+{{block.super}}
+
+{% if perms.docweb.can_review %}
+{% if rev2 %}
+<span id="review-ok-to-apply">
+  OK to apply:
+  <form action="{% url pydocweb.docweb.views_comment.ok_to_apply name %}{{name2|escape}}/" method="post">
+    <ul>
+      {% if rev2.ok_to_apply %}
+      <li><span>Yes</span></li>
+      <li><input type="submit" id="submit-ok-to-change" value="Change to No" /></li>
+      <input type="hidden" name="ok" value="0"/>
+      {% else %}
+      <li><span>No</span></li>
+      <li><input type="submit" id="submit-ok-to-change" value="Change to Yes" /></li>
+      <input type="hidden" name="ok" value="1"/>
+      {% endif %}
+    </ul>
+  </form>
+</span>
+{% endif %}
+{% endif %}
+
+{% endblock %}
+
 {% block content %}
 <p>Differences between revisions {{name1}} and {{name2}}:</p>
 <div id="merge-info">

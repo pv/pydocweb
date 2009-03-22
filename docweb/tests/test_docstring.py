@@ -288,6 +288,27 @@ class TestEdit(LocalTestCase):
         doc = self.get_docstring('docs/dir/dir2/b')
         doc = self.get_docstring('docs/dir/dir2')
 
+    def test_ok_to_apply(self):
+        """
+        Check that ok_to_apply gets reset on edit
+
+        """
+        self.update_docstrings(self.EDIT_DATA_1)
+        doc = self.get_docstring('docs/a')
+        doc.ok_to_apply = True
+        self.failUnless(doc.ok_to_apply == True)
+
+        self.edit_docstring('docs/a', 'test edit')
+        doc = self.get_docstring('docs/a')
+        self.failUnless(doc.ok_to_apply == False)
+
+        doc.ok_to_apply = True
+        self.failUnless(doc.ok_to_apply == True)
+
+        self.edit_docstring('docs/a', 'test edit 2')
+        doc = self.get_docstring('docs/a')
+        self.failUnless(doc.ok_to_apply == False)
+
 # -----------------------------------------------------------------------------
 # Utilities
 # -----------------------------------------------------------------------------
