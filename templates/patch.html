@@ -66,8 +66,6 @@ function check_all_reviewed() {
 function check_ok() {
     check_none();
     $("#patch-select input.ok.ok-to-apply:checkbox").attr('checked', 1);
-    $("#patch-select input.ok.reviewed:checkbox").attr('checked', 1);
-    $("#patch-select input.ok.proofed:checkbox").attr('checked', 1);
 }
 function check_all() {
     check_none();
