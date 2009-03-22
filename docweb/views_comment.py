@@ -122,7 +122,6 @@ def ok_to_apply(request, name, revision=None):
                 doc.ok_to_apply = ok
                 doc.save()
             else:
-                print "considering revision", request.POST, int(revision)
                 rev = doc.revisions.get(revno=int(revision))
                 rev.ok_to_apply = ok
                 rev.save()

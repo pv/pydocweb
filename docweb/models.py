@@ -135,6 +135,8 @@ class Docstring(models.Model):
         try:
             last_rev = self.revisions.all()[0]
             last_rev.review_code = value
+            if value in (REVIEW_PROOFED, REVIEW_NEEDS_PROOF):
+                last_rev.ok_to_apply = True
             last_rev.save()
         except IndexError:
             self.review_code = value
@@ -142,8 +144,6 @@ class Docstring(models.Model):
     review = property(_get_review, _set_review)
 
     def _get_ok_to_apply(self):
-        if self.review in (REVIEW_PROOFED, REVIEW_NEEDS_PROOF):
-            return True
         try:
             return self.revisions.all()[0].ok_to_apply
         except IndexError:
