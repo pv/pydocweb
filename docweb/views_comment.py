@@ -1,5 +1,6 @@
-import rst
-from utils import *
+from pydocweb.docweb.utils import *
+from pydocweb.docweb.models import *
+import pydocweb.docweb.rst as rst
 
 class CommentEditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(cols=80, rows=30)),

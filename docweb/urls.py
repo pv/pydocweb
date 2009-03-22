@@ -69,3 +69,8 @@ urlpatterns += patterns(
     url(r'^stats/$', 'stats'),
     url(r'^contributors/$', 'contributors'),
 )
+
+urlpatterns += patterns(
+    'pydocweb.docweb.views_browse',
+    #--
+)

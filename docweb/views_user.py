@@ -1,4 +1,4 @@
-from utils import *
+from pydocweb.docweb.utils import *
 
 from views_wiki import frontpage
 

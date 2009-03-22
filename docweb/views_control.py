@@ -1,6 +1,10 @@
 from django.contrib.sites.models import Site
-from utils import *
 import socket
+
+from pydocweb.docweb.utils import *
+from pydocweb.docweb.models import *
+from pydocweb.docweb.docstring_update import \
+     update_docstrings, patch_against_source
 
 #------------------------------------------------------------------------------
 # Control

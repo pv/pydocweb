@@ -1,8 +1,11 @@
 import os
-import rst
-from utils import *
 
-from views_comment import ReviewForm
+from django.conf import settings
+
+import pydocweb.docweb.rst as rst
+from pydocweb.docweb.utils import *
+from pydocweb.docweb.models import *
+from pydocweb.docweb.views_comment import ReviewForm
 
 #------------------------------------------------------------------------------
 # Docstring index
@@ -118,7 +121,7 @@ def view(request, name):
 
 class EditForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea(attrs=dict(
-        cols=pydocweb.settings.MAX_DOCSTRING_WIDTH, rows=30, wrap='off')),
+        cols=settings.MAX_DOCSTRING_WIDTH, rows=30, wrap='off')),
                            required=False)
     comment = forms.CharField(required=True)
 

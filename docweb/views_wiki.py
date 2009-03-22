@@ -1,5 +1,6 @@
-import rst
-from utils import *
+import pydocweb.docweb.rst as rst
+from pydocweb.docweb.utils import *
+from pydocweb.docweb.models import *
 
 from views_docstring import EditForm
 

@@ -1,7 +1,7 @@
 import datetime, difflib, re
 
-from utils import *
-
+from pydocweb.docweb.utils import *
+from pydocweb.docweb.models import *
 
 #------------------------------------------------------------------------------
 # Recent changes

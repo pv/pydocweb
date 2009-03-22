@@ -9,6 +9,7 @@ from StringIO import StringIO
 import lxml.etree as etree
 
 import docweb.models as models
+from docweb.docstring_update import update_docstrings_from_xml
 
 class LocalTestCase(TestCase):
     def setUp(self):
@@ -18,7 +19,7 @@ class LocalTestCase(TestCase):
 
     def update_docstrings(self, docstrings):
         start = time.time()
-        models.update_docstrings_from_xml(self.site, form_test_xml(docstrings))
+        update_docstrings_from_xml(self.site, form_test_xml(docstrings))
         if settings.DATABASE_ENGINE == 'mysql':
             # mysql's datetime field has accuracy of one second;
             # hence, add some delay so that obsoletion timestamps are

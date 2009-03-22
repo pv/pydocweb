@@ -1,4 +1,5 @@
-from utils import *
+from pydocweb.docweb.utils import *
+from pydocweb.docweb.models import *
 
 #------------------------------------------------------------------------------
 # Search
