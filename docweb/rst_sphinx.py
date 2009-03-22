@@ -18,6 +18,7 @@ from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import (register_local_role,
                                         register_generic_role)
+import docutils.parsers.rst.roles
 
 import models
 import rst
@@ -303,6 +304,20 @@ def ref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     ref = _parse_ref(rawtext, text, link, inliner)
     return [ref], []
 
+def autolink_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    link = text.strip()
+
+    try:
+        uri, name = resolve_name(link, inliner, postpone=False)
+    except ValueError:
+        uri, name = None, link
+
+    if uri:
+        ref = nodes.reference(text, text, refuri=uri)
+    else:
+        ref = nodes.emphasis(rawtext, text)
+    return [ref], []
+
 def resolve_name(link, inliner, postpone=False):
     _resolve = inliner.document.settings.resolve_name
     
@@ -343,6 +358,9 @@ register_local_role('cfunc', ref_role)
 register_local_role('cmacro', ref_role)
 register_local_role('ctype', ref_role)
 register_local_role('ref', ref_role)
+
+register_local_role('', autolink_role) # set the default role
+
 
 def autosummary_directive(dirname, arguments, options, content, lineno,
                           content_offset, block_text, state, state_machine):
