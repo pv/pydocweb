@@ -142,6 +142,8 @@ class Docstring(models.Model):
     review = property(_get_review, _set_review)
 
     def _get_ok_to_apply(self):
+        if self.review in (REVIEW_PROOFED, REVIEW_NEEDS_PROOF):
+            return True
         try:
             return self.revisions.all()[0].ok_to_apply
         except IndexError:

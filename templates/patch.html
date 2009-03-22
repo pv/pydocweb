@@ -36,7 +36,7 @@
     </td>
     <td class="{{entry.status_code|escape}}">{{entry.status|escape}}</td>
     <td class="{{entry.merge_status_code|escape}}">{{entry.merge_status|escape}}</td>
-    <td class="{{entry.ok_to_apply|escape}}">{{entry.ok_to_apply|escape}}</td>
+    <td>{% if entry.ok_to_apply %}True{% endif %}</td>
   </tr>
   {% endfor %}
 </table>
