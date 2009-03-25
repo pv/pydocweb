@@ -96,7 +96,7 @@ def merge_3way(mine, base, other):
                                name_base="old svn version",
                                reprocess=True)
         text = strip_spurious_whitespace("\n".join(
-            map(strip_spurious_whitespace, lines)))
+            map(lambda x: x.rstrip(), lines)))
         return text, ("<<<<<<<" in text)
     except ImportError:
         pass
