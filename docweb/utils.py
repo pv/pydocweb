@@ -87,6 +87,21 @@ def merge_3way(mine, base, other):
 
     """
 
+    # 1. Try to use Bzr's merge tool
+    try:
+        from bzrlib.merge3 import Merge3
+        mg = Merge3(base.splitlines(), mine.splitlines(), other.splitlines())
+        lines = mg.merge_lines(name_a="web version",
+                               name_b="new svn version",
+                               name_base="old svn version",
+                               reprocess=True)
+        text = strip_spurious_whitespace("\n".join(
+            map(strip_spurious_whitespace, lines)))
+        return text, ("<<<<<<<" in text)
+    except ImportError:
+        pass
+
+    # 2. Fall back to merge command
     f1 = tempfile.NamedTemporaryFile()
     f2 = tempfile.NamedTemporaryFile()
     f3 = tempfile.NamedTemporaryFile()
