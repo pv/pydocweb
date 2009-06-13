@@ -316,14 +316,14 @@ dl dt {
  * Review states
  */
 
-.unimportant   { background: #999; }
+.unimportant   { background: #888; }
 .needs-editing { background: #fff; }
 .being-written { background: #ddd; }
 .needs-review  { background: #faa; }
 .revised       { background: #fca; }
 .needs-work    { background: #ff5; }
 .reviewed      { background: #bfb; }
-.proofed       { background: #ccf; }
+.proofed       { background: #aaf; }
 
 /*
  * Revision header
