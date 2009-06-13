@@ -1,6 +1,7 @@
 from pydocweb.docweb.utils import *
 
 from views_wiki import frontpage
+from models import set_user_default_groups
 
 #------------------------------------------------------------------------------
 # User management
