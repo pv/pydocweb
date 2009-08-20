@@ -13,16 +13,7 @@ from pydocweb.docweb.views_comment import ReviewForm
 
 def index(request):
     # needed for speed! accessing the .review property is too slow
-    review_map = {}
-    from django.db import connection
-    cursor = connection.cursor()
-    cursor.execute("""SELECT name, review FROM docweb_docstring""")
-    for name, review in cursor.fetchall():
-        review_map[name] = review
-    cursor.execute("""SELECT docstring_id, review FROM docweb_docstringrevision
-                      GROUP BY docstring_id ORDER BY timestamp""")
-    for name, review in cursor.fetchall():
-        review_map[name] = review
+    review_map = get_review_status_map()
 
     # continue pseudo-normally
     entries = Docstring.get_non_obsolete()
@@ -37,9 +28,11 @@ def index(request):
         REVIEW_UNIMPORTANT: 7,
     }
     entries = [dict(name=c.name,
-                    statuscode=REVIEW_STATUS_CODES[review_map[c.name]],
-                    sort_code=(review_sort_order[review_map[c.name]], c.name),
-                    status=(REVIEW_STATUS_NAMES[review_map[c.name]],),
+                    statuscode=REVIEW_STATUS_CODES[review_map.get(c.name,
+                                                                  REVIEW_DEFAULT)],
+                    sort_code=(review_sort_order[review_map.get(c.name,
+                                                                REVIEW_DEFAULT)], c.name),
+                    status=(REVIEW_STATUS_NAMES[review_map.get(c.name, REVIEW_DEFAULT)],),
                     )
                for c in entries]
     entries.sort(key=lambda x: x['sort_code'])

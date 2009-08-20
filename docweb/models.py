@@ -24,6 +24,7 @@ REVIEW_REVISED = 3
 REVIEW_NEEDS_WORK = 4
 REVIEW_NEEDS_PROOF = 5
 REVIEW_PROOFED = 6
+REVIEW_DEFAULT = REVIEW_NEEDS_EDITING
 
 MERGE_NONE = 0
 MERGE_MERGE = 1
@@ -91,9 +92,6 @@ class Docstring(models.Model):
 
     source_doc  = models.TextField(help_text="Docstring in SVN")
     base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
-    review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
-                                      db_column="review",
-                                      help_text="Review status of SVN string")
     merge_status = models.IntegerField(default=MERGE_NONE,
                                        help_text="Docstring merge status")
     dirty        = models.BooleanField(default=False,
@@ -124,25 +122,21 @@ class Docstring(models.Model):
 
     # --
 
-    class MergeConflict(RuntimeError): pass
+    class MergeConflict(RuntimeError):
+        pass
 
-    def _get_review(self):
+    @property
+    def review_code(self):
         try:
             return self.revisions.all()[0].review_code
         except IndexError:
-            return self.review_code
+            return REVIEW_DEFAULT
 
-    def _set_review(self, value):
-        try:
-            last_rev = self.revisions.all()[0]
-            last_rev.review_code = value
-            if value in (REVIEW_PROOFED, REVIEW_NEEDS_PROOF):
-                last_rev.ok_to_apply = True
-            last_rev.save()
-        except IndexError:
-            self.review_code = value
+    def set_review(self, author, code):
+        rev = self._get_base_revision()
+        rev.set_review(author, code)
 
-    review = property(_get_review, _set_review)
+    # --
 
     def _get_ok_to_apply(self):
         try:
@@ -230,7 +224,7 @@ class Docstring(models.Model):
 
         if self.type_code == 'dir':
             raise RuntimeError("'dir' docstrings cannot be edited")
-        
+
         if ('<<<<<<' in new_text or '>>>>>>' in new_text):
             raise RuntimeError('New text still contains merge conflict markers')
 
@@ -241,7 +235,7 @@ class Docstring(models.Model):
 
         # Update dirtiness
         self.dirty = (self.source_doc != new_text)
-                    
+
         # Editing 'file' docstrings can resurrect them from obsoletion,
         # or hide them (ie. remove their connection to their parent 'dir')
         if self.type_code == 'file' and new_text and self.is_obsolete:
@@ -260,19 +254,11 @@ class Docstring(models.Model):
                 REVIEW_NEEDS_WORK: REVIEW_REVISED,
                 REVIEW_NEEDS_PROOF: REVIEW_REVISED,
                 REVIEW_PROOFED: REVIEW_REVISED
-            }.get(self.review, self.review)
+            }.get(self.review_code, self.review_code)
 
-            if self.revisions.count() == 0:
-                # Store the SVN revision the initial edit was based on,
-                # for making statistics later on.
-                base_rev = DocstringRevision(docstring=self,
-                                             text=self.source_doc,
-                                             author="Source",
-                                             comment="Initial source revision",
-                                             review_code=self.review,
-                                             ok_to_apply=False)
-                base_rev.timestamp = self.timestamp
-                base_rev.save()
+            # Check that a base dummy revision exists, for keeping
+            # the stats up-to-date
+            self._get_base_revision()
 
             rev = DocstringRevision(docstring=self,
                                     text=new_text,
@@ -289,6 +275,27 @@ class Docstring(models.Model):
         LabelCache.cache_docstring(self)
         ToctreeCache.cache_docstring(self)
         self._update_title()
+
+    def _get_base_revision(self):
+        """
+        Get the top DocstringRevision of this Docstring.  Create a
+        dummy revision exists now.
+
+        """
+        if self.revisions.count() == 0:
+            # Store the SVN revision the initial edit was based on,
+            # for making statistics later on.
+            base_rev = DocstringRevision(docstring=self,
+                                         text=self.source_doc,
+                                         author="Source",
+                                         comment="Initial source revision",
+                                         review_code=self.review_code,
+                                         ok_to_apply=False)
+            base_rev.timestamp = self.timestamp
+            base_rev.save()
+        else:
+            base_rev = self.revisions.all()[0]
+        return base_rev
 
     def _add_to_parent(self):
         """
@@ -597,13 +604,22 @@ class DocstringRevision(models.Model):
     author      = models.CharField(max_length=256)
     comment     = models.CharField(max_length=1024)
     timestamp   = models.DateTimeField(default=datetime.datetime.now)
-    review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
-                                      db_column="review",
-                                      help_text="Review status")
     ok_to_apply = models.BooleanField(
         default=False, help_text="Reviewer deemed suitable for inclusion")
 
+    def set_review(self, author, code):
+        review = DocstringReview(parent=self, reviewer=author, review_code=code)
+        review.save()
+
+    @property
+    def review_code(self):
+        try:
+            return self.reviews.all()[0].review_code
+        except IndexError:
+            return REVIEW_DEFAULT
+
     # comments = [ReviewComment...]
+    # reviews = [Review...]
 
     class Meta:
         get_latest_by = "timestamp"
@@ -614,7 +630,17 @@ class DocstringAlias(models.Model):
     target = models.CharField(max_length=MAX_NAME_LEN, null=True)
     alias = models.CharField(max_length=MAX_NAME_LEN)
 
-    
+class DocstringReview(models.Model):
+    revno = models.AutoField(primary_key=True)
+    parent = models.ForeignKey(DocstringRevision, related_name="reviews")
+    reviewer = models.CharField(max_length=256)
+    review_code = models.IntegerField(default=REVIEW_DEFAULT)
+    timestamp = models.DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        get_latest_by = "timestamp"
+        ordering = ['-revno']
+
 # -- reStructuredText label cache
 
 class LabelCache(models.Model):
@@ -1009,3 +1035,18 @@ def strip_module_dir_prefix(file_name):
         if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
             return fn_1[len(fn_2)+1:]
     return None
+
+def get_review_status_map():
+    cursor.execute("""
+    SELECT d.name, w.review_code
+    FROM docweb_docstringrevision AS r,
+         docweb_docstringreview AS w,
+         docweb_docstring AS d
+    WHERE d.name = r.docstring_id AND r.revno = w.parent_id
+    """)
+
+    review_map = {}
+    for name, review in cursor.fetchall():
+        review_map[name] = review
+
+    return review_map

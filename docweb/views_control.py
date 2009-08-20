@@ -22,12 +22,12 @@ def patch(request):
     docs = list(docs)
     docs = [
         dict(included=(entry.merge_status == MERGE_NONE and
-                       entry.review == REVIEW_PROOFED),
+                       entry.review_code == REVIEW_PROOFED),
              merge_status=MERGE_STATUS_NAMES[entry.merge_status],
              merge_status_code=MERGE_STATUS_CODES[entry.merge_status],
-             status=REVIEW_STATUS_NAMES[entry.review],
-             status_code=REVIEW_STATUS_CODES[entry.review],
-             review=entry.review,
+             status=REVIEW_STATUS_NAMES[entry.review_code],
+             status_code=REVIEW_STATUS_CODES[entry.review_code],
+             review=entry.review_code,
              merge_status_id=entry.merge_status,
              name=entry.name,
              ok_to_apply=entry.ok_to_apply)

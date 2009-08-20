@@ -102,12 +102,12 @@ def review(request, name):
                 return r in ([REVIEW_NEEDS_EDITING, REVIEW_BEING_WRITTEN,
                               REVIEW_NEEDS_REVIEW, REVIEW_NEEDS_WORK] + extra)
             if not request.user.has_perm('docweb.can_review') and not (
-                _valid_review(doc.review, [REVIEW_REVISED]) and
+                _valid_review(doc.review_code, [REVIEW_REVISED]) and
                 _valid_review(form.cleaned_data['status'])):
                 return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name]))
 
-            doc.review = form.cleaned_data['status']
-            doc.save()
+            doc.set_review(author=request.user.username,
+                           code=form.cleaned_data['status'])
         return HttpResponseRedirect(reverse('pydocweb.docweb.views_docstring.view', args=[name]))
     else:
         raise Http404()

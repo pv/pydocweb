@@ -422,7 +422,7 @@ def review_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
         uri, real_name = resolve_name(name, inliner)
         doc = models.Docstring.on_site.get(name=real_name)
         ref = nodes.reference('', name, refuri=uri)
-        cls = models.REVIEW_STATUS_CODES.get(doc.review)
+        cls = models.REVIEW_STATUS_CODES.get(doc.review_code)
         if cls:
             ref['classes'].append(cls)
     except (models.Docstring.DoesNotExist, ValueError):
