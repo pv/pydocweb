@@ -109,6 +109,7 @@ class Docstring(models.Model):
 
     # contents  = [DocstringAlias...]
     # revisions = [DocstringRevision...]
+    # reviews = [DocstringReview...]
     # comments  = [ReviewComment...]
 
     site       = models.ForeignKey(Site)
@@ -128,13 +129,18 @@ class Docstring(models.Model):
     @property
     def review_code(self):
         try:
-            return self.revisions.all()[0].review_code
+            return self.reviews.all()[0].review_code
         except IndexError:
             return REVIEW_DEFAULT
 
     def set_review(self, author, code):
-        rev = self._get_base_revision()
-        rev.set_review(author, code)
+        if self.revisions.count() == 0:
+            review = DocstringReview(docstring=self, revno=0,
+                                     reviewer=author, review_code=code)
+        else:
+            review = DocstringReview(docstring=self,
+                                     revno=self.revisions.all()[0].revno,
+                                     reviewer=author, review_code=code)
 
     # --
 
@@ -607,19 +613,13 @@ class DocstringRevision(models.Model):
     ok_to_apply = models.BooleanField(
         default=False, help_text="Reviewer deemed suitable for inclusion")
 
-    def set_review(self, author, code):
-        review = DocstringReview(parent=self, reviewer=author, review_code=code)
-        review.save()
-
     @property
     def review_code(self):
-        try:
-            return self.reviews.all()[0].review_code
-        except IndexError:
-            return REVIEW_DEFAULT
+        rev = DocstringReview.objects.get(docstring=self.docstring,
+                                          revno=self.revno)
+        return rev.review_code
 
     # comments = [ReviewComment...]
-    # reviews = [Review...]
 
     class Meta:
         get_latest_by = "timestamp"
@@ -631,8 +631,8 @@ class DocstringAlias(models.Model):
     alias = models.CharField(max_length=MAX_NAME_LEN)
 
 class DocstringReview(models.Model):
-    revno = models.AutoField(primary_key=True)
-    parent = models.ForeignKey(DocstringRevision, related_name="reviews")
+    docstring = models.ForeignKey(Docstring, related_name="reviews")
+    revno = models.IntegerField()
     reviewer = models.CharField(max_length=256)
     review_code = models.IntegerField(default=REVIEW_DEFAULT)
     timestamp = models.DateTimeField(default=datetime.datetime.now)
@@ -1039,10 +1039,11 @@ def strip_module_dir_prefix(file_name):
 def get_review_status_map():
     cursor.execute("""
     SELECT d.name, w.review_code
-    FROM docweb_docstringrevision AS r,
-         docweb_docstringreview AS w,
+    FROM docweb_docstringreview AS w,
          docweb_docstring AS d
-    WHERE d.name = r.docstring_id AND r.revno = w.parent_id
+    WHERE d.name = w.docstring_id
+    GROUP BY d.name
+    ORDER BY w.timestamp
     """)
 
     review_map = {}

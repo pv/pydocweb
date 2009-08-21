@@ -4,7 +4,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 0, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/__init__.py", 
       "type_name": "__builtin__.module", 
@@ -24,7 +23,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 0, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/sample1.py", 
       "type_name": "__builtin__.module", 
@@ -44,7 +42,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 6, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/sample1.py", 
       "type_name": "__builtin__.function", 

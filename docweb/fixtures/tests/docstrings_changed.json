@@ -4,7 +4,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 6, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/sample1.py", 
       "type_name": "__builtin__.function", 
@@ -27,6 +26,16 @@
       "text": "edited docstring",
       "author": "editor",
       "comment": "tampering",
+      "timestamp": "2008-10-17 22:13:18"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "docweb.docstringreview",
+    "fields": {
+      "docstring": "sample_module.sample1.func1",
+      "revno": 1,
+      "author": "editor",
       "review_code": 2,
       "timestamp": "2008-10-17 22:13:18"
     }
@@ -36,7 +45,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 9, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/sample1.py", 
       "type_name": "__builtin__.function", 
@@ -59,6 +67,16 @@
       "text": "sample1.func2 docstring NEW PART\n\nquux\nMERGE TEST\\r",
       "author": "editor",
       "comment": "tampering",
+      "timestamp": "2008-10-17 22:13:18"
+    }
+  },
+  {
+    "pk": 2,
+    "model": "docweb.docstringreview",
+    "fields": {
+      "docstring": "sample_module.sample1.func2",
+      "revno": 2,
+      "author": "editor",
       "review_code": 2,
       "timestamp": "2008-10-17 22:13:18"
     }
@@ -68,7 +86,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 1234,
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/sample1.py", 
       "type_name": "__builtin__.function", 

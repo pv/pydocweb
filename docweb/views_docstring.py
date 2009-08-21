@@ -73,13 +73,13 @@ def view(request, name):
             text=comment.text,
         ))
 
-    review_form = ReviewForm(dict(status=doc.review))
+    review_form = ReviewForm(dict(status=doc.review_code))
 
     params = dict(name=name,
                   doc=doc,
                   review_form=review_form,
-                  status=REVIEW_STATUS_NAMES[doc.review],
-                  status_code=REVIEW_STATUS_CODES[doc.review],
+                  status=REVIEW_STATUS_NAMES[doc.review_code],
+                  status_code=REVIEW_STATUS_CODES[doc.review_code],
                   comments=comments,
                   body_html=body,
                   file_name=strip_module_dir_prefix(doc.file_name),

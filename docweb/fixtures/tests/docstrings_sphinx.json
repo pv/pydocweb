@@ -4,7 +4,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": null, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc", 
       "type_name": null, 
@@ -24,7 +23,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 1, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc/index.rst", 
       "type_name": null, 
@@ -44,7 +42,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 1, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc/quux.rst", 
       "type_name": null, 
@@ -64,7 +61,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": null, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc", 
       "type_name": null, 
@@ -84,7 +80,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 1, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc/reference/bar.rst", 
       "type_name": null, 
@@ -104,7 +99,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 1, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc/reference/foo.rst", 
       "type_name": null, 
@@ -124,7 +118,6 @@
     "model": "docweb.docstring", 
     "fields": {
       "line_number": 1, 
-      "review_code": 0, 
       "merge_status": 0, 
       "file_name": "tests/sample_module/doc/reference/index.rst", 
       "type_name": null, 
