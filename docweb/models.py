@@ -1037,6 +1037,8 @@ def strip_module_dir_prefix(file_name):
     return None
 
 def get_review_status_map():
+    from django.db import connection
+    cursor = connection.cursor()
     cursor.execute("""
     SELECT d.name, w.review_code
     FROM docweb_docstringreview AS w,

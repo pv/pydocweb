@@ -35,7 +35,7 @@ def docstring_status_code(name):
         doc = Docstring.on_site.get(name=name)
     except Docstring.DoesNotExist:
         return "none"
-    return REVIEW_STATUS_CODES[doc.review]
+    return REVIEW_STATUS_CODES[doc.review_code]
 
 @register.simple_tag
 def help_page(page_name):

@@ -35,7 +35,7 @@
     "fields": {
       "docstring": "sample_module.sample1.func1",
       "revno": 1,
-      "author": "editor",
+      "reviewer": "editor",
       "review_code": 2,
       "timestamp": "2008-10-17 22:13:18"
     }
@@ -76,7 +76,7 @@
     "fields": {
       "docstring": "sample_module.sample1.func2",
       "revno": 2,
-      "author": "editor",
+      "reviewer": "editor",
       "review_code": 2,
       "timestamp": "2008-10-17 22:13:18"
     }

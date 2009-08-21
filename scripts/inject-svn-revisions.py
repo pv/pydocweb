@@ -95,7 +95,7 @@ def process_xml(stream, timestamp):
                                        docstring=doc,
                                        author="Source",
                                        comment='Initial source revision',
-                                       review_code=doc.review,
+                                       review_code=doc.review_code,
                                        text=docstrings.get(doc.name, u''))
         rev.timestamp = timestamp
         rev.save()
