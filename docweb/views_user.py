@@ -54,8 +54,9 @@ def login(request):
                 return HttpResponseRedirect(target)
             else:
                 message = "Authentication failed"
-    else:
-        form = LoginForm()
+
+    # Never send the password etc. back
+    form = LoginForm()
 
     return render_template(request, 'registration/login.html',
                            dict(form=form, message=message))
