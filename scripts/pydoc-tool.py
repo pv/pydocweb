@@ -411,7 +411,11 @@ def cmd_pyrex_docs(args):
             tree = context.parse(source_desc, scope, pxd=0,
                                  full_module_name=mod_name)
         else:
-            tree = context.parse(source, scope.type_names, pxd=0)
+            import Pyrex.Compiler.Version
+            if Pyrex.Compiler.Version.version >= '0.9.8':
+                tree = context.parse(source, scope, pxd=0)
+            else:
+                tree = context.parse(source, scope.type_names, pxd=0)
         return tree
 
     def pyrex_walk_tree(node, file_name, base_name, locations={}):
