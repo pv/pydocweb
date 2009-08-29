@@ -104,6 +104,7 @@ class NumpyDocString(object):
             'Summary': '',
             'Extended Summary': [],
             'Parameters': [],
+            'Other Parameters': [],
             'Returns': [],
             'Raises': [],
             'Warns': [],
@@ -275,8 +276,8 @@ class NumpyDocString(object):
         for (section, content) in self._read_sections():
             if not section.startswith('..'):
                 section = ' '.join([s.capitalize() for s in section.split(' ')])
-            if section in ('Parameters', 'Returns', 'Raises', 'Warns',
-                           'Attributes', 'Methods'):
+            if section in ('Parameters', 'Other Parameters', 'Returns',
+                           'Raises', 'Warns', 'Attributes', 'Methods'):
                 self[section] = self._parse_param_list(content)
                 self.section_order.append(section)
             elif section.startswith('.. index::'):
@@ -363,7 +364,7 @@ class NumpyDocString(object):
         out += self._str_signature()
         out += self._str_summary()
         out += self._str_extended_summary()
-        for param_list in ('Parameters','Returns','Raises','Warns'):
+        for param_list in ('Parameters','Other Parameters','Returns','Raises','Warns'):
             out += self._str_param_list(param_list)
         out += self._str_see_also()
         for s in ('Notes','References','Examples'):
@@ -382,7 +383,7 @@ class NumpyDocString(object):
 
         if check_order:
             canonical_order = ['Signature', 'Summary', 'Extended Summary',
-                               'Attributes', 'Methods',
+                               'Attributes', 'Methods', 'Other Parameters',
                                'Parameters', 'Returns', 'Raises', 'Warns',
                                'See Also', 'Notes', 'References', 'Examples',
                                'index']
