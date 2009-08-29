@@ -15,7 +15,7 @@ set -e
 #  a) numpy
 
 if test ! -d numpy; then
-    svn co http://svn.scipy.org/numpy/trunk numpy
+    svn co http://svn.scipy.org/svn/numpy/trunk numpy
 fi
 
 pushd numpy

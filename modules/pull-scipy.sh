@@ -15,7 +15,7 @@ set -e
 #  a) scipy
 
 if test ! -d scipy; then
-    svn co http://svn.scipy.org/scipy/trunk scipy
+    svn co http://svn.scipy.org/svn/scipy/trunk scipy
 fi
 
 pushd scipy
