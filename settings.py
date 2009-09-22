@@ -38,7 +38,8 @@ def relative_dir(path):
 #
 
 ## Some examples on what you can put here:
-PULL_SCRIPT = relative_dir("modules/pull-numpy.sh")
+PULL_SCRIPT = relative_dir("modules/pull-sample_module.sh")
+#PULL_SCRIPT = relative_dir("modules/pull-numpy.sh")
 #PULL_SCRIPT = relative_dir("modules/pull-scipy.sh")
 #PULL_SCRIPT = relative_dir("modules/pull-ipython.sh")
 #PULL_SCRIPT = relative_dir("modules/pull-matplotlib.sh")
