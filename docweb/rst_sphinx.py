@@ -431,6 +431,8 @@ def review_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
 register_local_role('review', review_role)
 
+register_directive('testcode', lit_admonition_directive)
+
 #------------------------------------------------------------------------------
 # Content-inserting
 #------------------------------------------------------------------------------

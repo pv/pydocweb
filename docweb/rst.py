@@ -21,6 +21,11 @@ import docutils.nodes
 import re
 
 class RstWriter(docutils.writers.html4css1.Writer):
+    """
+    RestructuredText writer.
+    Takes care of resolving references.
+
+    """
     config_section = 'Rst Writer'
     config_section_dependencies = ('writers',)
     
