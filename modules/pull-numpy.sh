@@ -26,7 +26,7 @@ svn revert -R .
 # 2. Build and install the module
 
 rm -rf dist
-python2.5 setup.py install --prefix=$PWD/dist
+python2.6 setup.py install --prefix=$PWD/dist
 # NB: it's important to give an absolute path to --prefix so that source file
 #     information also contains absolute paths.
 
@@ -34,9 +34,9 @@ popd
 
 # 3. Extract docstrings
 
-export SITEPATH=$PWD/numpy/dist/lib/python2.5/site-packages
+export SITEPATH=$PWD/numpy/dist/lib/python2.6/site-packages
 
-python2.5 $PYDOCTOOL collect -s $SITEPATH \
+python2.6 $PYDOCTOOL collect -s $SITEPATH \
     numpy numpy.doc numpy.core.records \
 | $PYDOCTOOL prune -i - \
 | $PYDOCTOOL numpy-docs -i - -s $SITEPATH \
