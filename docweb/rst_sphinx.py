@@ -431,7 +431,12 @@ def review_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 
 register_local_role('review', review_role)
 
+# sphinx.ext.doctest
+register_directive('testsetup', lit_admonition_directive)
+register_directive('doctest', lit_admonition_directive)
 register_directive('testcode', lit_admonition_directive)
+register_directive('testoutput', lit_admonition_directive)
+
 
 #------------------------------------------------------------------------------
 # Content-inserting
