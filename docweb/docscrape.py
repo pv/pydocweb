@@ -478,25 +478,16 @@ class NumpyClassDocString(NumpyDocString):
         return errors
 
 class NumpyModuleDocString(NumpyDocString):
-    def __setitem__(self,key,val):
-        self._parsed_data[key] = val
+    """
+    Module doc strings: no parsing is done.
+
+    """
 
     def _parse(self):
-        return NumpyDocString._parse(self)
+        self.out = []
 
     def __str__(self):
-        out = []
-        out += self._str_summary()
-        out += self._str_extended_summary()
-        for s in self.section_order:
-            if s == 'See Also':
-                out += self._str_see_also()
-            elif s == 'index':
-                pass
-            else:
-                out += self._str_section(s)
-        out += self._str_see_also()
-        return '\n'.join(out)
+        return "\n".join(self._doc._str)
 
     def get_errors(self):
         errors = NumpyDocString.get_errors(self, check_order=False)
