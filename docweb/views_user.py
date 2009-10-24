@@ -1,4 +1,5 @@
 from pydocweb.docweb.utils import *
+import re
 
 from views_wiki import frontpage
 from models import set_user_default_groups
@@ -34,6 +35,10 @@ class RegistrationForm(forms.Form):
     password_verify = forms.CharField(widget=forms.PasswordInput, required=True)
 
     def clean(self):
+        user = self.cleaned_data.get('username')
+        if not user or not re.match('^[a-z0-9_]+$', user):
+            raise forms.ValidationError("User name can contain only alphanumeric "
+                                        "characters and underscores")
         if self.cleaned_data.get('password') != self.cleaned_data.get('password_verify'):
             raise forms.ValidationError("Passwords don't match")
         return self.cleaned_data
