@@ -8,3 +8,14 @@ docweb/tests/base-examplecom.xml
 *.egg-info
 cache
 dist
+*.pyc
+*.pyo
+.installed.cfg
+bin
+develop-eggs
+dist
+downloads
+eggs
+parts
+src/*.egg-info
+
