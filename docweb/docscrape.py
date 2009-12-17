@@ -383,8 +383,8 @@ class NumpyDocString(object):
 
         if check_order:
             canonical_order = ['Signature', 'Summary', 'Extended Summary',
-                               'Attributes', 'Methods', 'Other Parameters',
-                               'Parameters', 'Returns', 'Raises', 'Warns',
+                               'Attributes', 'Methods', 'Parameters', 
+                               'Other Parameters','Returns', 'Raises', 'Warns',
                                'See Also', 'Notes', 'References', 'Examples',
                                'index']
             
