@@ -7,7 +7,7 @@ setup(
     description = "Collaborative Python docstring editor on the web",
     url = "http://code.google.com/p/pydocweb/",
     include_package_data = True,
-	packages = find_packages('src'),
-	package_dir = {'': 'src'},
+	packages = find_packages('pydocweb'),
+	package_dir = {'': 'pydocweb'},
 	install_requires = ['setuptools'],
 )
