@@ -28,7 +28,7 @@ def index(request):
     entries = Docstring.get_non_obsolete()
     review_sort_order = {
         REVIEW_PROOFED: 0,
-        REVIEW_NEEDS_PROOF: 1,
+        REVIEW_REVIEWED: 1,
         REVIEW_NEEDS_WORK: 2,
         REVIEW_REVISED: 3,
         REVIEW_NEEDS_REVIEW: 4,

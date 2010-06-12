@@ -105,7 +105,7 @@ def _get_stats_info():
                          REVIEW_NEEDS_REVIEW,
                          REVIEW_REVISED,
                          REVIEW_NEEDS_WORK,
-                         REVIEW_NEEDS_PROOF,
+                         REVIEW_REVIEWED,
                          REVIEW_PROOFED]:
             count = period.review_counts[blk_type]
             code = REVIEW_STATUS_CODES[blk_type]

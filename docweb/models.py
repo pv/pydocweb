@@ -22,8 +22,7 @@ REVIEW_BEING_WRITTEN = 1
 REVIEW_NEEDS_REVIEW = 2
 REVIEW_REVISED = 3
 REVIEW_NEEDS_WORK = 4
-REVIEW_NEEDS_PROOF = 5
-REVIEW_PROOFED = 6
+REVIEW_REVIEWED = 5
 
 MERGE_NONE = 0
 MERGE_MERGE = 1
@@ -36,8 +35,7 @@ REVIEW_STATUS_NAMES = {
     2: 'Needs review',
     3: 'Needs review (revised)',
     4: 'Needs work (reviewed)',
-    5: 'Reviewed (needs proof)',
-    6: 'Proofed',
+    5: 'Reviewed'
 }
 REVIEW_STATUS_CODES = {
     -1: 'unimportant',
@@ -46,8 +44,7 @@ REVIEW_STATUS_CODES = {
     2: 'needs-review',
     3: 'revised',
     4: 'needs-work',
-    5: 'reviewed',
-    6: 'proofed',
+    5: 'reviewed'
 }
 MERGE_STATUS_NAMES = {
     0: 'OK',
@@ -58,6 +55,15 @@ MERGE_STATUS_CODES = {
     0: 'ok',
     1: 'merged',
     2: 'conflict',
+}
+
+REVIEW_TRANSITIONS = {
+    REVIEW_UNIMPORTANT: REVIEW_UNIMPORTANT,
+    REVIEW_NEEDS_EDITING: REVIEW_BEING_WRITTEN,
+    REVIEW_NEEDS_REVIEW: REVIEW_NEEDS_REVIEW,
+    REVIEW_REVISED: REVIEW_REVISED,
+    REVIEW_NEEDS_WORK: REVIEW_REVISED,
+    REVIEW_REVIEWED: REVIEW_REVISED,
 }
 
 
@@ -91,9 +97,14 @@ class Docstring(models.Model):
 
     source_doc  = models.TextField(help_text="Docstring in SVN")
     base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
-    review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
-                                      db_column="review",
-                                      help_text="Review status of SVN string")
+    review_code = models.IntegerField(
+        default=REVIEW_NEEDS_EDITING,
+        db_column="review",
+        help_text="Technical review status of SVN string")
+    review_presentation_code = models.IntegerField(
+        default=REVIEW_NEEDS_EDITING,
+        db_column="review_presentation",
+        help_text="Presentation review status of SVN string")
     merge_status = models.IntegerField(default=MERGE_NONE,
                                        help_text="Docstring merge status")
     dirty        = models.BooleanField(default=False,
@@ -126,23 +137,26 @@ class Docstring(models.Model):
 
     class MergeConflict(RuntimeError): pass
 
-    def _get_review(self):
+    def _get_review(self, attr='review_code'):
         try:
-            return self.revisions.all()[0].review_code
+            return getattr(self.revisions.all()[0], attr)
         except IndexError:
-            return self.review_code
+            return getattr(self, attr)
 
-    def _set_review(self, value):
+    def _set_review(self, value, attr='review_code'):
         try:
             last_rev = self.revisions.all()[0]
-            last_rev.review_code = value
-            if value in (REVIEW_PROOFED, REVIEW_NEEDS_PROOF):
-                last_rev.ok_to_apply = True
+            setattr(last_rev, attr, value)
             last_rev.save()
         except IndexError:
-            self.review_code = value
+            setattr(self, attr, value)
 
-    review = property(_get_review, _set_review)
+    review = property(
+        lambda x: _get_review(x, 'review_code'),
+        lambda x,y: _set_review(x, y, 'review_code'))
+    review_presentation = property(
+        lambda x: _get_review(x, 'review_presentation_code'),
+        lambda x,y: _set_review(x, y, 'review_presentation_code'))
 
     def _get_ok_to_apply(self):
         try:
@@ -255,31 +269,33 @@ class Docstring(models.Model):
 
         # Add a revision (if necessary)
         if new_text != self.text:
-            new_review_code = {
-                REVIEW_NEEDS_EDITING: REVIEW_BEING_WRITTEN,
-                REVIEW_NEEDS_WORK: REVIEW_REVISED,
-                REVIEW_NEEDS_PROOF: REVIEW_REVISED,
-                REVIEW_PROOFED: REVIEW_REVISED
-            }.get(self.review, self.review)
+            new_review_code = REVIEW_TRANSITIONS.get(
+                self.review, self.review)
+            new_review_presentation_code = REVIEW_TRANSITIONS.get(
+                self.review_presentation, self.review_presentation)
 
             if self.revisions.count() == 0:
                 # Store the SVN revision the initial edit was based on,
                 # for making statistics later on.
-                base_rev = DocstringRevision(docstring=self,
-                                             text=self.source_doc,
-                                             author="Source",
-                                             comment="Initial source revision",
-                                             review_code=self.review,
-                                             ok_to_apply=False)
+                base_rev = DocstringRevision(
+                    docstring=self,
+                    text=self.source_doc,
+                    author="Source",
+                    comment="Initial source revision",
+                    review_code=self.review,
+                    review_presentation_code=self.review_presentation,
+                    ok_to_apply=False)
                 base_rev.timestamp = self.timestamp
                 base_rev.save()
 
-            rev = DocstringRevision(docstring=self,
-                                    text=new_text,
-                                    author=author,
-                                    comment=comment,
-                                    review_code=new_review_code,
-                                    ok_to_apply=False)
+            rev = DocstringRevision(
+                docstring=self,
+                text=new_text,
+                author=author,
+                comment=comment,
+                review_code=new_review_code,
+                review_presentation_code=new_review_presentation_code,
+                ok_to_apply=False)
             rev.save()
 
         # Save
@@ -599,7 +615,11 @@ class DocstringRevision(models.Model):
     timestamp   = models.DateTimeField(default=datetime.datetime.now)
     review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
-                                      help_text="Review status")
+                                      help_text="Technical review status")
+    review_presentation_code = models.IntegerField(
+        default=REVIEW_NEEDS_EDITING,
+        db_column="review_presentation",
+        help_text="Presentation review status")
     ok_to_apply = models.BooleanField(
         default=False, help_text="Reviewer deemed suitable for inclusion")
 
