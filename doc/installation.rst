@@ -8,8 +8,9 @@ Requirements
 Pydocweb requires that the following dependencies are installed:
 
    - Django (>= 1.0; http://www.djangoproject.com/)
-   - RCS 'merge' tool (in package "rcs" in Ubuntu/Debian)
+   - RCS 'merge' tool (in package "rcs" in Ubuntu/Debian), OR, Bzr
    - Python Imaging Library (in package "python-imaging" in Ubuntu/Debian)
+   - lxml
    - LaTeX (optional, for math)
    - Dvipng (optional, for math)
 
