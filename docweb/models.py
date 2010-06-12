@@ -74,6 +74,14 @@ class DBSchema(models.Model):
 # --
 
 class Docstring(models.Model):
+    """
+    Docstring entry, containing source docstrings.
+
+    One of these exists for each docstring Pydocweb knows about.
+    User-contributed content is in DocstringRevision.
+
+    """
+
     name        = models.CharField(max_length=MAX_NAME_LEN, primary_key=True,
                                    help_text="Canonical name of the object")
 
@@ -108,6 +116,9 @@ class Docstring(models.Model):
 
     title       = models.CharField(max_length=MAX_NAME_LEN, null=True,
                                    help_text="Title of the page (if present)")
+
+    change_status   = models.CharField(max_length=16, null=True, default=None,
+        help_text="New/removed status. One of 'new', 'removed', NULL (ok).")
 
     # contents  = [DocstringAlias...]
     # revisions = [DocstringRevision...]
@@ -169,7 +180,10 @@ class Docstring(models.Model):
 
     @classmethod
     def get_current_timestamp(self):
-        return Docstring.on_site.order_by('-timestamp')[0].timestamp
+        try:
+            return Docstring.on_site.order_by('-timestamp')[0].timestamp
+        except IndexError:
+            return datetime.datetime.now()
 
     @property
     def child_objects(self):

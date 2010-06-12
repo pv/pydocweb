@@ -33,6 +33,7 @@ def _update_docstrings_from_xml(site, stream):
     tree = etree.parse(stream)
     root = tree.getroot()
 
+    old_timestamp = Docstring.get_current_timestamp()
     timestamp = datetime.datetime.now()
 
     known_entries = {}
@@ -87,6 +88,7 @@ def _update_docstrings_from_xml(site, stream):
             doc.base_doc = doc.source_doc
             doc.source_doc = docstring
             doc.dirty = False
+            doc.change_ok = False
         elif docstring != doc.base_doc:
             # Source has changed, try to merge from base
             doc.source_doc = docstring
@@ -105,6 +107,12 @@ def _update_docstrings_from_xml(site, stream):
             alias.parent = doc
             alias.alias = ref.attrib['name']
             alias.save()
+
+    # -- Mark currently obsoleted entries for manual checking
+
+    for doc in Docstring.on_site.filter(timestamp=old_timestamp):
+        doc.change_ok = False
+        doc.save()
 
     # -- Handle obsoletion of 'file' pages missing in SVN
 
