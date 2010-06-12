@@ -118,7 +118,7 @@ yticks
 """.split()
 
 OK_MODULES = """
-numpy numpy\.fft numpy\.linalg matplotlib\.pyplot
+numpy numpy.fft numpy.linalg matplotlib.pyplot
 """.split()
 
 OK_NAMES = glob_prefixes(OK_NAMES)
@@ -139,23 +139,16 @@ resource.setrlimit(resource.RLIMIT_CPU, (MAX_RUN_TIME, MAX_RUN_TIME))
 
 def main():
     """
-    %prog
+    %prog < code
     
-    Execute doctest code in a sandbox.
-    
-    WARNING: 'sandboxing' DOES NOT MEAN THAT ALL WAYS OF MALICIOUS BEHAVIOUR
-             ARE IMPOSSIBLE.
-    
-             It only means that we are using Zope's RestrictedPython
-             framework. It disables many ways of escaping the sandbox,
-             but it is possible, although unlikely, that some routes
-             are unplugged.
-    
+    Execute python or doctest code in a sandbox.
     """
     global IMG_PREFIX
     p = OptionParser(usage=__doc__)
     p.add_option("--image-prefix", dest="image_prefix", action="store",
                  type="string", help="prefix for image files", default=None)
+    p.add_option("--doctest", dest="doctest", action="store_true",
+                 help="execute as doctest", default=False)
     options, args = p.parse_args()
 
     if options.image_prefix:
@@ -163,6 +156,17 @@ def main():
     
     text = sys.stdin.read()
 
+    import numpy
+    import matplotlib.pyplot
+    RestrictedDocTestRunner.policy['np'] = numpy
+    RestrictedDocTestRunner.policy['plt'] = matplotlib.pyplot
+    
+    if options.doctest:
+        run_doctest(text)
+    else:
+        run_python(text)
+
+def run_doctest(text):
     # run
     verbose = 0
     optionflags = doctest.NORMALIZE_WHITESPACE
@@ -175,15 +179,9 @@ def main():
     runner = RestrictedDocTestRunner(verbose=verbose, optionflags=optionflags)
     test = parser.get_doctest(text, globs, name, filename, 0)
 
-    import numpy
-    import matplotlib.pyplot
-    runner.policy['np'] = numpy
-    runner.policy['plt'] = matplotlib.pyplot
-    
     tmpdir = tempfile.mkdtemp()
     cwd = os.getcwd()
     try:
-        import matplotlib
         os.chdir(tmpdir)
         runner.run(test)
     except (RestrictionError, SyntaxError), e:
@@ -201,6 +199,22 @@ def main():
         sys.exit(2)
     else:
         sys.exit(0)
+
+def run_python(text):
+    tmpdir = tempfile.mkdtemp()
+    cwd = os.getcwd()
+    try:
+        os.chdir(tmpdir)
+        code = RestrictedPython.compile_restricted(text, "<string>", "exec")
+        globs = {}
+        globs.update(RestrictedDocTestRunner.policy)
+        exec code in globs
+    except (RestrictionError, SyntaxError), e:
+        print "Sandbox error:", str(e)
+        sys.exit(3)
+    finally:
+        os.chdir(cwd)
+        shutil.rmtree(tmpdir)
 
 #------------------------------------------------------------------------------
 # Guards
@@ -272,20 +286,22 @@ import pdb, re
 import RestrictedPython
 import RestrictedPython.Guards as Guards
 
+
 class RestrictedDocTestRunner(doctest.DocTestRunner):
+    policy = {
+        '__builtins__': Guards.safe_builtins,
+        '_write_': _write_guard,
+        '_getattr_': _restrict_getattr,
+        '_getitem_': _restrict_getitem,
+        '_print_': _print_passthru,
+    }
+    policy['__builtins__']['__import__'] = _restrict_import
+
     def __init__(self, checker=None, verbose=None, optionflags=0):
         doctest.DocTestRunner.__init__(self,
                                        checker=checker,
                                        verbose=verbose,
                                        optionflags=optionflags)
-        self.policy = {
-            '__builtins__': Guards.safe_builtins,
-            '_write_': _write_guard,
-            '_getattr_': _restrict_getattr,
-            '_getitem_': _restrict_getitem,
-            '_print_': _print_passthru,
-        }
-        self.policy['__builtins__']['__import__'] = _restrict_import
     
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         """
