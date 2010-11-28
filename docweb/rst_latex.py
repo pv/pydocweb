@@ -25,6 +25,7 @@ LATEX_TEMPLATE = r"""
 %(raw)s
 \end{document}
 """
+LATEX_PROLOGUE = r""
 LATEX_ARGS = ["--interaction=nonstopmode"]
 DVIPNG_ARGS = ["-bgTransparent", "-Ttight", "--noghostscript", "-l1",
                ]
@@ -136,7 +137,8 @@ def latex_to_uri(in_text, with_baseline=False):
     file_name = os.path.join(OUT_PATH, file_basename)
     baseline_file_name = file_name + '.baseline'
     if not os.path.isfile(file_name):
-        baseline_offset = latex_to_png("", in_text, file_name, with_baseline)
+        baseline_offset = latex_to_png(LATEX_PROLOGUE, in_text, file_name,
+                                       with_baseline)
         if with_baseline:
             f = open(baseline_file_name, 'w')
             f.write(str(baseline_offset))

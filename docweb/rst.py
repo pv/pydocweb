@@ -289,6 +289,7 @@ docutils.parsers.rst.directives.register_directive('index', index_directive)
 import rst_latex
 rst_latex.OUT_PATH = settings.MATH_ROOT
 rst_latex.OUT_URI_BASE = settings.MATH_URL
+rst_latex.LATEX_PROLOGUE = settings.LATEX_PROLOGUE
 
 #------------------------------------------------------------------------------
 # Sphinx

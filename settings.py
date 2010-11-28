@@ -177,6 +177,12 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
+# LaTeX options
+# -------------
+#
+# Define custom commands and load additional packages for the LaTeX preamble.
+LATEX_PROLOGUE = r"""
+"""
 
 #------------------------------------------------------------------------------
 # Internal Django settings
