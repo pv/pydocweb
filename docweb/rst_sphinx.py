@@ -18,6 +18,7 @@ from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import (register_local_role,
                                         register_generic_role)
+from docutils.writers.html4css1 import HTMLTranslator
 import docutils.parsers.rst.roles
 
 import models
@@ -336,6 +337,31 @@ def resolve_name(link, inliner, postpone=False):
     uri, name = _resolve(link)
     return uri, name
 
+# Copied from sphinx
+class eqref(nodes.Inline, nodes.TextElement):
+    pass
+
+# Inspired by sphinx
+def eq_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
+    text = utils.unescape(text)
+    node = eqref('('+rawtext+')', '('+text+')', target=text)
+    return [node], []
+
+# Inspired by sphinx
+def html_visit_eqref(self, node):
+    self.body.append('<a href="#equation-%s">' % node['target'])
+
+# Inspired by sphinx
+def html_depart_eqref(self, node):
+    self.body.append('</a>')
+
+# Inspired by sphinx
+_html_depart_image = HTMLTranslator.depart_image
+def html_depart_image(self, node):
+    if 'label' in node:
+        self.body.append('<span class="eqno">(%s)</span>' % node['label'])
+    _html_depart_image(self, node)
+
 def _parse_ref(rawtext, text, link, inliner):
     uri, name = resolve_name(link, inliner, postpone=True)
     if uri:
@@ -361,6 +387,11 @@ register_local_role('ctype', ref_role)
 register_local_role('ref', ref_role)
 
 register_local_role('', autolink_role) # set the default role
+
+register_local_role('eq', eq_role)
+setattr(HTMLTranslator, 'visit_eqref', html_visit_eqref)
+setattr(HTMLTranslator, 'depart_eqref', html_depart_eqref)
+setattr(HTMLTranslator, 'depart_image', html_depart_image)
 
 
 def autosummary_directive(dirname, arguments, options, content, lineno,

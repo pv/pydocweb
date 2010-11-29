@@ -195,11 +195,17 @@ def math_directive(name, arguments, options, content, lineno,
         if 'nowrap' not in options:
             latex = ur'\begin{align*}%s\end{align*}' % latex
         uri = latex_to_uri(latex)
-        img = docutils.nodes.image("",
-                                   uri=uri,
-                                   alt=u'\n'.join(content),
-                                   align='center')
-        return [img]
+        ret = []
+        attrs = {'uri': uri,
+                 'alt': u'\n'.join(content),
+                 'align': 'center'}
+        if 'label' in options:
+            ret.append(docutils.nodes.target('', '',
+              ids=['equation-' + options['label']]))
+            state.document.note_explicit_target(ret[-1])
+            attrs['label'] = options['label']
+        ret.append(docutils.nodes.image("", **attrs))
+        return ret
     except RuntimeError, e:
         item = state.document.reporter.system_message(
             2, str(e), docutils.nodes.literal_block(text=u"\n".join(content)))
@@ -216,7 +222,8 @@ math_directive.arguments = (
     True # whether final argument can contain whitespace
 )
 math_directive.options = {
-    'nowrap': directives.flag
+    'nowrap': directives.flag,
+    'label': directives.unchanged_required
 }
 math_directive.content = True # whether content is allowed
 
