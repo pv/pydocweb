@@ -358,7 +358,7 @@ def html_depart_eqref(self, node):
 # Inspired by sphinx
 _html_depart_image = HTMLTranslator.depart_image
 def html_depart_image(self, node):
-    if 'label' in node:
+    if node.hasattr('label'):
         self.body.append('<span class="eqno">(%s)</span>' % node['label'])
     _html_depart_image(self, node)
 
