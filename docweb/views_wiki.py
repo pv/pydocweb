@@ -52,7 +52,8 @@ def edit(request, name):
                                           cache_max_age=WIKI_CACHE_AGE)
                 try:
                     prev_text = WikiPage.on_site.get(name=name).text
-                    prev_text = prev_text.decode('utf-8')
+                    if not isinstance(prev_text, unicode):
+                        prev_text = prev_text.decode('utf-8')
                 except WikiPage.DoesNotExist:
                     prev_text = ""
                 diff_html = html_diff_text(prev_text, data['text'],
