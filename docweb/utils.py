@@ -86,13 +86,12 @@ def merge_3way(mine, base, other):
         Whether a conflict occurred in merge.
 
     """
-
     # 1. Try to use Bzr's merge tool
     try:
         from bzrlib.merge3 import Merge3
-        mg = Merge3(base.splitlines(), mine.splitlines(), other.splitlines())
-        lines = mg.merge_lines(name_a="web version",
-                               name_b="new svn version",
+        mg = Merge3(base.splitlines(), other.splitlines(), mine.splitlines())
+        lines = mg.merge_lines(name_b="web version",
+                               name_a="new svn version",
                                name_base="old svn version",
                                reprocess=True)
         text = strip_spurious_whitespace("\n".join(
