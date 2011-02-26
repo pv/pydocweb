@@ -8,3 +8,4 @@ docweb/tests/base-examplecom.xml
 *.egg-info
 cache
 dist
+*.pyc
