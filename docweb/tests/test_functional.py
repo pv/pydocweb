@@ -139,17 +139,17 @@ class WikiTests(TestCase):
         self.assertContains(response, 'Test note')
         self.assertContains(response, 'Test comment')
         self.assertContains(response, 'Editor Editorer', count=3)
-        self.assertContains(response, 'href="/A%20New%20Page/?revision=2"')
+        self.assertContains(response, 'href="/A%20New%20Page/?revision=7"')
 
         # Check old revision
-        response = self.client.get('/A New Page/', {'revision': '1'})
-        self.assertContains(response, 'Revision 1')
+        response = self.client.get('/A New Page/', {'revision': '6'})
+        self.assertContains(response, 'Revision 6')
         self.assertContains(response, 'Test <em>text</em>')
 
         # Check log diff redirect & diff
         response = self.client.post('/A New Page/log/',
                                     {'button_diff': 'Differences',
-                                     'rev1': '1', 'rev2': '2'})
+                                     'rev1': '6', 'rev2': '7'})
         response = _follow_redirect(response)
         self.assertContains(response, '-Test *text*')
         self.assertContains(response, '+Test *stuff*')
@@ -491,11 +491,11 @@ class PullMergeTests(TestCase):
 
         # Check conflict
         response = self.client.get('/docs/sample_module.sample1.func1/')
-        conflict_text = ('&lt;&lt;&lt;&lt;&lt;&lt;&lt; web version\n'
-                         'edited docstring\n'
-                         '=======\n'
+        conflict_text = ('&lt;&lt;&lt;&lt;&lt;&lt;&lt; new vcs version\n'
                          'sample1.func1 docstrings\n'
-                         '&gt;&gt;&gt;&gt;&gt;&gt;&gt; new vcs version')
+                         '=======\n'
+                         'edited docstring\n'
+                         '&gt;&gt;&gt;&gt;&gt;&gt;&gt; web version')
         self.assertContains(response, conflict_text)
         self.assertContains(response, 'Merge conflict')
         response = self.client.get('/docs/sample_module.sample1.func1/edit/')

@@ -170,11 +170,11 @@ class TestMerge(LocalTestCase):
         doc = self.get_docstring('docs/deleted_dir/content.rst')
         self.assertEqual(doc.merge_status, models.MERGE_CONFLICT)
         self.assertEqual(doc.get_merge(),
-                         "<<<<<<< web version\n"
-                         "text edited\n"
-                         "=======\n"
+                         "<<<<<<< new vcs version\n"
                          "\n"
-                         ">>>>>>> new vcs version")
+                         "=======\n"
+                         "text edited\n"
+                         ">>>>>>> web version")
         
         # deleted-in-vcs dir should be preserved, if non-obsolete content
         doc = self.get_docstring('docs/deleted_dir')
