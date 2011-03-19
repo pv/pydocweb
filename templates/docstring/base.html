@@ -14,7 +14,7 @@
   <a href="{% url pydocweb.docweb.views_docstring.edit name %}">Edit</a>
   {% endif %}
   <a href="{% url pydocweb.docweb.views_docstring.log name %}">Log</a>
-  <a href="{% url pydocweb.docweb.views_docstring.diff name,"svn","cur" %}">Diff to SVN</a>
+  <a href="{% url pydocweb.docweb.views_docstring.diff name,"vcs","cur" %}">Diff to VCS</a>
   <a href="{% url pydocweb.docweb.views_docstring.view name %}#discussion-sec">Discussion</a>
   {% endblock %}
 </div>

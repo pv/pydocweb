@@ -91,8 +91,8 @@ def merge_3way(mine, base, other):
         from bzrlib.merge3 import Merge3
         mg = Merge3(base.splitlines(), other.splitlines(), mine.splitlines())
         lines = mg.merge_lines(name_b="web version",
-                               name_a="new svn version",
-                               name_base="old svn version",
+                               name_a="new vcs version",
+                               name_base="old vcs version",
                                reprocess=True)
         text = strip_spurious_whitespace("\n".join(
             map(lambda x: x.rstrip(), lines)))
@@ -113,8 +113,8 @@ def merge_3way(mine, base, other):
 
     p = subprocess.Popen(['merge', '-p',
                           '-L', 'web version',
-                          '-L', 'old svn version',
-                          '-L', 'new svn version',
+                          '-L', 'old vcs version',
+                          '-L', 'new vcs version',
                           f1.name, f2.name, f3.name],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)

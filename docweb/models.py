@@ -89,22 +89,22 @@ class Docstring(models.Model):
     bases       = models.CharField(max_length=1024, null=True,
                                    help_text="Base classes for classes")
 
-    source_doc  = models.TextField(help_text="Docstring in SVN")
-    base_doc    = models.TextField(help_text="Base docstring for SVN + latest revision")
+    source_doc  = models.TextField(help_text="Docstring in VCS")
+    base_doc    = models.TextField(help_text="Base docstring for VCS + latest revision")
     review_code = models.IntegerField(default=REVIEW_NEEDS_EDITING,
                                       db_column="review",
-                                      help_text="Review status of SVN string")
+                                      help_text="Review status of VCS string")
     merge_status = models.IntegerField(default=MERGE_NONE,
                                        help_text="Docstring merge status")
     dirty        = models.BooleanField(default=False,
-                                       help_text="Differs from SVN")
+                                       help_text="Differs from VCS")
 
     file_name   = models.CharField(max_length=2048, null=True,
                                    help_text="Source file path")
     line_number = models.IntegerField(null=True,
                                       help_text="Line number in source file")
     timestamp   = models.DateTimeField(default=datetime.datetime.now,
-                                       help_text="Time of last SVN pull")
+                                       help_text="Time of last VCS pull")
 
     title       = models.CharField(max_length=MAX_NAME_LEN, null=True,
                                    help_text="Title of the page (if present)")
@@ -263,7 +263,7 @@ class Docstring(models.Model):
             }.get(self.review, self.review)
 
             if self.revisions.count() == 0:
-                # Store the SVN revision the initial edit was based on,
+                # Store the VCS revision the initial edit was based on,
                 # for making statistics later on.
                 base_rev = DocstringRevision(docstring=self,
                                              text=self.source_doc,
@@ -376,7 +376,7 @@ class Docstring(models.Model):
             return None
 
         if self.text == self.source_doc:
-            # Local text agrees with SVN source, no merge needed
+            # Local text agrees with VCS source, no merge needed
             self.merge_status = MERGE_NONE
             self.base_doc = self.source_doc
             self.save()
@@ -408,8 +408,8 @@ class Docstring(models.Model):
 
         Parameters
         ----------
-        revno : int or {'svn', 'cur'}
-            Revision of the text to fetch. 'svn' means revision in SVN
+        revno : int or {'vcs', 'cur'}
+            Revision of the text to fetch. 'vcs' means revision in VCS
             and 'cur' the latest revision.
 
         Returns
@@ -417,7 +417,7 @@ class Docstring(models.Model):
         text : str
             Current page text
         rev : DocstringRevision or None
-            Docstring revision containing the text, or None if SVN revision.
+            Docstring revision containing the text, or None if VCS revision.
 
         """
         if revno is None or revno == '' or str(revno).lower() == 'cur':
@@ -426,7 +426,7 @@ class Docstring(models.Model):
                 return rev.text, rev
             except IndexError:
                 return self.source_doc, None
-        elif str(revno).lower() == 'svn':
+        elif str(revno).lower() == 'vcs':
             return self.source_doc, None
         else:
             try:
@@ -437,7 +437,7 @@ class Docstring(models.Model):
 
     @property
     def text(self):
-        """Return the current text in the docstring, latest revision or SVN"""
+        """Return the current text in the docstring, latest revision or VCS"""
         try:
             return self.revisions.all()[0].text
         except IndexError:
@@ -965,10 +965,10 @@ def get_source_file_content(relative_file_name):
                                                        '.rst'):
         return None
     
-    in_svn_dir = False
-    for svn_dir in [settings.MODULE_DIR]:
-        fn_1 = os.path.realpath(os.path.join(svn_dir, relative_file_name))
-        fn_2 = os.path.realpath(svn_dir)
+    in_vcs_dir = False
+    for vcs_dir in [settings.MODULE_DIR]:
+        fn_1 = os.path.realpath(os.path.join(vcs_dir, relative_file_name))
+        fn_2 = os.path.realpath(vcs_dir)
         if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
             f = open(fn_1, 'r')
             try:
@@ -1003,9 +1003,9 @@ def port_sql(orig_text):
 def strip_module_dir_prefix(file_name):
     if not file_name:
         return None
-    for svn_dir in [settings.MODULE_DIR]:
-        fn_1 = os.path.realpath(os.path.join(svn_dir, file_name))
-        fn_2 = os.path.realpath(svn_dir)
+    for vcs_dir in [settings.MODULE_DIR]:
+        fn_1 = os.path.realpath(os.path.join(vcs_dir, file_name))
+        fn_2 = os.path.realpath(vcs_dir)
         if fn_1.startswith(fn_2 + os.path.sep) and os.path.isfile(fn_1):
             return fn_1[len(fn_2)+1:]
     return None

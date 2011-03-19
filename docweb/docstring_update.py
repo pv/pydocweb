@@ -106,7 +106,7 @@ def _update_docstrings_from_xml(site, stream):
             alias.alias = ref.attrib['name']
             alias.save()
 
-    # -- Handle obsoletion of 'file' pages missing in SVN
+    # -- Handle obsoletion of 'file' pages missing in VCS
 
     for doc in Docstring.on_site.filter(type_code='file',
                                         timestamp__lt=timestamp).all():
@@ -120,7 +120,7 @@ def _update_docstrings_from_xml(site, stream):
             if doc.base_doc != doc.source_doc:
                 doc.get_merge()
 
-    # -- Handle obsoletion of 'dir' pages missing in SVN
+    # -- Handle obsoletion of 'dir' pages missing in VCS
 
     for doc in Docstring.on_site.filter(type_code='dir',
                                         timestamp__lt=timestamp).all():

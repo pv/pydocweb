@@ -233,9 +233,9 @@ class DocstringTests(TestCase):
         self.assertContains(response, '-New *text*')
         self.assertContains(response, '+New *stuff*')
 
-        # Diff vs. SVN
-        response = self.client.get(page + 'diff/svn/2/')
-        self.assertContains(response, 'Differences between revisions SVN and 2')
+        # Diff vs. VCS
+        response = self.client.get(page + 'diff/vcs/2/')
+        self.assertContains(response, 'Differences between revisions VCS and 2')
         self.failUnless('New *stuff*' not in response.content)
         self.assertContains(response, '+New *text*')
 
@@ -495,7 +495,7 @@ class PullMergeTests(TestCase):
                          'edited docstring\n'
                          '=======\n'
                          'sample1.func1 docstrings\n'
-                         '&gt;&gt;&gt;&gt;&gt;&gt;&gt; new svn version')
+                         '&gt;&gt;&gt;&gt;&gt;&gt;&gt; new vcs version')
         self.assertContains(response, conflict_text)
         self.assertContains(response, 'Merge conflict')
         response = self.client.get('/docs/sample_module.sample1.func1/edit/')
@@ -561,7 +561,7 @@ class PatchTests(TestCase):
 
         # Check that it's listed 
         response = self.client.get('/patch/')
-        self.assertContains(response, 'href="/docs/sample_module.sample2.func4/diff/svn/cur/"')
+        self.assertContains(response, 'href="/docs/sample_module.sample2.func4/diff/vcs/cur/"')
         self.assertContains(response, 'type="checkbox" name="sample_module.sample2.func4"')
         self.assertContains(response, 'action="/patch/"')
 

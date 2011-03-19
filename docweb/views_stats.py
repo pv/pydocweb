@@ -159,7 +159,7 @@ def _get_weekly_stats(edits):
     for docstring in Docstring.on_site.all():
         review_status[docstring.name] = docstring.review_code
         review_counts[docstring.review_code] += 1
-        docstring_start_rev[docstring.name] = 'svn'
+        docstring_start_rev[docstring.name] = 'vcs'
 
     # Periodical review statistics
     time_step = datetime.timedelta(days=7)

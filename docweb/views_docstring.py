@@ -249,7 +249,7 @@ def log(request, name):
         ))
 
     revisions.append(dict(
-        id="SVN",
+        id="VCS",
         author="",
         comment="",
         review=REVIEW_STATUS_CODES[doc.review_code],
@@ -271,12 +271,12 @@ def diff(request, name, rev1, rev2):
     if rev1 is not None:
         name1 = str(rev1.revno)
     else:
-        name1 = "SVN"
+        name1 = "VCS"
 
     if rev2 is not None:
         name2 = str(rev2.revno)
     else:
-        name2 = "SVN"
+        name2 = "VCS"
 
     diff = html_diff_text(text1, text2, label_a=name1, label_b=name2)
 
@@ -289,7 +289,7 @@ def diff_prev(request, name, rev2):
     try:
         text2, rev2 = doc.get_rev_text(rev2)
         if rev2 is None:
-            rev2 = 'svn'
+            rev2 = 'vcs'
         else:
             rev2 = rev2.revno
     except (DocstringRevision.DoesNotExist, IndexError):
@@ -298,7 +298,7 @@ def diff_prev(request, name, rev2):
     try:
         rev1 = DocstringRevision.objects.filter(docstring=doc, revno__lt=rev2).order_by('-revno')[0].revno
     except (IndexError, AttributeError):
-        rev1 = "svn"
+        rev1 = "vcs"
 
     return diff(request, name, rev1, rev2)
 

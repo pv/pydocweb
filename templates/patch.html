@@ -32,7 +32,7 @@
       {% endif %}
     </td>
     <td>
-      <a href="{% url pydocweb.docweb.views_docstring.diff entry.name,"svn","cur" %}">{{entry.name|escape}}</a>
+      <a href="{% url pydocweb.docweb.views_docstring.diff entry.name,"vcs","cur" %}">{{entry.name|escape}}</a>
     </td>
     <td class="{{entry.status_code|escape}}">{{entry.status|escape}}</td>
     <td class="{{entry.merge_status_code|escape}}">{{entry.merge_status|escape}}</td>
