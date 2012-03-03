@@ -719,7 +719,8 @@ class SourceReplacer(object):
             return None
 
         # -- Get source code
-        if 'file' not in el.attrib or 'line' not in el.attrib:
+        if 'file' not in el.attrib or 'line' not in el.attrib \
+                or "<string>" in el.get('file'):
             file = "unknown-source-location/%s.py" % new_id
             line = 1
             src = "# %s: Source location for docstring not known" % new_id
