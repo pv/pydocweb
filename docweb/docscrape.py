@@ -101,7 +101,7 @@ class NumpyDocString(object):
         self._doc = Reader(docstring)
         self._parsed_data = {
             'Signature': '',
-            'Summary': '',
+            'Summary': [],
             'Extended Summary': [],
             'Parameters': [],
             'Other Parameters': [],
@@ -407,7 +407,7 @@ class NumpyFunctionDocString(NumpyDocString):
     def _parse(self):
         self._parsed_data = {
             'Signature': '',
-            'Summary': '',
+            'Summary': [],
             'Extended Summary': [],
             'Parameters': [],
             'Other Parameters': [],
@@ -443,7 +443,7 @@ class NumpyClassDocString(NumpyDocString):
     def _parse(self):
         self._parsed_data = {
             'Signature': '',
-            'Summary': '',
+            'Summary': [],
             'Extended Summary': [],
             'Parameters': [],
             'Other Parameters': [],
