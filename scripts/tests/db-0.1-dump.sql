@@ -741,17 +741,17 @@ but t','pauli','Fix link','2008-05-31 23:42:01.945076');
 INSERT INTO doc_wikipagerevision VALUES(24,'Help Merge Docstring','Merging docstrings things can go wrong:
 either the merging fails and causes a conflict, or the merge succeeds
 but the re','pauli','Update merge documentation','2008-06-01 00:46:46.714314');
-INSERT INTO doc_wikipagerevision VALUES(25,'Help Merge','Merging docstrings with SVN can go wrong:
+INSERT INTO doc_wikipagerevision VALUES(25,'Help Merge','Merging docstrings with VCS can go wrong:
 either the merging fails and causes a conflict, or the merge succeeds
 but the ','pauli','More merge documentation','2008-06-01 00:48:22.953378');
-INSERT INTO doc_wikipagerevision VALUES(26,'Help Merge Docstring','Merging docstrings with SVN can go wrong:
+INSERT INTO doc_wikipagerevision VALUES(26,'Help Merge Docstring','Merging docstrings with VCS can go wrong:
 either the merging fails and causes a conflict, or the merge succeeds
 but the ','pauli','More docs','2008-06-01 00:48:43.441548');
 INSERT INTO doc_wikipagerevision VALUES(27,'Help Registration Done','To get **edit permissions**, contact the administrators, or mail to
 `SciPy Developers List (scipy-dev@scipy.org) <mailto','pauli','Help to be shown after registration','2008-06-01 01:04:22.786268');
 INSERT INTO doc_wikipagerevision VALUES(28,'Help Registration Done','To get **edit permissions**, contact the administrators, or mail to
 `SciPy Developers List (scipy-dev@scipy.org) <mailto','pauli','Fix 02:00 AM English','2008-06-01 01:20:48.997838');
-INSERT INTO doc_wikipagerevision VALUES(29,'Help Merge','Merging docstrings with SVN can go wrong:
+INSERT INTO doc_wikipagerevision VALUES(29,'Help Merge','Merging docstrings with VCS can go wrong:
 either the merge fails and causes a conflict, or the merge succeeds
 but the re','pauli','Fix 02:00 AM English','2008-06-01 01:22:37.999283');
 CREATE TABLE auth_group_permissions (

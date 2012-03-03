@@ -4,10 +4,10 @@
 {% block content %}
 <div id="merge-warning">
   {% ifequal merge_type "conflict" %}
-  <p>Merge conflict with SVN.  You need to correct this by 
+  <p>Merge conflict with VCS.  You need to correct this by 
     editing the docstring.</p>
   {% else %}
-  <p>This docstring can be automatically merged with SVN.
+  <p>This docstring can be automatically merged with VCS.
   <form action="{% url pydocweb.docweb.views_control.merge %}" method="post">
     <input type=hidden name="{{name|escape}}" value="1" />
     <input type=submit value="Accept merge" />

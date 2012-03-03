@@ -18,7 +18,7 @@ Revisions and merges
 --------------------
 
 Pydocweb maintains a "branch" (in DVCS terminology) of the docstrings in
-the Python module. It can track the changes in the SVN versions, and merge
+the Python module. It can track the changes in the VCS versions, and merge
 any changes there back to the revisions in its own database.
 
 To understand how docstring revisions and merges work in Pydocweb, look first at
@@ -26,7 +26,7 @@ the tables in models.py: the most important details are::
 
     Docstring
         .name         = unique Python name for the docstring
-        .source_doc   = full text of the docstring, currently in SVN
+        .source_doc   = full text of the docstring, currently in VCS
         .base_doc     = full text of the docstring, last merged
         .merge_status = flag indicating if there's a merge waiting, or conflict
         .revisions    = [DocstringRevision, ...]
@@ -40,10 +40,10 @@ Some invariants:
 
 - DocstringRevisions only contain docstrings submitted by the users via the web
 - The docstring in DocstringRevision is never changed after it has been created
-- The docstrings from SVN only appear in ``source_doc`` and ``base_doc`` columns
-- ``base_doc`` always contains a docstring that has at some point been in SVN
+- The docstrings from VCS only appear in ``source_doc`` and ``base_doc`` columns
+- ``base_doc`` always contains a docstring that has at some point been in VCS
 
-When "Pull from SVN" is done, the following things happen:
+When "Pull from VCS" is done, the following things happen:
 
   1. Pydocweb calls setup.py in the module to build it
   2. Pydocweb calls scripts/pydoc-tool.py to collect and process the module's
@@ -69,4 +69,4 @@ When a user goes to a web page with an unresolved merge, he has the options
 
 Note that the only place where base_doc is modified is in Docstring.edit,
 which creates a new DocstringRevision. Docstring.edit is never called
-when pulling from SVN.
+when pulling from VCS.

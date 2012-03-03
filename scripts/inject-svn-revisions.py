@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Inject initial SVN revisions of docstrings to database.
+Inject initial VCS revisions of docstrings to database.
 
-For this to work, the SVN trees must be positioned on the correct
+For this to work, the VCS trees must be positioned on the correct
 revision.
 
 Typically, you need to run this only on legacy databases before
@@ -25,7 +25,7 @@ def main():
                  help="Timestamp to use (YYYY-MM-DD hh:mm:ss)")
     options, args = p.parse_args()
 
-    base_xml_fn = os.path.join(settings.SVN_DIRS[0], 'base.xml')
+    base_xml_fn = os.path.join(settings.VCS_DIRS[0], 'base.xml')
     if not options.skip_gen or not os.path.isfile(base_xml_fn):
         base_xml_fn = setup_base_xml()
 
@@ -42,15 +42,15 @@ def main():
         f.close()
 
 def setup_base_xml():
-    for svn_dir in settings.SVN_DIRS:
-        svn_dir = os.path.realpath(svn_dir)
-        dist_dir = os.path.join(svn_dir, 'dist')
+    for vcs_dir in settings.VCS_DIRS:
+        vcs_dir = os.path.realpath(vcs_dir)
+        dist_dir = os.path.join(vcs_dir, 'dist')
 
         if os.path.isdir(dist_dir):
             shutil.rmtree(dist_dir)
 
         cwd = os.getcwd()
-        os.chdir(svn_dir)
+        os.chdir(vcs_dir)
         try:
             models._exec_cmd([sys.executable, 'setup.py', 'install',
                               '--prefix=%s' % dist_dir])
@@ -87,7 +87,7 @@ def process_xml(stream, timestamp):
         if doc.revisions.count() == 0: continue
 
         rev0 = doc.revisions.reverse()[0]
-        if rev0.comment == 'Initial SVN revision': continue
+        if rev0.comment == 'Initial VCS revision': continue
 
         print ">>>", doc.name, revno
         revno -= 1
