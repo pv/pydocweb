@@ -6,6 +6,7 @@ import inspect
 import textwrap
 import re
 from StringIO import StringIO
+from django.conf import settings
 
 class Reader(object):
     """A line-based string reader.
@@ -378,7 +379,7 @@ class NumpyDocString(object):
         errors = []
         self._doc.reset()
         for j, line in enumerate(self._doc):
-            if len(line) > 75:
+            if len(line) > settings.MAX_DOCSTRING_WIDTH:
                 errors.append("Line %d too long: \"%s\"..." % (j+1, line[:30]))
 
         if check_order:
