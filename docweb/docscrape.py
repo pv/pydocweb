@@ -203,7 +203,7 @@ class NumpyDocString(object):
             continued text
         another_func_name : Descriptive text
         func_name1, func_name2, func_name3
-        
+
         """
         functions = []
         current_func = None
@@ -237,7 +237,7 @@ class NumpyDocString(object):
         if current_func:
             functions.append((current_func, rest))
         return functions
-    
+
     def _parse_index(self, section, content):
         """
         .. index: default
@@ -270,7 +270,7 @@ class NumpyDocString(object):
 
         if not self._is_at_section():
             self['Extended Summary'] = self._read_to_next_section()
-    
+
     def _parse(self):
         self._doc.reset()
         self._parse_summary()
@@ -349,7 +349,7 @@ class NumpyDocString(object):
                 last_had_desc = False
         out += ['']
         return out
-    
+
     def _str_index(self):
         idx = self['index']
         out = []
@@ -374,7 +374,7 @@ class NumpyDocString(object):
         return '\n'.join(out)
 
     # --
-    
+
     def get_errors(self, check_order=True):
         errors = []
         self._doc.reset()
@@ -384,17 +384,17 @@ class NumpyDocString(object):
 
         if check_order:
             canonical_order = ['Signature', 'Summary', 'Extended Summary',
-                               'Attributes', 'Methods', 'Parameters', 
-                               'Other Parameters','Returns', 'Raises', 'Warns',
+                               'Attributes', 'Methods', 'Parameters',
+                               'Returns', 'Other Parameters', 'Raises', 'Warns',
                                'See Also', 'Notes', 'References', 'Examples',
                                'index']
-            
+
             for s in self.section_order:
                 while canonical_order and s != canonical_order[0]:
                     canonical_order.pop(0)
                     if not canonical_order:
                         errors.append("Sections in wrong order (starting at %s)" % s)
-        
+
         return errors
 
 def indent(str,indent=4):
@@ -428,7 +428,7 @@ class NumpyFunctionDocString(NumpyDocString):
 
         if not self['Signature']:
             errors.append("No function signature")
-        
+
         if not self['Summary']:
             errors.append("No function summary line")
 
@@ -437,7 +437,7 @@ class NumpyFunctionDocString(NumpyDocString):
 
         if not (re.match('^\w+\(\)$', self['Signature']) or self['Parameters']):
             errors.append("No Parameters section")
-        
+
         return errors
 
 class NumpyClassDocString(NumpyDocString):
