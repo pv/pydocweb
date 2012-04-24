@@ -15,13 +15,15 @@ set -e
 #  a) numpy
 
 if test ! -d numpy; then
-    svn co http://svn.scipy.org/svn/numpy/trunk numpy
+    git clone git://github.com/numpy/numpy.git
+    #svn co http://svn.scipy.org/svn/numpy/trunk numpy
 fi
 
 pushd numpy
 
-svn up
-svn revert -R .
+git pull
+#svn up
+#svn revert -R .
 
 # 2. Build and install the module
 

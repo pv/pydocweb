@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form action="{% url pydocweb.docweb.views_docstring.log name %}" method="POST">
+<form action="{% url pydocweb.docweb.views_docstring.log name %}" method="POST">{% csrf_token %}
 <table>
   <tr>
     <th>Revision</th>

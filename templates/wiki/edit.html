@@ -4,7 +4,7 @@
 {% block content %}
 <p>Edit:</p>
 
-<form action="{% url pydocweb.docweb.views_wiki.edit name=name %}" method="post">
+<form action="{% url pydocweb.docweb.views_wiki.edit name=name %}" method="post">{% csrf_token %}
   <ul>
   {{ form.as_ul }}
   <li><label></label>
@@ -15,7 +15,7 @@
 </form>
 
 {% if revision %}{% else %}
-<form action="{% url pydocweb.docweb.views_wiki.edit name=name %}" method="post">
+<form action="{% url pydocweb.docweb.views_wiki.edit name=name %}" method="post">{% csrf_token %}
   <ul>
   <li><label></label>
     <input type="hidden" name="text" value="" />

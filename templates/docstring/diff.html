@@ -7,7 +7,7 @@
 {% if rev2 %}
 <span id="review-ok-to-apply">
   OK to apply:
-  <form action="{% url pydocweb.docweb.views_comment.ok_to_apply name %}{{name2|escape}}/" method="post">
+  <form action="{% url pydocweb.docweb.views_comment.ok_to_apply name %}{{name2|escape}}/" method="post">{% csrf_token %}
     <ul>
       {% if rev2.ok_to_apply %}
       <li><span>Yes</span></li>

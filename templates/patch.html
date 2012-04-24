@@ -5,7 +5,7 @@
 
 {% block content %}
 {% if changed %}
-<form action="{% url pydocweb.docweb.views_control.patch %}" method="post">
+<form action="{% url pydocweb.docweb.views_control.patch %}" method="post">{% csrf_token %}
 <input type="submit" value="Generate patch" />
 <a href="" onclick="check_all_proofed(); return false;">Select proofed</a>
 <a href="" onclick="check_all_reviewed(); return false;">Select reviewed</a>

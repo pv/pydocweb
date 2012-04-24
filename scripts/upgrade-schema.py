@@ -52,7 +52,7 @@ def upgrade(verbose=True):
 
         do_print("-- Upgrading schema version from %g to %g" % (current_version,
                                                                 next_version))
-        
+
         if script.endswith('.sql'):
             run_sql(script, verbose=verbose)
         elif script.endswith('.py'):
@@ -74,7 +74,7 @@ def run_python(*args):
 def run_sql(filename, verbose=True):
     from django.db import connection, transaction
     from django.conf import settings
-    
+
     cursor = connection.cursor()
 
     sql = open(filename, 'r').read()
@@ -83,7 +83,7 @@ def run_sql(filename, verbose=True):
     engine_re = re.compile('^<(\w+)>(.*)$', re.S)
 
     last_engines = []
-    active_engine = settings.DATABASE_ENGINE.lower()
+    active_engine = settings.DATABASES['default']['ENGINE'].lower()
 
     for entry in sql.split(';'):
         entry = entry.strip()
@@ -142,7 +142,7 @@ def set_schema_version(version):
 def get_schema_version():
     from django.db import connection
     cursor = connection.cursor()
-    
+
     try:
         cursor.execute('SELECT version FROM docweb_dbschema ORDER BY version')
         try:
@@ -166,9 +166,9 @@ def get_schema_version():
         return 0.3
     except Exception, exc:
         pass
-    
+
     return 0.2
-    
+
 
 if __name__ == "__main__":
     main()

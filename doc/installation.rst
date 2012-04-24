@@ -156,8 +156,8 @@ The ``settings.py`` file contains the following relevant variables::
     MODULE_DIR = relative_dir("modules")
     ADMINS = (('Foo Bar', 'foo.bar@quux.com.invalid'),)
     SECRET_KEY = 'example-secret-key-1kovAouhk5y8auwhyPWPgs4YYbO0SauE'
-    DATABASE_ENGINE = 'sqlite3'
-    DATABASE_NAME = relative_dir("modules/data.db")
+    DATABASES['default']['ENGINE'] = 'sqlite3'
+    DATABASES['default']['NAME'] = relative_dir("modules/data.db")
     SITE_PREFIX = '/numpy'
     ADMIN_MEDIA_PREFIX = '/admin_media/'
 
@@ -260,8 +260,8 @@ and the active Django settings file, :file:`settings_numpy.py` reads::
     MODULE_DIR = "/var/www/lib/pydocweb-numpy/modules"
     ADMINS = (('Foo Bar', 'foo.bar@quux.com.invalid'),)
     SECRET_KEY = 'example-secret-key-1kovAouhk5y8auwhyPWPgs4YYbO0SauE'
-    DATABASE_ENGINE = 'sqlite3'
-    DATABASE_NAME = '/var/www/lib/pydocweb-numpy/data.db'
+    DATABASES['default']['ENGINE'] = 'sqlite3'
+    DATABASES['default']['NAME'] = '/var/www/lib/pydocweb-numpy/data.db'
     SITE_PREFIX = '/numpy'
     ADMIN_MEDIA_PREFIX = '/site_media/admin/'
     MATH_ROOT = '/var/www/lib/pydocweb-numpy/math-images'

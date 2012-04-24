@@ -7,7 +7,7 @@
 {% block content %}
 
 <form action="{% url pydocweb.docweb.views_search.search %}" 
-      method="post">
+      method="post">{% csrf_token %}
   <ul>
     {{ form.as_ul }}
     <li><label></label>

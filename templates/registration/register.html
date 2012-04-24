@@ -7,7 +7,7 @@
 
 <p>{{message|escape}}</p>
 
-<form action="{% url pydocweb.docweb.views_user.register %}" method="POST">
+<form action="{% url pydocweb.docweb.views_user.register %}" method="POST">{% csrf_token %}
   <ul>{{form.as_ul}}
   <li><label></label><input type=submit value="Register" /></li>
   </ul>

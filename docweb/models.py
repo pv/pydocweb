@@ -115,7 +115,7 @@ class Docstring(models.Model):
 
     site       = models.ForeignKey(Site)
     on_site    = CurrentSiteManager()
-    
+
     class Meta:
         ordering = ['name']
         permissions = (
@@ -230,7 +230,7 @@ class Docstring(models.Model):
 
         if self.type_code == 'dir':
             raise RuntimeError("'dir' docstrings cannot be edited")
-        
+
         if ('<<<<<<' in new_text or '>>>>>>' in new_text):
             raise RuntimeError('New text still contains merge conflict markers')
 
@@ -241,7 +241,7 @@ class Docstring(models.Model):
 
         # Update dirtiness
         self.dirty = (self.source_doc != new_text)
-                    
+
         # Editing 'file' docstrings can resurrect them from obsoletion,
         # or hide them (ie. remove their connection to their parent 'dir')
         if self.type_code == 'file' and new_text and self.is_obsolete:
@@ -334,7 +334,7 @@ class Docstring(models.Model):
 
     _title_re = re.compile(r'^.*?\s*([#*=]{4,}\n)?(?P<title>[a-zA-Z0-9][^\n]+)\n[#*=]{4,}\s*',
                            re.I|re.S)
-    
+
     def _update_title(self):
         """
         Update the 'title' field.
@@ -549,7 +549,7 @@ class Docstring(models.Model):
         """
         Get a Python source snippet containing the function definition,
         with the docstring stripped.
-        
+
         """
         if self.line_number is None:
             return None
@@ -566,7 +566,7 @@ class Docstring(models.Model):
     def new_child(cls, parent, name, type_code):
         """
         Create a new Sphinx documentation 'file' or 'dir' docstrings.
-        
+
         """
         if parent.type_code != 'dir':
             raise ValueError("Parent docstring is not a 'dir' docstring")
@@ -614,7 +614,7 @@ class DocstringAlias(models.Model):
     target = models.CharField(max_length=MAX_NAME_LEN, null=True)
     alias = models.CharField(max_length=MAX_NAME_LEN)
 
-    
+
 # -- reStructuredText label cache
 
 class LabelCache(models.Model):
@@ -686,7 +686,7 @@ class LabelCache(models.Model):
     def cache_docstring_labels(cls, docstring):
         if docstring.type_code != 'file':
             return
-    
+
         text = docstring.text
 
         for name in cls._label_re.findall(text):
@@ -703,7 +703,7 @@ class LabelCache(models.Model):
             else:
                 cls.cache(module + name, docstring.name,
                           site=docstring.site)
-        
+
     def full_url(self, url_part):
         """Prefix the given URL with this object's site prefix"""
         site = Site.objects.get_current()
@@ -717,7 +717,7 @@ class LabelCache(models.Model):
     def __repr__(self):
         return "<LabeCache %s: %s>" % (self.label, self.target)
 
-        
+
 # -- Sphinx Toctree cache
 
 class ToctreeCache(models.Model):
@@ -737,7 +737,7 @@ class ToctreeCache(models.Model):
     def cache_docstring(cls, docstring):
         """
         Update cache items associated with given (parent) docstring.
-        
+
         """
         if docstring.type_code != 'file':
             return
@@ -747,7 +747,7 @@ class ToctreeCache(models.Model):
         # -- parse
         toc_children, code_children = cls._parse_toctree_autosummary(
             docstring.text)
-                
+
         # -- resolve TOC children
         base_path = '/'.join(docstring.name.split('/')[:-1])
         suffixes = ['', '.rst', '.txt']
@@ -829,7 +829,7 @@ class ToctreeCache(models.Model):
             if m:
                 code_children.append((module, m.group(2)))
                 continue
-        
+
         return toc_children, code_children
 
 
@@ -837,7 +837,7 @@ class ToctreeCache(models.Model):
     def get_chain(cls, docstring):
         """
         Return a direct path from root toctree:: item to the given item.
-        
+
         """
         seen = {}
         chain = [docstring]
@@ -950,7 +950,7 @@ def set_user_default_groups(user):
         default_groups = settings.DEFAULT_USER_GROUPS
     except AttributeError:
         default_groups = []
-    
+
     for group_name in default_groups:
         try:
             group = Group.objects.get(name=group_name)
@@ -964,7 +964,7 @@ def get_source_file_content(relative_file_name):
     if os.path.splitext(relative_file_name)[1] not in ('.py', '.pyx', '.txt',
                                                        '.rst'):
         return None
-    
+
     in_vcs_dir = False
     for vcs_dir in [settings.MODULE_DIR]:
         fn_1 = os.path.realpath(os.path.join(vcs_dir, relative_file_name))
@@ -980,7 +980,7 @@ def get_source_file_content(relative_file_name):
 def port_sql(orig_text):
     """
     Port some common SQL expressions from SQLite format to the currently
-    active DATABASE_ENGINE format.
+    active DATABASES['default']['ENGINE'] format.
 
     .. warning::
 
@@ -990,7 +990,7 @@ def port_sql(orig_text):
     """
     text = orig_text
 
-    if settings.DATABASE_ENGINE == 'mysql':
+    if settings.DATABASES['default']['ENGINE'] == 'mysql':
         def _concat(m):
             items = [s.strip() for s in m.group(0).split('||')]
             return 'concat(%s)' % ', '.join(items)

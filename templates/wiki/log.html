@@ -3,7 +3,7 @@
 {% block content %}
 {{body_html|safe}}
 
-<form action="{% url pydocweb.docweb.views_wiki.log name %}" method="POST">
+<form action="{% url pydocweb.docweb.views_wiki.log name %}" method="POST">{% csrf_token %}
 <table>
   <tr>
     <th>Time</th>

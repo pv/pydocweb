@@ -20,7 +20,7 @@ class LocalTestCase(TestCase):
     def update_docstrings(self, docstrings):
         start = time.time()
         update_docstrings_from_xml(self.site, form_test_xml(docstrings))
-        if settings.DATABASE_ENGINE == 'mysql':
+        if settings.DATABASES['default']['ENGINE'] == 'mysql':
             # mysql's datetime field has accuracy of one second;
             # hence, add some delay so that obsoletion timestamps are
             # resolved in the tests.
@@ -106,14 +106,14 @@ class TestMerge(LocalTestCase):
             doc = self.get_docstring(name)
             self.assertEqual(doc.text, 'text')
             self.assertEqual(doc.merge_status, models.MERGE_NONE)
-        
+
         # check automatic merging
         for name in ['module.func_merge', 'docs/file_merge.rst']:
             doc = self.get_docstring(name)
             doc.automatic_merge('Author')
             self.assertEqual(doc.text, 'text edited\n\nmore 2')
             self.assertEqual(doc.merge_status, models.MERGE_NONE)
-        
+
         doc = self.get_docstring('module.func_conflict')
         self.assertRaises(RuntimeError, doc.automatic_merge, 'Author')
 
@@ -145,7 +145,7 @@ class TestMerge(LocalTestCase):
     SPHINX_DATA_2 = {
         'docs(dir)': '',
     }
-    
+
     def test_dir_file_obsoletion(self):
         """
         Check that deleting/obsoletion of 'file' and 'dir' entries works
@@ -175,7 +175,7 @@ class TestMerge(LocalTestCase):
                          "=======\n"
                          "text edited\n"
                          ">>>>>>> web version")
-        
+
         # deleted-in-vcs dir should be preserved, if non-obsolete content
         doc = self.get_docstring('docs/deleted_dir')
         self.assertEqual(doc.merge_status, models.MERGE_NONE)
@@ -198,24 +198,24 @@ class TestMerge(LocalTestCase):
     def test_new_dir_file(self):
         """
         Check that new 'dir' and 'file' entries are handled as intended
-        
+
         """
         self.update_docstrings(self.SPHINX_DATA_1)
 
         # add new docstrings
         doc = self.get_docstring('docs')
-        
+
         doc_dir = models.Docstring.new_child(doc, 'new_dir', 'dir')
-        
+
         doc = models.Docstring.new_child(doc_dir, 'new_file.rst', 'file')
         self.edit_docstring('docs/new_dir/new_file.rst', 'text edited')
-        
+
         doc = models.Docstring.new_child(doc_dir, 'new_file2.rst', 'file')
         self.edit_docstring('docs/new_dir/new_file2.rst', 'text edited')
         self.edit_docstring('docs/new_dir/new_file2.rst', '')
 
         doc = models.Docstring.new_child(doc_dir, 'new_file3.rst', 'file')
-        
+
         doc = models.Docstring.new_child(doc_dir, 'new_dir2', 'dir')
 
         # merge, checking idempotency
@@ -331,7 +331,7 @@ def form_test_xml(docstrings):
     -------
     xml_desc : str
         XML in pydoc DTD describing the docstrings.
-    
+
     """
     root = etree.Element('pydoc')
 
@@ -357,7 +357,7 @@ def form_test_xml(docstrings):
         else:
             el.attrib['file'] = 'root/' + '/'.join(parts[:-1]) + '.py'
         el.attrib['line'] = '0'
-        
+
         if type_code == 'callable':
             el.attrib['argspec'] = '(foo)'
             el.attrib['objclass'] = ''
@@ -383,7 +383,7 @@ def form_test_xml(docstrings):
             sep = '/'
         else:
             sep = '.'
-        
+
         if sep not in target: continue
         parent = sep.join(target.split(sep)[:-1])
         if parent not in els: continue

@@ -28,7 +28,7 @@
 
 <h2>Merges</h2>
 {% if merged %}
-<form action="{% url pydocweb.docweb.views_control.merge %}" method="post">
+<form action="{% url pydocweb.docweb.views_control.merge %}" method="post">{% csrf_token %}
 <input type="submit" value="Accept merges" />
 <a href="" onclick="check_all(); return false;">Select all</a>
 <a href="" onclick="check_none(); return false;">Unselect all</a>

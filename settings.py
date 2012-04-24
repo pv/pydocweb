@@ -13,7 +13,7 @@ def relative_dir(path):
 # ---------------------
 #
 # Scripts that extract docstrings from your project.
-# 
+#
 # They are executed as::
 #
 #     cd MODULE_DIR
@@ -53,7 +53,7 @@ MODULE_DIR = relative_dir("modules")
 # Docstring validation
 # --------------------
 
-MAX_DOCSTRING_WIDTH = 79
+MAX_DOCSTRING_WIDTH = 75
 
 # User registration
 # -----------------
@@ -115,16 +115,34 @@ ADMINS = (
 # Database
 # --------
 
-DATABASE_ENGINE = 'sqlite3'    # 'postgresql_psycopg2', 'postgresql', 'mysql',
-                               #     'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = 'data.db'      # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost.
-                               #     Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default.
-                               #     Not used with sqlite3.
+# DATABASES is a dictionary of dictionaries allowing for the definition of
+# multiple databases.
 
+# Probably only ever need the 'default' database for pydocweb
+
+# ENGINE is one of:
+  # django.db.backends.sqlite3
+  # django.db.backends.postgresql_psycopg2
+  # django.db.backends.postgresql
+  # django.db.backends.mysql
+  # django.db.backends.ado_mssql
+# NAME is the path to the database file if using sqlite3
+# USER is not used with sqlite3
+# PASSWORD is not used with sqlite3
+# HOST is the database host, an empty string for localhost, not used by
+#   sqlite3
+# PORT is the database port, an empty string for default, not used by sqlite3
+
+DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'data.db',
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': ''
+            }
+        }
 
 # Site paths and URLs
 # -------------------
@@ -153,7 +171,7 @@ ADMIN_MEDIA_PREFIX = '/media/'
 # ----------
 #
 # Make it unique, and don't share it with anybody.
-SECRET_KEY = ''
+SECRET_KEY = 'blah'
 
 
 # Locale/location
@@ -190,13 +208,13 @@ LATEX_PROLOGUE = r"""
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.load_template_source',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.core.context_processors.auth",
+    "django.contrib.auth.context_processors.auth",
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "pydocweb.docweb.context_processors.media_url",
@@ -204,7 +222,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-    'django.contrib.csrf.middleware.CsrfMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',

@@ -11,7 +11,7 @@
   You can also <a href="{% url pydocweb.docweb.views_user.register %}">register a new account</a>.
 </p>
 
-<form action="{% url pydocweb.docweb.views_user.login %}" method="POST">
+<form action="{% url pydocweb.docweb.views_user.login %}" method="POST">{% csrf_token %}
   <ul>
     {{form.as_ul}}
     <li><label></label><input type=submit value="Login" /></li>

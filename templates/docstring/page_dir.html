@@ -10,7 +10,7 @@
 
 <h2>New item</h2>
 <div style="margin-top: 2ex; margin-bottom: 2ex;">
-  <form action="{% url pydocweb.docweb.views_docstring.new name %}" method="post">
+  <form action="{% url pydocweb.docweb.views_docstring.new name %}" method="post">{% csrf_token %}
     <ul>
       {{ new_page_form.as_ul }}
       <li><label></label>

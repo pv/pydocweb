@@ -9,7 +9,7 @@
 
 <h2>Update docstrings</h2>
 <p>
-  <form action="{% url pydocweb.docweb.views_control.control %}" method="post">
+  <form action="{% url pydocweb.docweb.views_control.control %}" method="post">{% csrf_token %}
     <input type="submit" name="update-docstrings" value="Pull from sources" />
   </form>
 </p>
