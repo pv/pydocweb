@@ -16,14 +16,13 @@ set -e
 
 if test ! -d numpy; then
     git clone git://github.com/numpy/numpy.git
-    #svn co http://svn.scipy.org/svn/numpy/trunk numpy
 fi
 
 pushd numpy
 
-git pull
-#svn up
-#svn revert -R .
+git fetch origin
+git clean -f -d -x
+git reset --hard origin/master
 
 # 2. Build and install the module
 
@@ -44,7 +43,7 @@ python2.6 $PYDOCTOOL collect -s $SITEPATH \
 | $PYDOCTOOL numpy-docs -i - -s $SITEPATH \
     -f numpy/numpy/add_newdocs.py \
     -f numpy/numpy/core/code_generators/ufunc_docstrings.py \
-| $PYDOCTOOL pyrex-docs -i - -s $SITEPATH \
+| $PYDOCTOOL pyrex-docs -c -i - -s $SITEPATH \
     -f numpy/numpy/random/mtrand/mtrand.pyx:numpy.random.mtrand \
 | $PYDOCTOOL sphinx-docs -i - -n numpy-docs -e .rst \
     numpy/doc/source \
