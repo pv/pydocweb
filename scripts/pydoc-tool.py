@@ -4,7 +4,7 @@ pydoc-tool COMMAND [options] [ARGS...]
 
 Getting Python docstring to XML from sources, and vice versa.
 """
-# Copyright (c) 2008 Pauli Virtanen <pav@iki.fi>
+# Copyright (c) 2008-2012 Pauli Virtanen <pav@iki.fi>
 # 
 # All rights reserved.
 # 
@@ -82,7 +82,7 @@ def main():
         cmd(args)
 
 def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
-                      nargs=None, syspath=False):
+                      nargs=None, syspath=False, doc_cls=None):
     if indoc:
         option_list += [
             make_option("-i", action="store", dest="infile", type="str",
@@ -118,13 +118,16 @@ def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
             opts.outfile = open(opts.outfile, 'w')
     
     if indoc:
+        if doc_cls is None:
+            doc_cls = Documentation
         if opts.infile == '--':
-            opts.indoc = Documentation()
+            opts.indoc = doc_cls()
         elif opts.infile == '-':
-            opts.indoc = Documentation.load(sys.stdin)
+            opts.indoc = doc_cls.load(sys.stdin)
         else:
-            opts.indoc = Documentation.load(open(opts.infile, 'r'))
-    
+            with open(opts.infile, 'rb') as f:
+                opts.indoc = doc_cls.load(f)
+
     if syspath:
         if opts.path is not None:
             sys.path = [os.path.abspath(x)
@@ -166,8 +169,9 @@ def _extend_sys_path(doc, cmd_opts):
 def cmd_collect(args):
     """collect MODULENAMES... > docs.xml
 
-    Dump docstrings from named modules.
-    
+    Dump docstrings from named modules. They are imported and docstrings
+    are collected via introspection. Code from the module is executed.
+
     """
     options_list = [
         make_option("-a", "--all", action="store_true", dest="all",
@@ -182,6 +186,24 @@ def cmd_collect(args):
 
     for m in args:
         doc.add_module(m, limit_crawl=not opts.all)
+
+    doc.dump(opts.outfile)
+
+def cmd_collect_ast(args):
+    """collect-ast PACKAGE_PATH... > docs.xml
+
+    Dump docstrings from named modules. The docstrings are extracted via
+    AST parsing, and therefore no code from the module is executed.
+
+    """
+    opts, args, p = _default_optparse(cmd_collect_ast, args,
+                                      indoc=True, outfile=True, syspath=False,
+                                      doc_cls=ASTDocumentation)
+
+    doc = opts.indoc
+
+    for m in args:
+        doc.add_module(m)
 
     doc.dump(opts.outfile)
 
@@ -668,8 +690,8 @@ def cmd_bzr(args):
 
 #------------------------------------------------------------------------------
 
-COMMANDS = [cmd_collect, cmd_mangle, cmd_prune, cmd_list, cmd_patch,
-            cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs, cmd_sphinx_docs]
+COMMANDS = [cmd_collect, cmd_collect_ast, cmd_mangle, cmd_prune, cmd_list,
+            cmd_patch, cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs, cmd_sphinx_docs]
 
 #------------------------------------------------------------------------------
 # Source code replacement
@@ -1445,6 +1467,230 @@ def escape_text(text):
         text = text.encode('utf-8')
     text = text.encode('string-escape')
     return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)(|\\\\|\\\\\\\\)?\\n", "\\1\n", text))
+
+
+#------------------------------------------------------------------------------
+# AST-based docstring harvesting
+#------------------------------------------------------------------------------
+
+import ast
+
+class ASTDocumentation(Documentation):
+    """Construct Documentation tree by AST parsing"""
+
+    def __init__(self):
+        super(ASTDocumentation, self).__init__()
+        self._root_paths = set()
+        self._imports_map = {}
+
+    def add_module(self, dir_name):
+        if os.path.isdir(dir_name):
+            self._root_paths.add(os.path.abspath(os.path.dirname(dir_name)))
+            self._add_package(dir_name)
+        else:
+            self._root_paths.append(os.path.abspath(os.path.dirname(dir_name)))
+            self._add_module(file_name)
+        self._process_imports()
+
+    def _add_package(self, dir_name):
+        for fn in os.listdir(dir_name):
+            fn = os.path.join(dir_name, fn)
+            if os.path.isfile(fn) and fn.endswith('.py'):
+                self._add_module(fn)
+            elif os.path.isdir(fn) and \
+                 os.path.isfile(os.path.join(fn, '__init__.py')):
+                self._add_package(fn)
+
+    def _add_module(self, file_name):
+        """Crawl given module for documentation"""
+        module_name = self._get_module_name(file_name)
+
+        with open(file_name, 'rb') as f:
+            node = ast.parse(f.read(), filename=file_name)
+        ast.fix_missing_locations(node)
+
+        if 'modules' not in self.root.attrib:
+            self.root.attrib['modules'] = module_name
+        else:
+            self.root.attrib['modules'] += " "  + module_name
+
+        self._visit(node, self.root, module_name)
+        self.recache()
+
+    # -- Import processing
+
+    def _process_imports(self):
+        # XXX: not implemented
+        pass
+
+    # -- Harvesting documentation
+
+    DISPATCH = {}
+
+    def _visit(self, node, parent, name):
+        if name in self.excludes:
+            return None
+        
+        func = self.DISPATCH.get(node.__class__)
+        if func:
+            entry = func(self, node, parent, name)
+            if entry is not None:
+                return entry.attrib['id']
+        return None
+
+    def _visit_module(self, node, parent, name):
+        entry = self._basic_entry('module', node, parent, name)
+
+        # add children
+        _all = None
+
+        for child in node.body:
+            try:
+                child_name = child.name
+            except AttributeError:
+                continue
+
+            child_id = self._visit(child, entry, child_name)
+            if child_id is None: continue
+
+            el = etree.SubElement(entry, "ref")
+            el.attrib['name'] = child_name
+            el.attrib['ref'] = child_id
+
+            if _all is not None:
+                if name in _all:
+                    el.attrib['in-all'] = '1'
+                else:
+                    el.attrib['in-all'] = '0'
+
+        return entry
+    DISPATCH[ast.Module] = _visit_module
+    
+    def _visit_class(self, node, parent, name):
+        entry = self._basic_entry('class', node, parent, name)
+
+        for b in node.bases:
+            try:
+                base_name = "%s.%s" % (parent.attrib['id'], b.id)
+            except AttributeError:
+                continue
+            
+            el = etree.SubElement(entry, 'base')
+            el.attrib['ref'] = base_name
+
+        for child in node.body:
+            try:
+                child_name = child.name
+            except AttributeError:
+                continue
+
+            child_id = self._visit(child, entry, child_name)
+            if child_id is None: continue
+
+            el = etree.SubElement(entry, "ref")
+            el.attrib['name'] = child_name
+            el.attrib['ref'] = child_id
+
+        return entry
+    DISPATCH[ast.ClassDef] = _visit_class
+
+    def _visit_function(self, node, parent, name):
+        entry = self._basic_entry('callable', node, parent, name)
+
+        try:
+            args = node.args
+            entry.attrib['argspec'] = _format_ast_argspec(args)
+        except TypeError:
+            pass
+
+        if parent.tag == 'class':
+            entry.attrib['objclass'] = parent.attrib['id']
+
+        return entry
+    DISPATCH[ast.FunctionDef] = _visit_function
+
+    def _visit_import(self, node, parent, name):
+        # XXX: not implemented
+        pass
+    DISPATCH[ast.Import] = _visit_import
+
+    def _visit_import_from(self, obj, parent, name):
+        # XXX: not implemented
+        pass
+    DISPATCH[ast.ImportFrom] = _visit_import_from
+
+    def _basic_entry(self, cls, node, parent, name):
+        entry = etree.SubElement(self.root, cls)
+        if 'id' in parent.attrib:
+            entry.attrib['id'] = "%s.%s" % (parent.attrib['id'], name)
+        else:
+            entry.attrib['id'] = name
+
+        types = {ast.Module: '__builtin__.module',
+                 ast.ClassDef: '__builtin__.type',
+                 ast.FunctionDef: '__builtin__.function'}
+        entry.attrib['type'] = types.get(node.__class__, '__builtin__.object')
+
+        doc = ast.get_docstring(node)
+        if doc is not None:
+            entry.text = escape_text(doc)
+        else:
+            entry.text = ""
+
+        f = parent.attrib.get('file')
+        if f:
+            entry.attrib['file'] = os.path.abspath(str(f))
+
+        if isinstance(node, ast.Module):
+            entry.attrib['line'] = "0"
+        else:
+            try:
+                entry.attrib['line'] = str(node.lineno)
+            except AttributeError:
+                pass
+
+        self._id_cache[entry.attrib['id']] = entry
+        return entry
+
+    def _get_module_name(self, file_name):
+        pth = os.path.abspath(file_name)
+        for base_path in self._root_paths:
+            if pth.startswith(base_path + os.sep):
+                module_name = pth[len(base_path)+1:].replace(os.sep, '.')
+                if module_name.endswith('.py'):
+                    module_name = module_name[:-3]
+                if module_name.endswith('.__init__'):
+                    module_name = module_name[:-9]
+                return module_name
+        raise ValueError("Could not determine module name for file '%s'" % file_name)
+
+def _format_ast_argspec(args):
+    items = []
+    names = [x.id for x in args.args]
+    defaults = list(args.defaults)
+
+    while len(names) > len(defaults):
+        items.append(names.pop(0))
+
+    while names:
+        items.append("%s=%s" % (names.pop(0),
+                                _ast_expr_to_string(defaults.pop(0))))
+
+    if args.vararg:
+        items.append("*%s" % args.vararg)
+
+    if args.kwarg:
+        items.append("**%s" % args.kwarg)
+
+    return "(%s)" % ", ".join(items)
+
+def _ast_expr_to_string(node):
+    if isinstance(node, ast.Name):
+        return node.id
+    elif isinstance(node, ast.Num):
+        return repr(node.n)
+    else:
+        return "<>"
 
 
 #------------------------------------------------------------------------------
