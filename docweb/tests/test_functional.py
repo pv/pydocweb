@@ -17,7 +17,7 @@ class AccessTests(TestCase):
     """
 
     fixtures = ['tests/users.json']
-    
+
     def test_docstring_index(self):
         response = self.client.get('/docs/')
         self.assertContains(response, 'All docstrings')
@@ -123,7 +123,7 @@ class WikiTests(TestCase):
         # Edit the page
         response = self.client.post('/A%20New%20Page/edit/',
                                     {'text': 'Test *text*',
-                                     'comment': 'Test comment'})
+                                     'comment': 'Test remark'})
         response = self.client.get('/A New Page/')
         self.assertContains(response, '<p>Test <em>text</em></p>')
 
@@ -137,26 +137,26 @@ class WikiTests(TestCase):
         # Check log entries
         response = self.client.get('/A New Page/log/')
         self.assertContains(response, 'Test note')
-        self.assertContains(response, 'Test comment')
+        self.assertContains(response, 'Test remark')
         self.assertContains(response, 'Editor Editorer', count=3)
-        self.assertContains(response, 'href="/A%20New%20Page/?revision=7"')
+        self.assertContains(response, 'href="/A%20New%20Page/?revision=2"')
 
         # Check old revision
-        response = self.client.get('/A New Page/', {'revision': '6'})
-        self.assertContains(response, 'Revision 6')
+        response = self.client.get('/A New Page/', {'revision': '1'})
+        self.assertContains(response, 'Revision 1')
         self.assertContains(response, 'Test <em>text</em>')
 
         # Check log diff redirect & diff
         response = self.client.post('/A New Page/log/',
                                     {'button_diff': 'Differences',
-                                     'rev1': '6', 'rev2': '7'})
+                                     'rev1': '1', 'rev2': '2'})
         response = _follow_redirect(response)
         self.assertContains(response, '-Test *text*')
         self.assertContains(response, '+Test *stuff*')
 
         # Check that the edits appear on the changes page
         response = self.client.get('/changes/')
-        self.assertContains(response, 'Test comment')
+        self.assertContains(response, 'Test remark')
         self.assertContains(response, 'Test note')
         self.assertContains(response, 'A New Page', count=2)
         self.assertContains(response, 'Editor Editorer', count=2+1)

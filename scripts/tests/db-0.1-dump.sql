@@ -1,4 +1,3 @@
-DROP TABLE auth_message;
 DROP TABLE auth_group;
 DROP TABLE auth_user;
 DROP TABLE auth_permission;
@@ -19,11 +18,6 @@ DROP TABLE auth_group_permissions;
 DROP TABLE auth_user_groups;
 DROP TABLE auth_user_user_permissions;
 
-CREATE TABLE auth_message (
-    id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
-    user_id integer NOT NULL,
-    message text NOT NULL
-);
 CREATE TABLE auth_group (
     id integer NOT NULL PRIMARY KEY @AUTO_INCREMENT@,
     name varchar(80) NOT NULL
@@ -822,7 +816,6 @@ CREATE TABLE auth_user_user_permissions (
     user_id integer NOT NULL,
     permission_id integer NOT NULL
 );
-CREATE INDEX auth_message_user_id ON auth_message (user_id);
 CREATE INDEX auth_permission_content_type_id ON auth_permission (content_type_id);
 CREATE INDEX django_admin_log_user_id ON django_admin_log (user_id);
 CREATE INDEX django_admin_log_content_type_id ON django_admin_log (content_type_id);

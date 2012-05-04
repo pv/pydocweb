@@ -8,15 +8,6 @@ settings.MODULE_DIR = TESTDIR
 settings.PULL_SCRIPT = os.path.join(TESTDIR, 'pull-test.sh')
 settings.SITE_ID = 1
 
-# The CSRF middleware prevents the Django test client from working, so
-# disable it.
-settings.MIDDLEWARE_CLASSES = list(settings.MIDDLEWARE_CLASSES)
-try:
-    settings.MIDDLEWARE_CLASSES.remove(
-        'django.contrib.csrf.middleware.CsrfMiddleware')
-except IndexError:
-    pass
-
 # Disable cache
 settings.CACHE_BACKEND = ""
 
