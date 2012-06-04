@@ -366,6 +366,9 @@ class Docstring(models.Model):
         """
         if self.base_doc == self.source_doc:
             # Nothing to merge
+            if self.merge_status != MERGE_NONE:
+                self.merge_status = MERGE_NONE
+                self.save()
             return None
 
         if self.revisions.count() == 0:

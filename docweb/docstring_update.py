@@ -91,6 +91,8 @@ def _update_docstrings_from_xml(site, stream):
             # Source has changed, try to merge from base
             doc.save()
             doc.get_merge() # update merge status
+        else:
+            doc.merge_status = MERGE_NONE
 
         doc.dirty = (doc.source_doc != doc.text)
         doc.contents.all().delete()
