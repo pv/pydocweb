@@ -80,16 +80,15 @@ def _update_docstrings_from_xml(site, stream):
         doc.file_name = el.get('file')
         doc.line_number = line
         doc.timestamp = timestamp
+        doc.source_doc = docstring
 
         if created:
             # New docstring
             doc.merge_status = MERGE_NONE
             doc.base_doc = doc.source_doc
-            doc.source_doc = docstring
             doc.dirty = False
         elif docstring != doc.base_doc:
             # Source has changed, try to merge from base
-            doc.source_doc = docstring
             doc.save()
             doc.get_merge() # update merge status
 
@@ -204,7 +203,7 @@ def update_docstrings(site):
     finally:
         os.chdir(pwd)
     
-    f = open(base_xml_fn, 'r')
+    f = open(base_xml_fn, 'rb')
     try:
         update_docstrings_from_xml(site, f)
     finally:
