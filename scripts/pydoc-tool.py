@@ -1277,7 +1277,7 @@ class Documentation(object):
     def _getmembers(self, obj):
         try:
             members = inspect.getmembers(obj)
-        except AttributeError:
+        except:
             members = []
         members.sort(key=lambda x: (not inspect.ismodule(x[1]),
                                     not inspect.isclass(x[1]),
