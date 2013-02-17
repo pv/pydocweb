@@ -520,11 +520,8 @@ def do_sphinx_docs(doc, path, module_name, err_stream,
             ref.attrib['ref'] = node.attrib['id']
 
             try:
-                f = open(name, 'r')
-                try:
+                with open(name, 'r') as f:
                     content = f.read()
-                finally:
-                    f.close()
             except IOError:
                 print("Failed to open file %s" % name,
                       file=err_stream)
@@ -548,8 +545,10 @@ def cmd_patch(args):
 
     # -- Generate differences
 
-    doc_old = Documentation.load(open(args[0], 'r'))
-    doc_new = Documentation.load(open(args[1], 'r'))
+    with open(args[0], 'r') as f:
+        doc_old = Documentation.load(f)
+    with open(args[1], 'r') as f:
+        doc_new = Documentation.load(f)
 
     do_patch(doc_new, doc_old, opts.outfile, sys.stderr)
 
@@ -662,7 +661,8 @@ class SourceReplacer(object):
             line = max(line-1, 0) # numbering starts from line 1
         
         if file not in self.old_sources:
-            self.old_sources[file] = open(file, 'r').read().splitlines(1)
+            with open(file, 'r') as f:
+                self.old_sources[file] = f.read().splitlines(1)
             self.new_sources[file] = list(self.old_sources[file])
         
         lines = self.new_sources[file]
