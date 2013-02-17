@@ -82,7 +82,7 @@ def main():
         cmd(args)
 
 def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
-                      nargs=None, syspath=False):
+                      nargs=None):
     if indoc:
         option_list += [
             make_option("-i", action="store", dest="infile", type="str",
@@ -94,12 +94,6 @@ def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
             make_option("-o", action="store", dest="outfile", type="str",
                         help="output file, '-' means stdout (default)",
                         default="-")
-        ]
-    if syspath:
-        option_list += [
-            make_option("-s", "--sys-path", action="store", dest="path",
-                        type="str", default=None,
-                        help="prepend paths to sys.path")
         ]
 
     head, tail = pydoc.splitdoc(pydoc.getdoc(cmd))
@@ -127,10 +121,6 @@ def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
             with open(opts.infile, 'rb') as f:
                 opts.indoc = doc_cls.load(f)
 
-    if syspath:
-        if opts.path is not None:
-            sys.path = [os.path.abspath(x)
-                        for x in opts.path.split(os.path.pathsep)] + sys.path
     return opts, args, p
 
 def _open_file(filename, mode):
@@ -154,8 +144,7 @@ def cmd_collect(args):
     AST parsing, and therefore no code from the module is executed.
 
     """
-    opts, args, p = _default_optparse(cmd_collect, args,
-                                      indoc=True, outfile=True, syspath=False)
+    opts, args, p = _default_optparse(cmd_collect, args, indoc=True, outfile=True)
 
     doc = opts.indoc
 
@@ -298,8 +287,7 @@ def cmd_numpy_docs(args):
                     help="files to look in")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
-                                      indoc=True, outfile=True, nargs=0,
-                                      syspath=True)
+                                      indoc=True, outfile=True, nargs=0)
     
     doc = opts.indoc
 
@@ -341,7 +329,7 @@ def do_numpy_docs(doc, files, err_stream):
             entry = etree.SubElement(doc.root, "callable")
             entry.attrib['id'] = name
             entry.attrib['type'] = '__builtin__.function'
-            entry.attrib['file'] = os.path.abspath(str(file))
+            entry.attrib['file'] = str(file)
             entry.attrib['line'] = str(line)
             entry.attrib['argspec'] = '(...)'
             entry.text = escape_text(docstring)
@@ -364,8 +352,7 @@ def cmd_pyrex_docs(args):
                     default=False, help="Use Cython instead of Pyrex")
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
-                                      indoc=True, outfile=True, nargs=0,
-                                      syspath=True)
+                                      indoc=True, outfile=True, nargs=0)
 
     do_pyrex_docs(opts.indoc, opts.files,
                   err_stream=sys.stderr, cython=opts.cython)
@@ -384,7 +371,6 @@ def do_pyrex_docs(doc, files, err_stream, cython=True):
     
     def pyrex_parse_source(source, mod_name):
         Main.Errors.num_errors = 0
-        source = os.path.abspath(source)
         options = Main.CompilationOptions()
         if cython:
             context = Main.Context(options.include_path, {})
@@ -426,7 +412,6 @@ def do_pyrex_docs(doc, files, err_stream, cython=True):
 
     for file_mod_name in files:
         file_name, module_name = file_mod_name.rsplit(':', 1)
-        file_name = os.path.abspath(file_name)
         tree = pyrex_parse_source(file_name, file_mod_name)
         pyrex_walk_tree(tree, file_name, module_name, locations)
 
@@ -470,12 +455,11 @@ def cmd_sphinx_docs(args):
                     help="extension for documentation files (default: .rst)"),
     ]
     opts, args, p = _default_optparse(cmd_numpy_docs, args, options_list,
-                                      indoc=True, outfile=True, nargs=1,
-                                      syspath=False)
+                                      indoc=True, outfile=True, nargs=1)
 
     doc = opts.indoc
 
-    do_sphinx_docs(opts.indoc, os.path.realpath(args[0]), opts.name,
+    do_sphinx_docs(opts.indoc, args[0], opts.name,
                    err_stream=sys.stderr, exts=opts.exts)
 
     doc.dump(opts.outfile)
@@ -541,7 +525,7 @@ def cmd_patch(args):
     corresponding to OLD.XML to the docstrings in NEW.XML
     """
     opts, args, p = _default_optparse(cmd_patch, args, outfile=True,
-                                      syspath=True, nargs=2)
+                                      nargs=2)
 
     # -- Generate differences
 
@@ -564,9 +548,9 @@ def do_patch(doc_new, doc_old, out_stream, err_stream):
 
     # -- Output patches
 
-    for file in sorted(replacer.old_sources.iterkeys()):
-        old_src = "".join(replacer.old_sources[file]).splitlines(1)
-        new_src = "".join(replacer.new_sources[file]).splitlines(1)
+    for file_name in sorted(replacer.old_sources.iterkeys()):
+        old_src = "".join(replacer.old_sources[file_name]).splitlines(1)
+        new_src = "".join(replacer.new_sources[file_name]).splitlines(1)
 
         # Don't mind terminating newlines in the file; works around a bug
         # in difflib...
@@ -578,8 +562,7 @@ def do_patch(doc_new, doc_old, out_stream, err_stream):
                 new_src[-1] += "\n"
 
         # Generate an unified diff
-        fn = strip_path(file)
-        diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
+        diff = difflib.unified_diff(old_src, new_src, file_name + ".old", file_name)
         out_stream.writelines(diff)
 
 
@@ -908,19 +891,6 @@ def iter_statements(ch_iter):
         
 def strip_trailing_whitespace(text):
     return "\n".join([x.rstrip() for x in text.split("\n")])
- 
-def strip_path(fn, paths=None):
-    """
-    If a file is in given paths (default: sys.path), strip the prefix.
-    """
-    if paths is None:
-        paths = sys.path
-    fn = os.path.realpath(fn)
-    for pth in paths:
-        pth = os.path.realpath(pth)
-        if fn.startswith(pth + os.path.sep):
-            return fn[len(pth)+1:]
-    return fn
 
 
 #------------------------------------------------------------------------------
@@ -972,10 +942,10 @@ class Documentation(object):
 
     def add_module(self, dir_name):
         if os.path.isdir(dir_name):
-            self._root_paths.add(os.path.abspath(os.path.dirname(dir_name)))
+            self._root_paths.add(os.path.dirname(dir_name))
             self._add_package(dir_name)
         else:
-            self._root_paths.append(os.path.abspath(os.path.dirname(dir_name)))
+            self._root_paths.append(os.path.dirname(dir_name))
             self._add_module(dir_name)
 
         module_name, _ = self._get_module_name(dir_name)
@@ -1019,11 +989,14 @@ class Documentation(object):
         current root paths.
 
         """
-        pth = os.path.abspath(file_name)
+        pth = file_name
         for base_path in self._root_paths:
-            if pth.startswith(base_path + os.sep):
+            if base_path:
+                base_path = base_path + os.sep
+
+            if pth.startswith(base_path) or (not base_path and not pth.startswith(os.sep)):
                 is_package = False
-                module_name = pth[len(base_path)+1:].replace(os.sep, '.')
+                module_name = pth[len(base_path):].replace(os.sep, '.')
                 if module_name.endswith('.py'):
                     module_name = module_name[:-3]
                 if module_name.endswith('.__init__'):

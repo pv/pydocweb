@@ -100,8 +100,6 @@ class TestPydoctool(unittest.TestCase):
 
         # -- check that the patch touches the plain-text document files
 
-        print(patch)
-
         assert '\n+++ sample_module/doc/index.rst' in patch
         assert '\n+++ sample_module/doc/quux.rst' in patch
         assert '\n-Bar-ish documentation.' in patch
