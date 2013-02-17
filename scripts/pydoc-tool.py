@@ -4,7 +4,7 @@ pydoc-tool COMMAND [options] [ARGS...]
 
 Getting Python docstring to XML from sources, and vice versa.
 """
-# Copyright (c) 2008-2012 Pauli Virtanen <pav@iki.fi>
+# Copyright (c) 2008-2013 Pauli Virtanen <pav@iki.fi>
 # 
 # All rights reserved.
 # 
@@ -32,12 +32,12 @@ Getting Python docstring to XML from sources, and vice versa.
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
-import os, shutil, copy, glob, subprocess, re
-import sys, cgi, math, cPickle as pickle
-import inspect, imp, textwrap, re, pydoc, compiler, difflib
+
+from __future__ import print_function, division, absolute_import
+
+import sys, os, re
+import textwrap, pydoc, difflib, ast
 from optparse import make_option, OptionParser
-from StringIO import StringIO
 
 try:
     import lxml.etree as etree
@@ -82,7 +82,7 @@ def main():
         cmd(args)
 
 def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
-                      nargs=None, syspath=False, doc_cls=None):
+                      nargs=None, syspath=False):
     if indoc:
         option_list += [
             make_option("-i", action="store", dest="infile", type="str",
@@ -118,8 +118,7 @@ def _default_optparse(cmd, args, option_list=[], indoc=False, outfile=False,
             opts.outfile = open(opts.outfile, 'w')
     
     if indoc:
-        if doc_cls is None:
-            doc_cls = Documentation
+        doc_cls = Documentation
         if opts.infile == '--':
             opts.indoc = doc_cls()
         elif opts.infile == '-':
@@ -143,62 +142,20 @@ def _open_file(filename, mode):
     else:
         return open(filename, mode)
 
-def _extend_sys_path(doc, cmd_opts):
-    doc_paths = doc.root.attrib.get('path', '').split(os.path.pathsep)
-    if '' in doc_paths:
-        doc_paths.remove('')
-    
-    for pth in reversed(doc_paths):
-        pth = os.path.abspath(pth)
-        if pth not in sys.path:
-            sys.path.insert(0, pth)
-
-    if hasattr(cmd_opts, 'path') and cmd_opts.path:
-        for pth in reversed(cmd_opts.path.split(os.path.pathsep)):
-            pth = os.path.abspath(pth)
-            if pth not in doc_paths:
-                doc_paths.insert(0, pth)
-    
-    doc.root.attrib['path'] = os.path.pathsep.join(doc_paths)
-
 
 #------------------------------------------------------------------------------
 # collect
 #------------------------------------------------------------------------------
 
 def cmd_collect(args):
-    """collect MODULENAMES... > docs.xml
-
-    Dump docstrings from named modules. They are imported and docstrings
-    are collected via introspection. Code from the module is executed.
-
-    """
-    options_list = [
-        make_option("-a", "--all", action="store_true", dest="all",
-                    default=False,
-                    help="include docstrings also from other modules"),
-    ]
-    opts, args, p = _default_optparse(cmd_collect, args, options_list,
-                                      indoc=True, outfile=True, syspath=True)
-
-    doc = opts.indoc
-    _extend_sys_path(doc, opts)
-
-    for m in args:
-        doc.add_module(m, limit_crawl=not opts.all)
-
-    doc.dump(opts.outfile)
-
-def cmd_collect_ast(args):
-    """collect-ast PACKAGE_PATH... > docs.xml
+    """collect PACKAGE_PATH... > docs.xml
 
     Dump docstrings from named modules. The docstrings are extracted via
     AST parsing, and therefore no code from the module is executed.
 
     """
-    opts, args, p = _default_optparse(cmd_collect_ast, args,
-                                      indoc=True, outfile=True, syspath=False,
-                                      doc_cls=ASTDocumentation)
+    opts, args, p = _default_optparse(cmd_collect, args,
+                                      indoc=True, outfile=True, syspath=False)
 
     doc = opts.indoc
 
@@ -221,8 +178,10 @@ def cmd_mangle(args):
                                       indoc=True, nargs=0)
 
     doc = opts.indoc
-    _extend_sys_path(doc, opts)
+    do_mangle(doc)
+    doc.dump(opts.outfile)
 
+def do_mangle(doc):
     def common_prefix_length(a, b):
         for j in xrange(min(len(a), len(b))):
             if a[j] != b[j]: 
@@ -251,8 +210,6 @@ def cmd_mangle(args):
 
     doc.recache()
 
-    doc.dump(opts.outfile)
-
 #------------------------------------------------------------------------------
 # prune
 #------------------------------------------------------------------------------
@@ -268,9 +225,10 @@ def cmd_prune(args):
 
     doc = opts.indoc
 
-    prunelist = []
-    all_alls = {}
+    do_prune(doc)
+    doc.dump(opts.outfile)
 
+def do_prune(doc):
     for el in doc._id_cache.itervalues():
         for ref in list(el.findall('ref')):
             target = doc.get(ref.attrib['ref'])
@@ -298,7 +256,6 @@ def cmd_prune(args):
         if doc.get_referers(el.attrib['id']) == []:
             doc.root.remove(el)
 
-    doc.dump(opts.outfile)
 
 #------------------------------------------------------------------------------
 # list
@@ -314,12 +271,15 @@ def cmd_list(args):
 
     doc = opts.indoc
 
+    do_list(doc, opts.outfile)
+
+def do_list(doc, outfile):
     def list_xml(root, indent=""):
         for el in sorted(root.getchildren(), key=lambda x: (x.tag, x.get('id'), x.get('name'))):
             if el.tag == 'ref':
-                print >> opts.outfile, "%s%s > %s" % (indent, el.get('name'), el.get('ref'))
+                print("%s%s > %s" % (indent, el.get('name'), el.get('ref')), file=outfile)
             else:
-                print >> opts.outfile, "%s%s %s" % (indent, el.tag, el.get('id'))
+                print("%s%s %s" % (indent, el.tag, el.get('id')), file=outfile)
             list_xml(el, indent + "    ")
     list_xml(doc.root)
 
@@ -342,47 +302,51 @@ def cmd_numpy_docs(args):
                                       syspath=True)
     
     doc = opts.indoc
-    _extend_sys_path(doc, opts)
 
+    do_numpy_docs(doc, opts.files, sys.stdout)
+
+    doc.dump(opts.outfile)
+
+def do_numpy_docs(doc, files, err_stream):
     new_info = {}
     
     def ast_parse_file(file_name, source):
-        tree = compiler.parse(source)
-        root = tree.getChildNodes()[0]
-        for stmt in root.getChildNodes():
-            if isinstance(stmt, compiler.ast.Discard) \
-                    and isinstance(stmt.expr, compiler.ast.CallFunc) \
-                    and stmt.expr.node.name == 'add_newdoc':
-                v = stmt.expr.args
-                name = "%s.%s" % (v[0].value, v[1].value)
-                if isinstance(v[2], compiler.ast.Tuple):
-                    y = v[2].getChildNodes()
-                    name += ".%s" % (y[0].value)
-                    line = stmt.expr.lineno
+        tree = ast.parse(source)
+        for stmt in tree.body:
+            if isinstance(stmt, ast.Expr) \
+                    and isinstance(stmt.value, ast.Call) \
+                    and stmt.value.func.id == 'add_newdoc':
+                v = stmt.value.args
+                name = "%s.%s" % (v[0].s, v[1].s)
+                if isinstance(v[2], ast.Tuple):
+                    y = v[2].elts
+                    name += ".%s" % (y[0].s)
+                    docstring = y[1].s
+                    line = stmt.lineno
                 else:
-                    line = stmt.expr.lineno
-                new_info[name] = (file_name, line)
-    
-    for file_name in opts.files:
-        ast_parse_file(file_name, open(file_name, 'r').read())
-    
-    for name, (file, line) in new_info.iteritems():
+                    line = stmt.lineno
+                    docstring = v[2].s
+                new_info[name] = (file_name, line, docstring)
+
+    for file_name in files:
+        with open(file_name, 'r') as f:
+            ast_parse_file(file_name, f.read())
+
+    for name, (file, line, docstring) in new_info.iteritems():
         el = doc.resolve(name)
         if el is not None:
-            if el.attrib['type'] == 'numpy.ufunc':
-                # Special case for ufuncs: signature is generated
-                # automatically, so remove it from the docstring.
-                text = el.text.decode('string-escape')
-                m = re.match(r"^(.*?\))\s+(.*)$", text, re.S)
-                if m:
-                    el.attrib['argspec'] = m.group(1)
-                    el.text = escape_text(m.group(2).strip())
-            el.attrib['file'] = file
-            el.attrib['line'] = str(line)
-            el.attrib['is-addnewdoc'] = '1'
+            print("%s: duplicate docstring" % name,
+                  file=err_stream)
         else:
-            print >> sys.stderr, "%s: unknown object" % name
-    doc.dump(opts.outfile)
+            entry = etree.SubElement(doc.root, "callable")
+            entry.attrib['id'] = name
+            entry.attrib['type'] = '__builtin__.function'
+            entry.attrib['file'] = os.path.abspath(str(file))
+            entry.attrib['line'] = str(line)
+            entry.attrib['argspec'] = '(...)'
+            entry.text = escape_text(docstring)
+            entry.attrib['is-addnewdoc'] = '1'
+
 
 #------------------------------------------------------------------------------
 # pyrex-docs
@@ -403,7 +367,13 @@ def cmd_pyrex_docs(args):
                                       indoc=True, outfile=True, nargs=0,
                                       syspath=True)
 
-    if opts.cython:
+    do_pyrex_docs(opts.indoc, opts.files,
+                  err_stream=sys.stderr, cython=opts.cython)
+
+    opts.indoc.dump(opts.outfile)
+
+def do_pyrex_docs(doc, files, err_stream, cython=True):
+    if cython:
         import Cython.Compiler.Nodes as Nodes
         import Cython.Compiler.Main as Main
         import Cython.Compiler.ModuleNode as ModuleNode
@@ -412,14 +382,11 @@ def cmd_pyrex_docs(args):
         import Pyrex.Compiler.Main as Main
         import Pyrex.Compiler.ModuleNode as ModuleNode
     
-    doc = opts.indoc
-    _extend_sys_path(doc, opts)
-    
     def pyrex_parse_source(source, mod_name):
         Main.Errors.num_errors = 0
         source = os.path.abspath(source)
         options = Main.CompilationOptions()
-        if opts.cython:
+        if cython:
             context = Main.Context(options.include_path, {})
             source_desc = Main.FileSourceDescriptor(filename=source)
             module_name = context.extract_module_name(source, options)
@@ -429,7 +396,7 @@ def cmd_pyrex_docs(args):
             source_desc = source
         scope = context.find_module(module_name, pos=(source_desc,1,0),
                                     need_pxd=0)
-        if opts.cython:
+        if cython:
             tree = context.parse(source_desc, scope, pxd=0,
                                  full_module_name=mod_name)
         else:
@@ -456,16 +423,19 @@ def cmd_pyrex_docs(args):
             locations[name] = (file_name,) + node.pos[1:]
     
     locations = {}
-    
-    for file_mod_name in opts.files:
+
+    for file_mod_name in files:
         file_name, module_name = file_mod_name.rsplit(':', 1)
         file_name = os.path.abspath(file_name)
         tree = pyrex_parse_source(file_name, file_mod_name)
         pyrex_walk_tree(tree, file_name, module_name, locations)
-    
-    for name, (file, line, offset) in locations.iteritems():
+
+    for name, (file, line, offset, docstring) in locations.iteritems():
         el = doc.resolve(name)
         if el is not None:
+            print("%s: duplicate docstring" % name,
+                  file=err_stream)
+        else:
             if el.attrib['type'] == 'numpy.ufunc':
                 # Special case for ufuncs: signature is generated
                 # automatically, so remove it from the docstring.
@@ -477,9 +447,7 @@ def cmd_pyrex_docs(args):
             el.attrib['file'] = file
             el.attrib['line'] = str(line)
             el.attrib['char-offset'] = str(offset)
-        else:
-            print >> sys.stderr, "%s: unknown object" % name
-    doc.dump(opts.outfile)
+
 
 #------------------------------------------------------------------------------
 # sphinx-docs
@@ -507,24 +475,28 @@ def cmd_sphinx_docs(args):
 
     doc = opts.indoc
 
-    if not opts.exts:
-        opts.exts = ['.rst']
-    
+    do_sphinx_docs(opts.indoc, os.path.realpath(args[0]), opts.name,
+                   err_stream=sys.stderr, exts=opts.exts)
+
+    doc.dump(opts.outfile)
+
+def do_sphinx_docs(doc, path, module_name, err_stream,
+                   exts=None):
+    if not exts:
+        exts = ['.rst']
+
     # -- find files and inject nodes
 
-    path = os.path.realpath(args[0])
-    
-    seen = {}
     dir_nodes = {}
 
     for root, dirs, files in os.walk(path):
         text_files = [fn for fn in files
-                      if os.path.splitext(fn)[1] in opts.exts]
+                      if os.path.splitext(fn)[1] in exts]
 
         if not text_files: continue
 
         dir_node = etree.SubElement(doc.root, "dir")
-        dir_node.attrib['id'] = root.replace(path, opts.name)
+        dir_node.attrib['id'] = root.replace(path, module_name)
         dir_node.attrib['file'] = path
 
         parent = dir_nodes.get(os.path.dirname(root))
@@ -539,7 +511,7 @@ def cmd_sphinx_docs(args):
             name = os.path.join(root, basename)
 
             node = etree.SubElement(doc.root, "file")
-            node.attrib['id'] = name.replace(path, opts.name)
+            node.attrib['id'] = name.replace(path, module_name)
             node.attrib['file'] = name
             node.attrib['line'] = '1'
 
@@ -554,13 +526,12 @@ def cmd_sphinx_docs(args):
                 finally:
                     f.close()
             except IOError:
-                print >> sys.stderr, "Failed to open file %s" % file_name
+                print("Failed to open file %s" % name,
+                      file=err_stream)
                 continue
 
             node.text = escape_text(content)
 
-    # -- done
-    doc.dump(opts.outfile)
 
 #------------------------------------------------------------------------------
 # patch
@@ -580,15 +551,17 @@ def cmd_patch(args):
     doc_old = Documentation.load(open(args[0], 'r'))
     doc_new = Documentation.load(open(args[1], 'r'))
 
-    _extend_sys_path(doc_old, opts)
+    do_patch(doc_new, doc_old, opts.outfile, sys.stderr)
 
-    replacer = SourceReplacer(doc_old, doc_new)
+def do_patch(doc_new, doc_old, out_stream, err_stream):
+    replacer = SourceReplacer(doc_old, doc_new,
+                              err_stream=err_stream)
 
     for new_el in doc_new.root.getchildren():
         try:
             replacer.replace(new_el.get('id'))
         except ValueError, e:
-            print >> sys.stderr, "ERROR:", e
+            print("ERROR:", e, file=err_stream)
 
     # -- Output patches
 
@@ -608,99 +581,24 @@ def cmd_patch(args):
         # Generate an unified diff
         fn = strip_path(file)
         diff = difflib.unified_diff(old_src, new_src, fn + ".old", fn)
-        opts.outfile.writelines(diff)
+        out_stream.writelines(diff)
 
-#------------------------------------------------------------------------------
-# bzr
-#------------------------------------------------------------------------------
-
-def cmd_bzr(args):
-    """bzr OLD.XML NEW.XML PATH
-    
-    Commit changes to bzr checkout in a given PATH, one commit per
-    docstring. The code for the module is assumed to be in PATH/modulename
-    
-    IMPORTANT NOTE:
-    
-        OLD.XML must be generated by pydoc_moin collect from a compiled
-        version of the sources in PATH, otherwise the sources in PATH
-        will be overwritten by old files.
-    
-    """
-    opt_list = [
-        make_option("--author", action="store", type=str, dest="author",
-                    default="pydoc_moin", help="author to commit as bzr log"),
-        make_option("-m", "--message", action="store", type=str, dest="message",
-                    default="Updated %s docstring from wiki",
-                    help="template for commit message. %s is replaced by docstring name"),
-    ]
-    opts, args, p = _default_optparse(cmd_bzr, args, opt_list,
-                                      syspath=True, nargs=3)
-    old_fn, new_fn, path = args
-
-    doc_old = Documentation.load(open(old_fn, 'r'))
-    doc_new = Documentation.load(open(new_fn, 'r'))
-    _extend_sys_path(doc_old, opts)
-
-    replacer = SourceReplacer(doc_old, doc_new)
-
-    os.chdir(path)
-
-    for new_el in doc_new.root.getchildren():
-        try:
-            fn = replacer.replace(new_el.get('id'))
-        except ValueError, e:
-            print >> sys.stderr, "ERROR:", e
-            continue
-
-        if fn is None:
-            # nothing to do
-            continue
-        
-        relative_fn = strip_path(fn)
-
-        if os.path.abspath(relative_fn) == fn:
-            print >> sys.stderr, "Don't know where to find file", fn
-            continue
-
-        new_code = "".join(replacer.new_sources[fn])
-
-        f = open(relative_fn, 'r')
-        old_code = f.read()
-        f.close()
-
-        if new_code == old_code:
-            # this is needed so that we don't need to recompile after every
-            # bzr commit; this avoids bzr error messages
-            continue
-
-        f = open(relative_fn, 'w')
-        f.write(new_code)
-        f.close()
-
-        print "EDIT", new_el.get('id')
-        p = subprocess.Popen(
-            ["bzr", "commit", "--author=%s" % opts.author,
-             "--message=%s" % (opts.message % new_el.get('id')),
-             relative_fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        if p.returncode != 0:
-            print >> sys.stderr, out + err
-            raise RuntimeError("bzr commit failed")
 
 #------------------------------------------------------------------------------
 
-COMMANDS = [cmd_collect, cmd_collect_ast, cmd_mangle, cmd_prune, cmd_list,
-            cmd_patch, cmd_numpy_docs, cmd_bzr, cmd_pyrex_docs, cmd_sphinx_docs]
+COMMANDS = [cmd_collect, cmd_mangle, cmd_prune, cmd_list,
+            cmd_patch, cmd_numpy_docs, cmd_pyrex_docs, cmd_sphinx_docs]
 
 #------------------------------------------------------------------------------
 # Source code replacement
 #------------------------------------------------------------------------------
 
 class SourceReplacer(object):
-    def __init__(self, doc_old, doc_new):
+    def __init__(self, doc_old, doc_new, err_stream):
         self.doc_old = doc_old
         self.doc_new = doc_new
+
+        self.err_stream = err_stream
         
         self.old_sources = {}
         self.new_sources = {}
@@ -757,7 +655,8 @@ class SourceReplacer(object):
                 src += "\n"
             self.old_sources[file] = src.splitlines(1)
             self.new_sources[file] = list(self.old_sources[file])
-            print >> sys.stderr, "ERROR: %s: source location for docstring is not known" % new_id
+            print("ERROR: %s: source location for docstring is not known" % new_id,
+                  file=self.err_stream)
         else:
             file, line = el.get('file'), int(el.get('line'))
             line = max(line-1, 0) # numbering starts from line 1
@@ -776,30 +675,27 @@ class SourceReplacer(object):
         else:
             ch_iter = iter_chars_on_lines(lines, line)
         statement_iter = iter_statements(ch_iter)
-        
+
         statements = []
         try:
             statements.append(statement_iter.next())
             statements.append(statement_iter.next())
         except StopIteration:
             pass
-        
+
         def is_string(s):
             """Is the given AST expr Discard(Const('string'))"""
-            return (isinstance(s, compiler.ast.Discard) and
-                    isinstance(s.expr, compiler.ast.Const) and
-                    type(s.expr.value) in (str, unicode))
-        
+            return isinstance(s, ast.Expr) and isinstance(s.value, ast.Str)
+
         def is_block(s):
             """Is the given AST expr Class or Function"""
-            return (isinstance(s, compiler.ast.Class) or
-                    isinstance(s, compiler.ast.Function))
-        
+            return isinstance(s, ast.ClassDef) or isinstance(s, ast.FunctionDef)
+
         def get_indent(s):
             """Return the indent on the given line"""
             n_indent_ch = len(s) - len(s.lstrip())
             return s[:n_indent_ch]
-        
+
         indent = None
         pre_stuff, post_stuff = "", "\n"
 
@@ -907,25 +803,25 @@ class SourceReplacer(object):
         Form parts surrounding a docstring corresponding to an add_newdoc
         Discard(CallFunc()) statement.
         """
-        if not (isinstance(statement, compiler.ast.Discard)
-                and isinstance(statement.expr, compiler.ast.CallFunc)
-                and statement.expr.node.name == 'add_newdoc'):
+        if not (isinstance(statement, ast.Expr)
+                and isinstance(statement.value, ast.Call)
+                and statement.value.func.id == 'add_newdoc'):
             raise ValueError('not a add_newdoc statement')
-        expr = statement.expr
+        expr = statement.value
         v = expr.args
-        name = "%s.%s" % (v[0].value, v[1].value)
-        if isinstance(v[2], compiler.ast.Tuple):
-            y = v[2].getChildNodes()
-            name += ".%s" % (y[0].value)
+        name = "%s.%s" % (v[0].s, v[1].s)
+        if isinstance(v[2], ast.Tuple):
+            y = v[2].elts
+            name += ".%s" % (y[0].s,)
             pre = "add_newdoc('%s', '%s', ('%s',\n" % (
-                v[0].value.encode('string-escape'),
-                v[1].value.encode('string-escape'),
-                y[0].value.encode('string-escape'))
+                v[0].s.encode('string-escape'),
+                v[1].s.encode('string-escape'),
+                y[0].s.encode('string-escape'))
             post = "))\n"
         else:
             pre = "add_newdoc('%s', '%s',\n" % (
-                v[0].value.encode('string-escape'),
-                v[1].value.encode('string-escape'))
+                v[0].s.encode('string-escape'),
+                v[1].s.encode('string-escape'))
             post = ")\n"
         return pre, post
 
@@ -949,10 +845,10 @@ def iter_statements(ch_iter):
     ----------
     ch_iter : iterator -> (char, line_number, char_position)
         Iterator over characters in Python code
-    
+
     Yields
     ------
-    statement : compiler.ast.*
+    statement : ast.*
         Statement encountered
     start_lineno : int
         Statement start line number
@@ -993,14 +889,13 @@ def iter_statements(ch_iter):
             # - "pass" on bottom so that any children are replaced with Pass()
             # - "\npass" first to catch comment lines
             try:
-                p = compiler.parse("pass\n" + statement.strip() + "\npass")
+                p = ast.parse("pass\n" + statement.strip() + "\npass")
             except (SyntaxError, IndentationError):
-                p = compiler.parse("pass\n" + statement.strip() + " pass")
+                p = ast.parse("pass\n" + statement.strip() + " pass")
 
-            expr = p.getChildNodes()[0].getChildNodes()[1]
+            expr = p.body[1]
 
-            if isinstance(expr, compiler.ast.Pass) \
-                   and len(p.getChildNodes()[0].getChildNodes()) == 2:
+            if isinstance(expr, ast.Pass) and len(p.body) == 2:
                 # found a comment line
                 pass
             else:
@@ -1029,7 +924,7 @@ def strip_path(fn, paths=None):
 
 
 #------------------------------------------------------------------------------
-# Harvesting docstrings
+# AST-based docstring harvesting
 #------------------------------------------------------------------------------
 
 class Documentation(object):
@@ -1066,52 +961,105 @@ class Documentation(object):
         self._id_cache = {}
         self._inverse_refs = {}
         self._parents = {}
-        self._obj_name_cache = {}
 
-    def add_module(self, module_name, limit_crawl=False):
-        """Crawl given module for documentation"""
-        __import__(module_name)
-        mod = sys.modules[module_name]
+        self._root_paths = set()
+        self._pending_imports = []
 
-        if limit_crawl:
-            self.crawl_limit = module_name + '.'
+        self._current_file_name = None
+
+
+    # -- Adding content
+
+    def add_module(self, dir_name):
+        if os.path.isdir(dir_name):
+            self._root_paths.add(os.path.abspath(os.path.dirname(dir_name)))
+            self._add_package(dir_name)
         else:
-            self.crawl_limit = None
+            self._root_paths.append(os.path.abspath(os.path.dirname(dir_name)))
+            self._add_module(dir_name)
 
-        # import sub-packages (only one level)
-        if hasattr(mod, '__path__'):
-            for pth in mod.__path__:
-                for fn in os.listdir(pth):
-                    init_py = os.path.join(pth, fn, '__init__.py')
-                    base_py = os.path.join(pth, fn)
-
-                    if os.path.isfile(base_py) and base_py.endswith('.py'):
-                        mod_name = fn[:-3]
-                        if mod_name == "__init__": continue
-                    elif os.path.isfile(init_py):
-                        mod_name = fn
-                    else:
-                        continue
-
-                    nm = "%s.%s" % (module_name, mod_name)
-                    try:
-                        __import__(nm)
-                    except:
-                        print >> sys.stderr, "Failed to import module %s" % nm
-                        pass
-
-        cname = self._canonical_name(mod, self.root, None)
-        if cname in self._id_cache:
-            # re-visit the module, in case more sub-packages can be seen
-            self.root.remove(self._id_cache[cname])
-            del self._id_cache[cname]
-
-        self._visit(mod, self.root, None)
+        module_name, _ = self._get_module_name(dir_name)
         if 'modules' not in self.root.attrib:
             self.root.attrib['modules'] = module_name
         else:
             self.root.attrib['modules'] += " "  + module_name
+
+        self._process_imports(star=True)
+
+    def _add_package(self, dir_name):
+        for fn in os.listdir(dir_name):
+            fn = os.path.join(dir_name, fn)
+            if os.path.isfile(fn) and fn.endswith('.py'):
+                self._add_module(fn)
+            elif os.path.isdir(fn) and \
+                 os.path.isfile(os.path.join(fn, '__init__.py')):
+                self._add_package(fn)
+
+    def _add_module(self, file_name):
+        """Crawl given module for documentation"""
+        module_name, is_package = self._get_module_name(file_name)
+
+        old_file_name = self._current_file_name
+        try:
+            self._current_file_name = file_name
+
+            with open(file_name, 'rb') as f:
+                node = ast.parse(f.read(), filename=file_name)
+            ast.fix_missing_locations(node)
+
+            self._visit_module(node, self.root, module_name, is_package=is_package)
+            self._process_imports()
+            self.recache()
+        finally:
+            self._current_file_name = old_file_name
+
+    def _get_module_name(self, file_name):
+        """
+        Convert a file name to a module name, using information about
+        current root paths.
+
+        """
+        pth = os.path.abspath(file_name)
+        for base_path in self._root_paths:
+            if pth.startswith(base_path + os.sep):
+                is_package = False
+                module_name = pth[len(base_path)+1:].replace(os.sep, '.')
+                if module_name.endswith('.py'):
+                    module_name = module_name[:-3]
+                if module_name.endswith('.__init__'):
+                    module_name = module_name[:-9]
+                    is_package = True
+                return module_name, is_package
+        raise ValueError("Could not determine module name for file '%s'" % file_name)
+
+
+    # -- I/O
+
+    def dump(self, stream):
+        """Write the XML document to given stream"""
+        stream.write('<?xml version="1.0" encoding="utf-8"?>\n')
+        doctype = '<!DOCTYPE pydoc SYSTEM "pydoc.dtd">'
+        try:
+            if self.tree.docinfo.doctype != doctype:
+                raise AttributeError()
+        except AttributeError:
+            stream.write(doctype + "\n")
+        self.tree.write(stream, encoding='utf-8')
+
+    @classmethod
+    def load(cls, stream):
+        """Load XML document from given stream"""
+        self = cls()
+        try:
+            self.tree = etree.parse(stream)
+        except etree.XMLSyntaxError:
+            raise IOError("Failed to parse XML tree from %s" % stream.name)
+        self.root = self.tree.getroot()
         self.recache()
+        return self
+
+
+    # -- Name lookup
 
     def resolve(self, name):
         """Return element with given *non*-canonical name, or None if not found"""
@@ -1157,32 +1105,6 @@ class Documentation(object):
         """List <ref>s pointing to an element with the given canonical name"""
         return self._inverse_refs.get(name) or []
 
-    def dump(self, stream):
-        """Write the XML document to given stream"""
-        stream.write('<?xml version="1.0" encoding="utf-8"?>\n')
-        doctype = '<!DOCTYPE pydoc SYSTEM "pydoc.dtd">'
-        try:
-            if self.tree.docinfo.doctype != doctype:
-                raise AttributeError()
-        except AttributeError:
-            stream.write(doctype + "\n")
-        self.tree.write(stream, encoding='utf-8')
-
-    @classmethod
-    def load(cls, stream):
-        """Load XML document from given stream"""
-        self = cls()
-        try:
-            self.tree = etree.parse(stream)
-        except etree.XMLSyntaxError:
-            raise IOError("Failed to parse XML tree from %s" % stream.name)
-        self.root = self.tree.getroot()
-        self.recache()
-        return self
-
-
-    # -- Misc
-
     def recache(self):
         self._inverse_refs = {}
         self._id_cache = {}
@@ -1193,7 +1115,6 @@ class Documentation(object):
         for x in node:
             if x.tag == 'ref':
                 self._inverse_refs.setdefault(x.attrib['ref'], []).append(x)
-                local_name = "%s.%s" % (node.attrib['id'], x.attrib['name'])
             elif 'id' in x.attrib:
                 self._id_cache[x.attrib['id']] = x
             self._parents[x] = node
@@ -1202,328 +1123,44 @@ class Documentation(object):
 
     # -- Harvesting documentation
 
-    def _visit(self, obj, parent, name):
-        if name in self.excludes:
-            return None
+    def _process_imports(self, star=False):
 
-        cname = self._canonical_name(obj, parent, name)
-        
-        if self.crawl_limit and not (cname+'.').startswith(self.crawl_limit):
-            return None
+        # XXX: process star imports in dependency order
 
-        if cname in self._id_cache:
-            return cname
-        elif inspect.ismodule(obj):
-            entry = self._visit_module(obj, parent, name)
-        elif inspect.isclass(obj):
-            entry = self._visit_class(obj, parent, name)
-        elif callable(obj):
-            entry = self._visit_callable(obj, parent, name)
-        else:
-            entry = self._visit_object(obj, parent, name)
+        while self._pending_imports:
+            for j, (node, name, as_name) in enumerate(self._pending_imports):
+                assert node.tag == 'module'
+                assert as_name
+                assert name
 
-        if entry is not None:
-            return entry.attrib['id']
-        else:
-            return None
-
-    def _visit_module(self, obj, parent, name):
-        entry = self._basic_entry('module', obj, parent, name)
-
-        # add children
-        try:
-            _all = obj.__all__
-        except AttributeError:
-            _all = None
-
-        for name, value in self._getmembers(obj):
-            child_id = self._visit(value, entry, name)
-            if child_id is None: continue
-
-            el = etree.SubElement(entry, "ref")
-            el.attrib['name'] = name
-            el.attrib['ref'] = child_id
-
-            if _all is not None:
-                if name in _all:
-                    el.attrib['in-all'] = '1'
-                else:
-                    el.attrib['in-all'] = '0'
-
-        return entry
-    
-    def _visit_class(self, obj, parent, name):
-        entry = self._basic_entry('class', obj, parent, name)
-
-        for b in obj.__bases__:
-            el = etree.SubElement(entry, 'base')
-            el.attrib['ref'] = "%s.%s" % (b.__module__, b.__name__)
-        
-        for name, value in self._getmembers(obj):
-            child_id = self._visit(value, entry, name)
-            if child_id is None: continue
-
-            el = etree.SubElement(entry, "ref")
-            el.attrib['name'] = name
-            el.attrib['ref'] = child_id
-
-        return entry
-
-    def _visit_callable(self, obj, parent, name):
-        entry = self._basic_entry('callable', obj, parent, name)
-
-        try:
-            spec = inspect.getargspec(obj)
-            entry.attrib['argspec'] = inspect.formatargspec(*spec)
-        except TypeError:
-            pass
-
-        try:
-            entry.attrib['objclass'] = "%s.%s" % (obj.im_class.__module__,
-                                                  obj.im_class.__name__)
-        except AttributeError:
-            pass
-        
-        try:
-            entry.attrib['objclass'] = "%s.%s" % (obj.__objclass__.__module__,
-                                                  obj.__objclass__.__name__)
-        except AttributeError:
-            pass
-
-        return entry
-
-    def _visit_object(self, obj, parent, name):
-        entry = self._basic_entry('object', obj, parent, name)
-        return entry
-
-    def _getmembers(self, obj):
-        try:
-            members = inspect.getmembers(obj)
-        except AttributeError:
-            members = []
-        members.sort(key=lambda x: (not inspect.ismodule(x[1]),
-                                    not inspect.isclass(x[1]),
-                                    not callable(x[1]),
-                                    x[0]))
-        return members
-    
-    def _basic_entry(self, cls, obj, parent, name):
-        entry = etree.SubElement(self.root, cls)
-        entry.attrib['id'] = self._canonical_name(obj, parent, name)
-
-        t = type(obj)
-        entry.attrib['type'] = "%s.%s" % (t.__module__, t.__name__)
-
-        doc = inspect.getdoc(obj)
-        if hasattr(obj, '__class__'):
-            classdoc = inspect.getdoc(obj.__class__)
-        else: 
-            classdoc = None
-        if doc != classdoc and doc is not None:
-            entry.text = escape_text(doc)
-        else:
-            entry.text = ""
-
-        f, l = self._get_source_info(obj, parent)
-        if f:
-            entry.attrib['file'] = os.path.abspath(str(f))
-        if l is not None:
-            entry.attrib['line'] = str(l)
-
-        self._id_cache[entry.attrib['id']] = entry
-        return entry
-
-    def _canonical_name(self, obj, parent, name):
-        try:
-            return self._obj_name_cache[self._id(obj)]
-        except KeyError:
-            pass
-
-        if inspect.ismodule(obj):
-            return obj.__name__
-
-        module_name = None
-        cls_name = None
-
-        def get_mod_name(n):
-            if n in sys.modules:
-                return n
-            if parent is not None:
-                n = "%s.%s" % (parent.attrib['id'], n)
-                if n in sys.modules:
-                    return n
-            return module_name
-
-        try:
-            if obj.__self__ is None: raise ValueError()
-            
-            if module_name is None:
-                if inspect.isclass(obj.__self__):
-                    module_name = get_mod_name(obj.__self__.__module__)
-                else:
-                    module_name = get_mod_name(obj.__self__.__class__.__module__)
-            if cls_name is None:
-                if inspect.isclass(obj.__self__):
-                    cls_name = obj.__self__.__name__
-                else:
-                    cls_name = obj.__self__.__class__.__name__
-        except (AttributeError, ValueError):
-            pass
-
-        try:
-            if module_name is None:
-                module_name = get_mod_name(obj.__objclass__.__module__)
-            if cls_name is None:
-                cls_name = obj.__objclass__.__name__
-        except (AttributeError, ValueError):
-            pass
-
-        try:
-            if module_name is None:
-                module_name = get_mod_name(obj.im_class.__module__)
-            if cls_name is None:
-                cls_name = obj.im_class.__name__
-        except (AttributeError, ValueError, OSError):
-            pass
-
-        try:
-            if module_name is None:
-                module_name = get_mod_name(obj.__module__)
-        except (AttributeError, ValueError):
-            pass
-
-        try:
-            if module_name is None and parent.tag == 'module':
-                module_name = parent.attrib['id']
-            if (cls_name is None or module_name is None) and parent.tag == 'class':
-                module_name = parent.attrib['id']
-                cls_name = None
-        except (AttributeError, ValueError):
-            pass
-
-        # -- Object name
-        
-        obj_name = None
-        
-        try:
-            obj_name = obj.__name__
-        except (AttributeError, ValueError):
-            pass
-        
-        if obj_name is None:
-            module_name = parent.attrib['id']
-            cls_name = None
-            obj_name = name
-        
-        # -- Construct
-
-        if (hasattr(obj, 'im_class') and hasattr(obj, 'im_func') and
-                hasattr(obj.im_class, '__bases__')):
-            # is this inherited from base classes?
-            for b in obj.im_class.__bases__:
-                try:
-                    obj2 = getattr(b, obj.im_func.func_name, None)
-                except AttributeError:
+                if as_name == '*' and not star:
                     continue
-                if hasattr(obj2, 'im_func') and obj2.im_func is obj.im_func:
-                    return self._canonical_name(obj2, parent, name)
 
-        if cls_name and module_name:
-            name = "%s.%s.%s" % (module_name, cls_name, obj_name)
-        elif module_name:
-            name = "%s.%s" % (module_name, obj_name)
-        else:
-            name = obj_name
-        
-        if hasattr(obj, '__name__'):
-            self._obj_name_cache[self._id(obj)] = name
-        return name
-    
-    def _id(self, obj):
-        try: return id(obj.im_func)
-        except: return id(obj)
+                target = self.resolve(name)
+                if target is None:
+                    # try relative import
+                    if node.attrib.get('package') == '1':
+                        name2 = '.'.join([node.attrib['id'], name])
+                    else:
+                        name2 = '.'.join(node.attrib['id'].split('.')[:-1] + [name])
+                    target = self.resolve(name2)
 
-    def _get_source_info(self, obj, parent):
-        """Get information about object source code"""
-        try: return obj.func_code.co_filename, obj.func_code.co_firstlineno
-        except: pass
-
-        try:
-            f, l = inspect.getsourcefile(obj), inspect.getsourcelines(obj)[1]
-            if f is not None:
-                return f, l
-        except (TypeError, IOError, AttributeError, SyntaxError):
-            pass
-
-        try: return obj.__file__, None
-        except AttributeError: pass
-
-        return parent.attrib.get('file', None), None
-
-
-def escape_text(text):
-    """Escape text so that it can be included within double quotes or XML"""
-    if isinstance(text, unicode):
-        text = text.encode('utf-8')
-    text = text.encode('string-escape')
-    return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)(|\\\\|\\\\\\\\)?\\n", "\\1\n", text))
-
-
-#------------------------------------------------------------------------------
-# AST-based docstring harvesting
-#------------------------------------------------------------------------------
-
-import ast
-
-class ASTDocumentation(Documentation):
-    """Construct Documentation tree by AST parsing"""
-
-    def __init__(self):
-        super(ASTDocumentation, self).__init__()
-        self._root_paths = set()
-        self._imports_map = {}
-
-    def add_module(self, dir_name):
-        if os.path.isdir(dir_name):
-            self._root_paths.add(os.path.abspath(os.path.dirname(dir_name)))
-            self._add_package(dir_name)
-        else:
-            self._root_paths.append(os.path.abspath(os.path.dirname(dir_name)))
-            self._add_module(file_name)
-        self._process_imports()
-
-    def _add_package(self, dir_name):
-        for fn in os.listdir(dir_name):
-            fn = os.path.join(dir_name, fn)
-            if os.path.isfile(fn) and fn.endswith('.py'):
-                self._add_module(fn)
-            elif os.path.isdir(fn) and \
-                 os.path.isfile(os.path.join(fn, '__init__.py')):
-                self._add_package(fn)
-
-    def _add_module(self, file_name):
-        """Crawl given module for documentation"""
-        module_name = self._get_module_name(file_name)
-
-        with open(file_name, 'rb') as f:
-            node = ast.parse(f.read(), filename=file_name)
-        ast.fix_missing_locations(node)
-
-        if 'modules' not in self.root.attrib:
-            self.root.attrib['modules'] = module_name
-        else:
-            self.root.attrib['modules'] += " "  + module_name
-
-        self._visit(node, self.root, module_name)
-        self.recache()
-
-    # -- Import processing
-
-    def _process_imports(self):
-        # XXX: not implemented
-        pass
-
-    # -- Harvesting documentation
+                if target is not None:
+                    if as_name != '*':
+                        el = etree.SubElement(node, 'ref')
+                        el.attrib['name'] = as_name
+                        el.attrib['ref'] = target.attrib['id']
+                    else:
+                        # star import
+                        assert target.tag == 'module'
+                        for item in target.findall('ref'):
+                            self._pending_imports.append(
+                                (node, item.attrib['ref'], item.attrib['name']))
+                    del self._pending_imports[j]
+                    break
+            else:
+                # unresolvable imports remaining
+                break
 
     DISPATCH = {}
 
@@ -1538,27 +1175,58 @@ class ASTDocumentation(Documentation):
                 return entry.attrib['id']
         return None
 
-    def _visit_module(self, node, parent, name):
+    def _visit_module(self, node, parent, name, is_package=False):
         entry = self._basic_entry('module', node, parent, name)
 
-        # add children
+        if is_package:
+            entry.attrib['package'] = '1'
+
+        # grab __all__, if any
         _all = None
+        for child in node.body:
+            if (isinstance(child, ast.Assign) and
+                isinstance(child.targets[0], ast.Name) and
+                child.targets[0].id == '__all__' and
+                isinstance(child.value, (ast.List, ast.Tuple))):
+
+                _all = []
+                for name in child.value.elts:
+                    if isinstance(name, ast.Str):
+                        _all.append(name.s)
+                    else:
+                        # not a literal: cannot resolve
+                        _all = None
+                        break
+            elif (isinstance(child, ast.Expr) and 
+                  isinstance(child.value, ast.Call) and 
+                  isinstance(child.value.func, ast.Attribute) and
+                  child.value.func.value.id == '__all__'):
+                # mutation of __all__: cannot resolve
+                _all = None
+
+        # add children
 
         for child in node.body:
+            if (isinstance(child, ast.ImportFrom) or
+                isinstance(child, ast.Import)):
+                self._visit(child, entry, None)
+                continue
+
             try:
                 child_name = child.name
             except AttributeError:
                 continue
 
             child_id = self._visit(child, entry, child_name)
-            if child_id is None: continue
+            if child_id is None:
+                continue
 
             el = etree.SubElement(entry, "ref")
             el.attrib['name'] = child_name
             el.attrib['ref'] = child_id
 
             if _all is not None:
-                if name in _all:
+                if child_name in _all:
                     el.attrib['in-all'] = '1'
                 else:
                     el.attrib['in-all'] = '0'
@@ -1609,14 +1277,52 @@ class ASTDocumentation(Documentation):
         return entry
     DISPATCH[ast.FunctionDef] = _visit_function
 
+    def _get_import_module(self, node, parent):
+        if parent.tag != 'module':
+            return None
+
+        def xjoin(s, m):
+            return s.join(x for x in m if x)
+
+        if node.level > 0:
+            # relative import
+            base_lst = parent.attrib['id'].split('.')
+            if not parent.attrib.get('package') == '1':
+                base_lst = base_lst[:-1]
+            module = xjoin('.', base_lst[:-node.level] + [node.module])
+        else:
+            # absolute import
+            module = node.module
+
+        return module
+
     def _visit_import(self, node, parent, name):
-        # XXX: not implemented
-        pass
+        if parent.tag != 'module':
+            return
+
+        for ob in node.names:
+            name = ob.name
+            as_name = ob.asname
+            if as_name is None:
+                as_name = name
+            self._pending_imports.append((parent, name, as_name))
     DISPATCH[ast.Import] = _visit_import
 
-    def _visit_import_from(self, obj, parent, name):
-        # XXX: not implemented
-        pass
+    def _visit_import_from(self, node, parent, name):
+        base_module = self._get_import_module(node, parent)
+        if not base_module:
+            return
+
+        for ob in node.names:
+            name = ob.name
+            if name == '*':
+                self._pending_imports.append((parent, base_module, '*'))
+                continue
+            else:
+                as_name = ob.asname
+                if as_name is None:
+                    as_name = name
+                self._pending_imports.append((parent, base_module + "." + name, as_name))
     DISPATCH[ast.ImportFrom] = _visit_import_from
 
     def _basic_entry(self, cls, node, parent, name):
@@ -1637,9 +1343,7 @@ class ASTDocumentation(Documentation):
         else:
             entry.text = ""
 
-        f = parent.attrib.get('file')
-        if f:
-            entry.attrib['file'] = os.path.abspath(str(f))
+        entry.attrib['file'] = self._current_file_name
 
         if isinstance(node, ast.Module):
             entry.attrib['line'] = "0"
@@ -1652,17 +1356,6 @@ class ASTDocumentation(Documentation):
         self._id_cache[entry.attrib['id']] = entry
         return entry
 
-    def _get_module_name(self, file_name):
-        pth = os.path.abspath(file_name)
-        for base_path in self._root_paths:
-            if pth.startswith(base_path + os.sep):
-                module_name = pth[len(base_path)+1:].replace(os.sep, '.')
-                if module_name.endswith('.py'):
-                    module_name = module_name[:-3]
-                if module_name.endswith('.__init__'):
-                    module_name = module_name[:-9]
-                return module_name
-        raise ValueError("Could not determine module name for file '%s'" % file_name)
 
 def _format_ast_argspec(args):
     items = []
@@ -1692,6 +1385,12 @@ def _ast_expr_to_string(node):
     else:
         return "<>"
 
+def escape_text(text):
+    """Escape text so that it can be included within double quotes or XML"""
+    if isinstance(text, unicode):
+        text = text.encode('utf-8')
+    text = text.encode('string-escape')
+    return re.sub(r"(?<!\\)\\'", "'", re.sub(r"(?<!\\)(|\\\\|\\\\\\\\)?\\n", "\\1\n", text))
 
 #------------------------------------------------------------------------------
 

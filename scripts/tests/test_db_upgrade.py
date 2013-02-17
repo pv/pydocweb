@@ -32,3 +32,6 @@ class TestDatabaseUpgrade(unittest.TestCase):
 
         page = models.WikiPage.on_site.get(name='Front Page')
         revs = page.revisions.all()
+
+if __name__ == "__main__":
+    unittest.main()

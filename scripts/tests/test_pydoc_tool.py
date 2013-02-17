@@ -1,4 +1,4 @@
-import os, sys, shutil, tempfile, subprocess, os, random, glob, compiler.ast
+import os, sys, shutil, tempfile, subprocess, os, random, glob, ast
 try:
     import xml.etree.ElementTree as etree
 except ImportError:
@@ -27,11 +27,10 @@ class TestPydoctool(unittest.TestCase):
 
         # -- collect base docstrings
 
-        ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                               '-o', 'base0.xml', 'sample_module'])
+        ret = subprocess.call([PYDOCM, 'collect', '-o', 'base0.xml', 'sample_module'])
         assert ret == 0
 
-        ret = subprocess.call([PYDOCM, 'numpy-docs', '-s', cwd,
+        ret = subprocess.call([PYDOCM, 'numpy-docs',
                                '-o', 'base1.xml', '-i', 'base0.xml',
                                '-f', 'sample_module/add_newdocs.py'])
         assert ret == 0
@@ -90,7 +89,7 @@ class TestPydoctool(unittest.TestCase):
         # -- replace docstrings in source
 
         ret = subprocess.call([PYDOCM, 'patch', '-o', 'out.patch',
-                               '-s', cwd, 'base.xml', 'new.xml'])
+                               'base.xml', 'new.xml'])
         assert ret == 0
 
         f = open('out.patch', 'r')
@@ -101,6 +100,8 @@ class TestPydoctool(unittest.TestCase):
 
         # -- check that the patch touches the plain-text document files
 
+        print(patch)
+
         assert '\n+++ sample_module/doc/index.rst' in patch
         assert '\n+++ sample_module/doc/quux.rst' in patch
         assert '\n-Bar-ish documentation.' in patch
@@ -108,8 +109,7 @@ class TestPydoctool(unittest.TestCase):
 
         # -- collect them again
 
-        ret = subprocess.call([PYDOCM, 'collect', '-s', cwd,
-                               '-o', 'base2.xml', 'sample_module'])
+        ret = subprocess.call([PYDOCM, 'collect', '-o', 'base2.xml', 'sample_module'])
         assert ret == 0, patch
 
         # -- compare to inserted docstrings
@@ -168,11 +168,12 @@ class TestPydoctool(unittest.TestCase):
 
         it = pydoc_moin.iter_statements(ch_iter)
         s = list(it)
-        assert isinstance(s[0][0], compiler.ast.Function)
+        assert isinstance(s[0][0], ast.FunctionDef)
         assert lines[s[0][1]][s[0][2]:].startswith('def foo')
-        assert isinstance(s[1][0], compiler.ast.Discard)
-        assert isinstance(s[1][0].getChildNodes()[0], compiler.ast.Const)
-        assert isinstance(s[2][0], compiler.ast.Pass)
+        assert isinstance(s[1][0], ast.Expr)
+        assert isinstance(s[1][0].value, ast.Str)
+        assert s[1][0].value.s == 'foobar quux'
+        assert isinstance(s[2][0], ast.Pass)
 
 
 def garbage_generator(length=40*2):
@@ -182,3 +183,6 @@ def garbage_generator(length=40*2):
     for j in xrange(length):
         result += letters[random.randint(0, len(letters)-1)]
     return result + "\"\"\""
+
+if __name__ == "__main__":
+    unittest.main()
